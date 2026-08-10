@@ -1,0 +1,55 @@
+package br.com.ranbank.demo;
+
+import br.com.ranbank.account.BankAccount;
+import br.com.ranbank.account.BankAccountRepository;
+import br.com.ranbank.device.ConnectedDevice;
+import br.com.ranbank.device.ConnectedDeviceRepository;
+import br.com.ranbank.transaction.BankTransaction;
+import br.com.ranbank.transaction.BankTransactionRepository;
+import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/demo")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
+public class DemoResetController {
+    private final BankTransactionRepository transactionRepository;
+    private final BankAccountRepository accountRepository;
+    private final ConnectedDeviceRepository deviceRepository;
+
+    public DemoResetController(BankTransactionRepository transactionRepository, BankAccountRepository accountRepository,
+                               ConnectedDeviceRepository deviceRepository) {
+        this.transactionRepository = transactionRepository;
+        this.accountRepository = accountRepository;
+        this.deviceRepository = deviceRepository;
+    }
+
+    @PostMapping("/reset")
+    @Transactional
+    public Map<String, String> reset() {
+        transactionRepository.deleteAll();
+        deviceRepository.deleteAll();
+        accountRepository.deleteAll();
+        accountRepository.save(new BankAccount(1L, "Ana Ribeiro", "1234-5", new BigDecimal("8540.75")));
+        transactionRepository.saveAll(List.of(
+            new BankTransaction("Pix recebido", "Maria Silva Â· hoje, 09:41", new BigDecimal("250.00"), "credit"),
+            new BankTransaction("TransferÃªncia enviada", "JoÃ£o Pereira Â· hoje, 08:15", new BigDecimal("-120.00"), "debit"),
+            new BankTransaction("Pagamento", "Supermercado Bom PreÃ§o Â· ontem, 19:32", new BigDecimal("-89.90"), "debit"),
+            new BankTransaction("Compra no cartÃ£o", "Livraria Cultura Â· ontem, 16:20", new BigDecimal("-45.60"), "debit")
+        ));
+        deviceRepository.saveAll(List.of(
+            new ConnectedDevice("iPhone de Ana", "Celular", "BrasÃ­lia, DF", "Agora", true),
+            new ConnectedDevice("Notebook pessoal", "Computador", "BrasÃ­lia, DF", "Hoje, 20:14", true),
+            new ConnectedDevice("Galaxy S24", "Celular", "Taguatinga, DF", "Hoje, 03:18", false),
+            new ConnectedDevice("Caixa eletrÃ´nico 0842", "Terminal IoT", "Asa Sul, BrasÃ­lia, DF", "Ontem, 17:42", true)
+        ));
+        return Map.of("message", "DemonstraÃ§Ã£o restaurada com sucesso.");
+    }
+}
+
