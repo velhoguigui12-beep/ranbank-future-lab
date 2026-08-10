@@ -1,5 +1,15 @@
 services:
   - type: web
+    name: ranbank-future-lab
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: "https://ranbank-api.onrender.com/api"
+
+  - type: web
     name: ranbank-api
     runtime: docker
     plan: free
