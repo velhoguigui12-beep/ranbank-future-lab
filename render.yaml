@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ranbank-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/dashboard
+    envVars:
+      - key: H2_CONSOLE_ENABLED
+        value: "false"
+      - key: APP_CORS_ALLOWED_ORIGIN_PATTERNS
+        value: "http://localhost:3000,http://localhost:5173,https://*.onrender.com"
+
