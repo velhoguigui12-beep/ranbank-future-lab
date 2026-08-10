@@ -8,4 +8,3 @@ class RanbankApplicationTests {
     @Test
     void contextLoads() {}
 }
-

@@ -38,18 +38,17 @@ public class DemoResetController {
         accountRepository.deleteAll();
         accountRepository.save(new BankAccount(1L, "Ana Ribeiro", "1234-5", new BigDecimal("8540.75")));
         transactionRepository.saveAll(List.of(
-            new BankTransaction("Pix recebido", "Maria Silva Â· hoje, 09:41", new BigDecimal("250.00"), "credit"),
-            new BankTransaction("TransferÃªncia enviada", "JoÃ£o Pereira Â· hoje, 08:15", new BigDecimal("-120.00"), "debit"),
-            new BankTransaction("Pagamento", "Supermercado Bom PreÃ§o Â· ontem, 19:32", new BigDecimal("-89.90"), "debit"),
-            new BankTransaction("Compra no cartÃ£o", "Livraria Cultura Â· ontem, 16:20", new BigDecimal("-45.60"), "debit")
+            new BankTransaction("Pix recebido", "Maria Silva · hoje, 09:41", new BigDecimal("250.00"), "credit"),
+            new BankTransaction("Transferência enviada", "João Pereira · hoje, 08:15", new BigDecimal("-120.00"), "debit"),
+            new BankTransaction("Pagamento", "Supermercado Bom Preço · ontem, 19:32", new BigDecimal("-89.90"), "debit"),
+            new BankTransaction("Compra no cartão", "Livraria Cultura · ontem, 16:20", new BigDecimal("-45.60"), "debit")
         ));
         deviceRepository.saveAll(List.of(
-            new ConnectedDevice("iPhone de Ana", "Celular", "BrasÃ­lia, DF", "Agora", true),
-            new ConnectedDevice("Notebook pessoal", "Computador", "BrasÃ­lia, DF", "Hoje, 20:14", true),
+            new ConnectedDevice("iPhone de Ana", "Celular", "Brasília, DF", "Agora", true),
+            new ConnectedDevice("Notebook pessoal", "Computador", "Brasília, DF", "Hoje, 20:14", true),
             new ConnectedDevice("Galaxy S24", "Celular", "Taguatinga, DF", "Hoje, 03:18", false),
-            new ConnectedDevice("Caixa eletrÃ´nico 0842", "Terminal IoT", "Asa Sul, BrasÃ­lia, DF", "Ontem, 17:42", true)
+            new ConnectedDevice("Caixa eletrônico 0842", "Terminal IoT", "Asa Sul, Brasília, DF", "Ontem, 17:42", true)
         ));
-        return Map.of("message", "DemonstraÃ§Ã£o restaurada com sucesso.");
+        return Map.of("message", "Demonstração restaurada com sucesso.");
     }
 }
-

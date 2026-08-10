@@ -39,4 +39,3 @@ public class ConnectedDevice {
     public boolean isBlocked() { return blocked; }
     public void toggleBlocked() { blocked = !blocked; }
 }
-

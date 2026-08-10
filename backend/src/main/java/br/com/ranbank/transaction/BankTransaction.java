@@ -33,4 +33,3 @@ public class BankTransaction {
     public BigDecimal getAmount() { return amount; }
     public String getType() { return type; }
 }
-

@@ -1,6 +1,6 @@
 # Ranbank Future Lab
 
-AplicaÃ§Ã£o acadÃªmica que combina uma interface bancÃ¡ria com mÃ³dulos interativos sobre seguranÃ§a digital, IA, Big Data, IoT, nuvem, automaÃ§Ã£o, sustentabilidade, RA/VR, robÃ³tica e autenticaÃ§Ã£o.
+Aplicação acadêmica que combina uma interface bancária com módulos interativos sobre segurança digital, IA, Big Data, IoT, nuvem, automação, sustentabilidade, RA/VR, robótica e autenticação.
 
 ## Arquitetura
 
@@ -26,7 +26,7 @@ pnpm dev
 
 Abra `http://localhost:3000`.
 
-## VariÃ¡veis de hospedagem
+## Variáveis de hospedagem
 
 Frontend:
 
@@ -42,9 +42,8 @@ H2_CONSOLE_ENABLED=false
 APP_CORS_ALLOWED_ORIGIN_PATTERNS=https://endereco-do-frontend
 ```
 
-O backend contÃ©m um `Dockerfile` pronto para serviÃ§os compatÃ­veis com contÃªineres Java. Depois que o backend receber uma URL HTTPS, essa URL deve ser configurada no frontend por meio de `NEXT_PUBLIC_API_URL`.
+O backend contém um `Dockerfile` pronto para serviços compatíveis com contêineres Java. Depois que o backend receber uma URL HTTPS, essa URL deve ser configurada no frontend por meio de `NEXT_PUBLIC_API_URL`.
 
-## ApresentaÃ§Ã£o
+## Apresentação
 
-Use o botÃ£o **Iniciar apresentaÃ§Ã£o guiada** no Future Lab ou consulte `APRESENTACAO.md` para o roteiro de 6 a 8 minutos.
-
+Use o botão **Iniciar apresentação guiada** no Future Lab ou consulte `APRESENTACAO.md` para o roteiro de 6 a 8 minutos.

@@ -9,4 +9,3 @@ public class RanbankApplication {
         SpringApplication.run(RanbankApplication.class, args);
     }
 }
-

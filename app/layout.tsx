@@ -6,11 +6,10 @@ const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Ranbank | Future Lab",
-  description: "SimulaÃ§Ã£o educacional de banco digital, seguranÃ§a e tecnologias emergentes.",
+  description: "Simulação educacional de banco digital, segurança e tecnologias emergentes.",
   icons: { icon: "/ranbank-logo.jpeg" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="pt-BR"><body className={geist.variable}>{children}</body></html>;
 }
-

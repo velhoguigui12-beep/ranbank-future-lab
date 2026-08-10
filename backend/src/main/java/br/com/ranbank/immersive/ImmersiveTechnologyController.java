@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
 public class ImmersiveTechnologyController {
     private static final Map<String, ImmersiveScenario> SCENARIOS = Map.of(
-        "ar", new ImmersiveScenario("RA", "Realidade Aumentada", "AgÃªncia inteligente",
-            "InformaÃ§Ãµes digitais sÃ£o sobrepostas Ã  visÃ£o do ambiente real.",
-            List.of("CÃ¢mera reconhece o caixa eletrÃ´nico", "Setas orientam onde inserir o cartÃ£o", "Alertas destacam sinais de adulteraÃ§Ã£o"),
-            "Celular ou Ã³culos de RA", "OrientaÃ§Ã£o contextual", "Privacidade da cÃ¢mera e precisÃ£o do reconhecimento"),
+        "ar", new ImmersiveScenario("RA", "Realidade Aumentada", "Agência inteligente",
+            "Informações digitais são sobrepostas à visão do ambiente real.",
+            List.of("Câmera reconhece o caixa eletrônico", "Setas orientam onde inserir o cartão", "Alertas destacam sinais de adulteração"),
+            "Celular ou óculos de RA", "Orientação contextual", "Privacidade da câmera e precisão do reconhecimento"),
         "vr", new ImmersiveScenario("VR", "Realidade Virtual", "Treinamento antifraude",
-            "O usuÃ¡rio entra em um ambiente digital imersivo, separado do espaÃ§o real.",
-            List.of("CenÃ¡rio simula uma agÃªncia bancÃ¡ria", "Personagens apresentam tentativas de golpe", "Escolhas geram feedback sem risco real"),
-            "Ã“culos VR e controles", "Treinamento seguro", "Custo dos equipamentos e possÃ­vel desconforto")
+            "O usuário entra em um ambiente digital imersivo, separado do espaço real.",
+            List.of("Cenário simula uma agência bancária", "Personagens apresentam tentativas de golpe", "Escolhas geram feedback sem risco real"),
+            "Óculos VR e controles", "Treinamento seguro", "Custo dos equipamentos e possível desconforto")
     );
 
     @GetMapping
@@ -31,4 +31,3 @@ public class ImmersiveTechnologyController {
     public record ImmersiveScenario(String code, String name, String title, String definition,
                                     List<String> steps, String equipment, String strength, String limitation) {}
 }
-

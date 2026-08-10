@@ -12,4 +12,3 @@ ENV PORT=8080
 ENV H2_CONSOLE_ENABLED=false
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
-

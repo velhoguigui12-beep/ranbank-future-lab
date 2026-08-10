@@ -30,7 +30,7 @@ public class ConnectedDeviceController {
     @ResponseStatus(HttpStatus.OK)
     public DeviceResponse toggleBlock(@PathVariable Long id) {
         ConnectedDevice device = repository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dispositivo nÃ£o encontrado."));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dispositivo não encontrado."));
         device.toggleBlocked();
         return DeviceResponse.from(repository.save(device));
     }
@@ -43,4 +43,3 @@ public class ConnectedDeviceController {
         }
     }
 }
-

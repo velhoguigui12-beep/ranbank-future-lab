@@ -40,4 +40,3 @@ public class AnalyticsController {
         BigDecimal totalIn, BigDecimal totalOut, BigDecimal averageOut, BigDecimal largestOut,
         List<BigDecimal> series) {}
 }
-

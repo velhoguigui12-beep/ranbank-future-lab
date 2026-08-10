@@ -35,24 +35,24 @@ public class CloudSimulationController {
         boolean failed = primaryFailure.get();
         List<CloudRegion> regions = failed
             ? List.of(
-                new CloudRegion("BrasÃ­lia", "br-central", "INDISPONÃVEL", 0, 0),
-                new CloudRegion("GoiÃ¢nia", "br-central-2", "ATIVA", 62, 24),
+                new CloudRegion("Brasília", "br-central", "INDISPONÍVEL", 0, 0),
+                new CloudRegion("Goiânia", "br-central-2", "ATIVA", 62, 24),
                 new CloudRegion("Fortaleza", "br-northeast", "ATIVA", 38, 44))
             : List.of(
-                new CloudRegion("BrasÃ­lia", "br-central", "ATIVA", 60, 12),
-                new CloudRegion("GoiÃ¢nia", "br-central-2", "ATIVA", 25, 24),
+                new CloudRegion("Brasília", "br-central", "ATIVA", 60, 12),
+                new CloudRegion("Goiânia", "br-central-2", "ATIVA", 25, 24),
                 new CloudRegion("Fortaleza", "br-northeast", "STANDBY", 15, 44));
 
         List<RecoveryStep> timeline = failed
             ? List.of(
-                new RecoveryStep("00 ms", "Falha detectada", "A regiÃ£o principal deixou de responder."),
-                new RecoveryStep("120 ms", "Health check confirmou", "TrÃªs verificaÃ§Ãµes consecutivas falharam."),
-                new RecoveryStep("240 ms", "TrÃ¡fego redirecionado", "As regiÃµes secundÃ¡rias assumiram as requisiÃ§Ãµes."),
-                new RecoveryStep("380 ms", "ServiÃ§o estabilizado", "A aplicaÃ§Ã£o continuou disponÃ­vel para o usuÃ¡rio."))
-            : List.of(new RecoveryStep("Agora", "OperaÃ§Ã£o normal", "As regiÃµes estÃ£o sincronizadas e monitoradas."));
+                new RecoveryStep("00 ms", "Falha detectada", "A região principal deixou de responder."),
+                new RecoveryStep("120 ms", "Health check confirmou", "Três verificações consecutivas falharam."),
+                new RecoveryStep("240 ms", "Tráfego redirecionado", "As regiões secundárias assumiram as requisições."),
+                new RecoveryStep("380 ms", "Serviço estabilizado", "A aplicação continuou disponível para o usuário."))
+            : List.of(new RecoveryStep("Agora", "Operação normal", "As regiões estão sincronizadas e monitoradas."));
 
-        return new CloudStatus(failed ? "DEGRADADO" : "SAUDÃVEL", failed ? "99,98%" : "100%",
-            failed ? "GoiÃ¢nia" : "BrasÃ­lia", failed, regions, timeline);
+        return new CloudStatus(failed ? "DEGRADADO" : "SAUDÁVEL", failed ? "99,98%" : "100%",
+            failed ? "Goiânia" : "Brasília", failed, regions, timeline);
     }
 
     public record CloudRegion(String name, String code, String status, int trafficPercent, int latencyMs) {}
@@ -60,4 +60,3 @@ public class CloudSimulationController {
     public record CloudStatus(String systemStatus, String availability, String activeRegion,
         boolean failureActive, List<CloudRegion> regions, List<RecoveryStep> timeline) {}
 }
-

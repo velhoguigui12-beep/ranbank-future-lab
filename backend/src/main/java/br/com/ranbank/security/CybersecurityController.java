@@ -14,17 +14,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class CybersecurityController {
     private static final Map<String, ThreatScenario> SCENARIOS = Map.of(
         "phishing", new ThreatScenario("Phishing", "Engenharia social", 78,
-            "Um e-mail falso tenta roubar a senha e o cÃ³digo de verificaÃ§Ã£o.",
-            List.of("Remetente imita uma empresa conhecida", "Link aponta para domÃ­nio diferente", "Mensagem cria senso de urgÃªncia"),
-            List.of(new DefenseStep("Filtro de e-mail", "Mensagem marcada como suspeita", "automatica"), new DefenseStep("MFA", "Senha roubada nÃ£o basta para acessar", "automatica"), new DefenseStep("ConfirmaÃ§Ã£o do usuÃ¡rio", "Pessoa verifica o endereÃ§o antes de continuar", "humana"))),
-        "ransomware", new ThreatScenario("Ransomware", "Malware de extorsÃ£o", 96,
+            "Um e-mail falso tenta roubar a senha e o código de verificação.",
+            List.of("Remetente imita uma empresa conhecida", "Link aponta para domínio diferente", "Mensagem cria senso de urgência"),
+            List.of(new DefenseStep("Filtro de e-mail", "Mensagem marcada como suspeita", "automatica"), new DefenseStep("MFA", "Senha roubada não basta para acessar", "automatica"), new DefenseStep("Confirmação do usuário", "Pessoa verifica o endereço antes de continuar", "humana"))),
+        "ransomware", new ThreatScenario("Ransomware", "Malware de extorsão", 96,
             "Um arquivo malicioso tenta criptografar dados e exigir pagamento.",
-            List.of("Muitas alteraÃ§Ãµes de arquivos em poucos segundos", "Processo desconhecido solicita privilÃ©gios", "Tentativa de desativar cÃ³pias de seguranÃ§a"),
-            List.of(new DefenseStep("EDR / antivÃ­rus", "Processo malicioso interrompido", "automatica"), new DefenseStep("SegmentaÃ§Ã£o", "Dispositivo isolado da rede", "automatica"), new DefenseStep("Backup", "Dados restaurados sem pagar resgate", "humana"))),
-        "trojan", new ThreatScenario("Trojan bancÃ¡rio", "Malware disfarÃ§ado", 88,
-            "Um aplicativo aparentemente legÃ­timo tenta capturar dados bancÃ¡rios.",
-            List.of("Aplicativo instalado fora da loja oficial", "PermissÃµes incompatÃ­veis com a funÃ§Ã£o", "SobreposiÃ§Ã£o detectada na tela do banco"),
-            List.of(new DefenseStep("AnÃ¡lise comportamental", "Comportamento anormal identificado", "automatica"), new DefenseStep("Biometria", "OperaÃ§Ã£o exige nova validaÃ§Ã£o", "automatica"), new DefenseStep("Bloqueio preventivo", "Equipe analisa o dispositivo", "humana")))
+            List.of("Muitas alterações de arquivos em poucos segundos", "Processo desconhecido solicita privilégios", "Tentativa de desativar cópias de segurança"),
+            List.of(new DefenseStep("EDR / antivírus", "Processo malicioso interrompido", "automatica"), new DefenseStep("Segmentação", "Dispositivo isolado da rede", "automatica"), new DefenseStep("Backup", "Dados restaurados sem pagar resgate", "humana"))),
+        "trojan", new ThreatScenario("Trojan bancário", "Malware disfarçado", 88,
+            "Um aplicativo aparentemente legítimo tenta capturar dados bancários.",
+            List.of("Aplicativo instalado fora da loja oficial", "Permissões incompatíveis com a função", "Sobreposição detectada na tela do banco"),
+            List.of(new DefenseStep("Análise comportamental", "Comportamento anormal identificado", "automatica"), new DefenseStep("Biometria", "Operação exige nova validação", "automatica"), new DefenseStep("Bloqueio preventivo", "Equipe analisa o dispositivo", "humana")))
     );
 
     @GetMapping("/simulate")
@@ -35,4 +35,3 @@ public class CybersecurityController {
     public record DefenseStep(String name, String result, String responsibility) {}
     public record ThreatScenario(String name, String category, int risk, String description, List<String> indicators, List<DefenseStep> defenses) {}
 }
-

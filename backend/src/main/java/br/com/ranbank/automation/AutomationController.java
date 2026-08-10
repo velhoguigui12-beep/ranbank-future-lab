@@ -18,15 +18,15 @@ public class AutomationController {
         return new AutomationRun(
             "INC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(),
             Instant.now().toString(),
-            "CONCLUÃDO COM REVISÃƒO HUMANA",
+            "CONCLUÍDO COM REVISÃO HUMANA",
             List.of(
-                new AutomationStep(1, "Webhook de alerta", "Recebeu uma transaÃ§Ã£o com risco elevado.", "AutomÃ¡tico", "35 ms"),
-                new AutomationStep(2, "Enriquecer contexto", "Consultou dispositivo, localizaÃ§Ã£o e histÃ³rico recente.", "AutomÃ¡tico", "82 ms"),
-                new AutomationStep(3, "Aplicar regras", "Classificou o incidente como prioridade alta.", "AutomÃ¡tico", "41 ms"),
-                new AutomationStep(4, "Solicitar validaÃ§Ã£o", "Encaminhou o caso para confirmaÃ§Ã£o de um analista.", "Humano", "1,2 s"),
-                new AutomationStep(5, "Notificar e registrar", "Gerou alerta e armazenou o resultado da execuÃ§Ã£o.", "AutomÃ¡tico", "64 ms")
+                new AutomationStep(1, "Webhook de alerta", "Recebeu uma transação com risco elevado.", "Automático", "35 ms"),
+                new AutomationStep(2, "Enriquecer contexto", "Consultou dispositivo, localização e histórico recente.", "Automático", "82 ms"),
+                new AutomationStep(3, "Aplicar regras", "Classificou o incidente como prioridade alta.", "Automático", "41 ms"),
+                new AutomationStep(4, "Solicitar validação", "Encaminhou o caso para confirmação de um analista.", "Humano", "1,2 s"),
+                new AutomationStep(5, "Notificar e registrar", "Gerou alerta e armazenou o resultado da execução.", "Automático", "64 ms")
             ),
-            "O fluxo organiza a resposta, mas nÃ£o substitui antivÃ­rus, autenticaÃ§Ã£o, firewall ou julgamento humano."
+            "O fluxo organiza a resposta, mas não substitui antivírus, autenticação, firewall ou julgamento humano."
         );
     }
 
@@ -34,4 +34,3 @@ public class AutomationController {
     public record AutomationRun(String incidentId, String startedAt, String status,
         List<AutomationStep> steps, String limitation) {}
 }
-

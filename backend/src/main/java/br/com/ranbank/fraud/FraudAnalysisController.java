@@ -24,30 +24,30 @@ public class FraudAnalysisController {
 
         if (request.amount().compareTo(new BigDecimal("2000")) >= 0) {
             score += 30;
-            signals.add(new RiskSignal("Valor fora do padrÃ£o", "+30", "A compra supera o limite habitual da conta demonstrativa."));
+            signals.add(new RiskSignal("Valor fora do padrão", "+30", "A compra supera o limite habitual da conta demonstrativa."));
         }
         if (request.newDevice()) {
             score += 25;
-            signals.add(new RiskSignal("Dispositivo nÃ£o reconhecido", "+25", "A transaÃ§Ã£o veio de um aparelho ainda nÃ£o autorizado."));
+            signals.add(new RiskSignal("Dispositivo não reconhecido", "+25", "A transação veio de um aparelho ainda não autorizado."));
         }
         if (request.unusualLocation()) {
             score += 20;
-            signals.add(new RiskSignal("LocalizaÃ§Ã£o incomum", "+20", "A regiÃ£o difere dos acessos recentes da conta."));
+            signals.add(new RiskSignal("Localização incomum", "+20", "A região difere dos acessos recentes da conta."));
         }
         if (request.unusualTime()) {
             score += 15;
-            signals.add(new RiskSignal("HorÃ¡rio incomum", "+15", "A operaÃ§Ã£o ocorreu fora do padrÃ£o de uso observado."));
+            signals.add(new RiskSignal("Horário incomum", "+15", "A operação ocorreu fora do padrão de uso observado."));
         }
 
         score = Math.min(score, 100);
-        String level = score >= 70 ? "ALTO" : score >= 40 ? "MÃ‰DIO" : "BAIXO";
+        String level = score >= 70 ? "ALTO" : score >= 40 ? "MÉDIO" : "BAIXO";
         String recommendation = score >= 70
-            ? "Bloquear temporariamente e solicitar confirmaÃ§Ã£o adicional."
+            ? "Bloquear temporariamente e solicitar confirmação adicional."
             : score >= 40
-                ? "Solicitar autenticaÃ§Ã£o adicional antes de aprovar."
+                ? "Solicitar autenticação adicional antes de aprovar."
                 : "Aprovar e manter o monitoramento da conta.";
 
-        return new FraudAnalysisResponse(score, level, recommendation, signals, "SIMULAÃ‡ÃƒO POR REGRAS");
+        return new FraudAnalysisResponse(score, level, recommendation, signals, "SIMULAÇÃO POR REGRAS");
     }
 
     public record FraudAnalysisRequest(
@@ -60,4 +60,3 @@ public class FraudAnalysisController {
     public record RiskSignal(String name, String weight, String explanation) {}
     public record FraudAnalysisResponse(int score, String level, String recommendation, List<RiskSignal> signals, String method) {}
 }
-

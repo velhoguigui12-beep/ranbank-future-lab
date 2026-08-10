@@ -43,11 +43,11 @@ public class TransactionController {
         String pixKey = request.pixKey().trim();
         String normalizedDigits = pixKey.replaceAll("\\D", "");
         if (!isValidPixKey(pixKey, normalizedDigits)) {
-            throw new PixValidationException("Informe uma chave Pix vÃ¡lida: CPF, celular, e-mail ou chave aleatÃ³ria.");
+            throw new PixValidationException("Informe uma chave Pix válida: CPF, celular, e-mail ou chave aleatória.");
         }
 
         BankAccount account = accountRepository.findById(1L)
-            .orElseThrow(() -> new PixValidationException("Conta demonstrativa nÃ£o encontrada."));
+            .orElseThrow(() -> new PixValidationException("Conta demonstrativa não encontrada."));
         try {
             account.debit(request.amount());
         } catch (IllegalArgumentException exception) {
@@ -55,7 +55,7 @@ public class TransactionController {
         }
 
         BankTransaction transaction = transactionRepository.save(new BankTransaction(
-            "Pix enviado", maskPixKey(pixKey, normalizedDigits) + " Â· agora",
+            "Pix enviado", maskPixKey(pixKey, normalizedDigits) + " · agora",
             request.amount().negate(), "debit"
         ));
         accountRepository.save(account);
@@ -71,9 +71,9 @@ public class TransactionController {
 
     private String maskPixKey(String original, String digits) {
         if (EMAIL.matcher(original).matches()) return original;
-        if (RANDOM_KEY.matcher(original).matches()) return "Chave aleatÃ³ria â€¢â€¢â€¢â€¢" + original.substring(original.length() - 4);
-        if (PHONE.matcher(digits).matches()) return "Celular â€¢â€¢â€¢â€¢" + digits.substring(digits.length() - 4);
-        return "CPF â€¢â€¢â€¢.â€¢â€¢â€¢.â€¢â€¢" + digits.substring(digits.length() - 2);
+        if (RANDOM_KEY.matcher(original).matches()) return "Chave aleatória ••••" + original.substring(original.length() - 4);
+        if (PHONE.matcher(digits).matches()) return "Celular ••••" + digits.substring(digits.length() - 4);
+        return "CPF •••.•••.••" + digits.substring(digits.length() - 2);
     }
 
     @ExceptionHandler(PixValidationException.class)
@@ -84,7 +84,7 @@ public class TransactionController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<Map<String, String>> handleRequestValidation(MethodArgumentNotValidException exception) {
         String message = exception.getBindingResult().getFieldErrors().stream()
-            .findFirst().map(error -> error.getDefaultMessage()).orElse("Dados invÃ¡lidos.");
+            .findFirst().map(error -> error.getDefaultMessage()).orElse("Dados inválidos.");
         return ResponseEntity.badRequest().body(Map.of("message", message));
     }
 
@@ -104,4 +104,3 @@ public class TransactionController {
         PixValidationException(String message) { super(message); }
     }
 }
-

@@ -29,13 +29,13 @@ public class SustainabilityController {
             active, active ? 42.6 : 58.4, active ? 78 : 54, active ? 8.7 : 14.2,
             active ? 1.18 : 1.42, active ? 27 : 0,
             List.of(
-                new EnergySource("Solar", active ? 46 : 32, "RENOVÃVEL"),
-                new EnergySource("EÃ³lica", active ? 32 : 22, "RENOVÃVEL"),
-                new EnergySource("Rede elÃ©trica", active ? 22 : 46, "MISTA")
+                new EnergySource("Solar", active ? 46 : 32, "RENOVÁVEL"),
+                new EnergySource("Eólica", active ? 32 : 22, "RENOVÁVEL"),
+                new EnergySource("Rede elétrica", active ? 22 : 46, "MISTA")
             ),
             active
-                ? List.of("Cargas nÃ£o crÃ­ticas migradas", "Servidores ociosos consolidados", "Maior uso de energia renovÃ¡vel")
-                : List.of("Consumo acima da meta", "Capacidade ociosa identificada", "OtimizaÃ§Ã£o disponÃ­vel")
+                ? List.of("Cargas não críticas migradas", "Servidores ociosos consolidados", "Maior uso de energia renovável")
+                : List.of("Consumo acima da meta", "Capacidade ociosa identificada", "Otimização disponível")
         );
     }
 
@@ -43,4 +43,3 @@ public class SustainabilityController {
     public record SustainabilityStatus(boolean optimized, double powerKw, int renewablePercent,
         double carbonKgHour, double pue, int savingsPercent, List<EnergySource> sources, List<String> actions) {}
 }
-

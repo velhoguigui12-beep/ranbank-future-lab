@@ -18,18 +18,18 @@ class ChatControllerTests {
 
     @Test
     void respondsToOi() throws Exception {
-        ask("Oi").andExpect(status().isOk()).andExpect(jsonPath("$.topic").value("Boas-vindas")).andExpect(jsonPath("$.answer").value(org.hamcrest.Matchers.startsWith("OlÃ¡!")));
+        ask("Oi").andExpect(status().isOk()).andExpect(jsonPath("$.topic").value("Boas-vindas")).andExpect(jsonPath("$.answer").value(org.hamcrest.Matchers.startsWith("Olá!")));
     }
 
     @Test
     void respondsToOlaWithAccent() throws Exception {
-        ask("OlÃ¡").andExpect(status().isOk()).andExpect(jsonPath("$.topic").value("Boas-vindas"));
+        ask("Olá").andExpect(status().isOk()).andExpect(jsonPath("$.topic").value("Boas-vindas"));
     }
 
     @Test
     void distinguishesArtificialIntelligenceFromSustainability() throws Exception {
-        ask("Como a IA ajuda?").andExpect(jsonPath("$.topic").value("InteligÃªncia Artificial"));
-        ask("O que Ã© energia sustentÃ¡vel?").andExpect(jsonPath("$.topic").value("Tecnologia sustentÃ¡vel"));
+        ask("Como a IA ajuda?").andExpect(jsonPath("$.topic").value("Inteligência Artificial"));
+        ask("O que é energia sustentável?").andExpect(jsonPath("$.topic").value("Tecnologia sustentável"));
     }
 
     @Test
@@ -42,4 +42,3 @@ class ChatControllerTests {
         return mockMvc.perform(post("/api/chat").contentType(MediaType.APPLICATION_JSON).content(json));
     }
 }
-
