@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.next/
+.vinext/
+.env
+.env.*
+!.env.example
+backend/target/
+backend/data/
+*.mv.db
+*.trace.db
+.idea/
+.vscode/
+*.log
+*.tsbuildinfo
