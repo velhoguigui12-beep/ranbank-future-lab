@@ -13,6 +13,9 @@ public class BankAccount {
     private String customerName;
     private String accountNumber;
     private BigDecimal balance;
+    private String documentId;
+    private String accessPinHash;
+    private String transactionPinHash;
 
     protected BankAccount() {}
 
@@ -27,6 +30,15 @@ public class BankAccount {
     public String getCustomerName() { return customerName; }
     public String getAccountNumber() { return accountNumber; }
     public BigDecimal getBalance() { return balance; }
+    public String getDocumentId() { return documentId; }
+    public String getAccessPinHash() { return accessPinHash; }
+    public String getTransactionPinHash() { return transactionPinHash; }
+
+    public void configureDemoCredentials(String documentId, String accessPinHash, String transactionPinHash) {
+        this.documentId = documentId;
+        this.accessPinHash = accessPinHash;
+        this.transactionPinHash = transactionPinHash;
+    }
 
     public void debit(BigDecimal amount) {
         if (amount.compareTo(balance) > 0) {

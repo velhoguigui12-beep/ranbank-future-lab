@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable jsx-a11y/no-autofocus */
 
 import { useEffect, useState } from "react";
 
@@ -56,6 +57,7 @@ type AutomationRun = {
 };
 
 type ChatMessage = { role: "assistant" | "user"; text: string; topic?: string };
+type AuthUser = { customerName: string; accountNumber: string };
 
 type SustainabilityStatus = {
   optimized: boolean;
@@ -176,9 +178,16 @@ function answerLocally(message: string) {
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+const apiFetch = (path: string, init: RequestInit = {}) => fetch(`${API_BASE}${path}`, { ...init, credentials: "include" });
 
 export default function Home() {
   const [data, setData] = useState(demoData);
+  const [authStatus, setAuthStatus] = useState<"checking" | "authenticated" | "unauthenticated">("checking");
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [loginIdentification, setLoginIdentification] = useState("");
+  const [loginPin, setLoginPin] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
   const [screen, setScreen] = useState<"dashboard" | "lab">("dashboard");
   const [utilityPanel, setUtilityPanel] = useState<"account" | "cards" | "security" | "notifications" | "profile" | null>(null);
   const [cardBlocked, setCardBlocked] = useState(false);
@@ -188,6 +197,8 @@ export default function Home() {
   const [pixOpen, setPixOpen] = useState(false);
   const [pixKey, setPixKey] = useState("");
   const [amount, setAmount] = useState("");
+  const [transactionPin, setTransactionPin] = useState("");
+  const [pixStep, setPixStep] = useState<"details" | "review">("details");
   const [pixStatus, setPixStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [pixError, setPixError] = useState("");
   const [analysis, setAnalysis] = useState<FraudAnalysis | null>(null);
@@ -236,7 +247,7 @@ export default function Home() {
 
   const loadDashboard = async () => {
     try {
-      const response = await fetch(`${API_BASE}/dashboard`);
+      const response = await apiFetch("/dashboard");
       if (!response.ok) throw new Error("Backend indisponível");
       const dashboard: DashboardData = await response.json();
       setData(dashboard);
@@ -247,18 +258,93 @@ export default function Home() {
   };
 
   useEffect(() => {
-    loadDashboard();
+    const restoreSession = async () => {
+      try {
+        const response = await apiFetch("/auth/session");
+        if (!response.ok) throw new Error();
+        setAuthUser(await response.json());
+        setAuthStatus("authenticated");
+        await loadDashboard();
+      } catch {
+        setAuthUser(null);
+        setAuthStatus("unauthenticated");
+      }
+    };
+    restoreSession();
   }, []);
+
+  const login = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (loginPin.length !== 4) return;
+    setLoginLoading(true);
+    setLoginError("");
+    try {
+      const response = await apiFetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identification: loginIdentification, pin: loginPin }),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Não foi possível entrar." }));
+        throw new Error(error.message);
+      }
+      setAuthUser(await response.json());
+      setAuthStatus("authenticated");
+      setLoginPin("");
+      await loadDashboard();
+    } catch (error) {
+      setLoginPin("");
+      setLoginError(error instanceof Error ? error.message : "Não foi possível entrar.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    await apiFetch("/auth/logout", { method: "POST" }).catch(() => undefined);
+    setAuthUser(null);
+    setAuthStatus("unauthenticated");
+    setAssistantOpen(false);
+    setUtilityPanel(null);
+  };
+
+  const appendLoginDigit = (digit: string) => {
+    setLoginError("");
+    setLoginPin((current) => current.length < 4 ? current + digit : current);
+  };
+
+  const appendTransactionDigit = (digit: string) => {
+    setPixError("");
+    setPixStatus("idle");
+    setTransactionPin((current) => current.length < 4 ? current + digit : current);
+  };
+
+  const reviewPix = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const numericAmount = Number(amount.replace(",", "."));
+    if (!pixKey.trim() || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+      setPixError("Informe uma chave e um valor válido.");
+      setPixStatus("error");
+      return;
+    }
+    setPixError("");
+    setPixStatus("idle");
+    setPixStep("review");
+  };
 
   const sendPix = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (pixStep === "details") {
+      reviewPix(event);
+      return;
+    }
     setPixStatus("sending");
     setPixError("");
     try {
-      const response = await fetch(`${API_BASE}/transactions`, {
+      const response = await apiFetch("/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pixKey, amount: Number(amount.replace(",", ".")) }),
+        body: JSON.stringify({ pixKey, amount: Number(amount.replace(",", ".")), transactionPin }),
       });
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: "Não foi possível registrar o Pix." }));
@@ -266,9 +352,14 @@ export default function Home() {
       }
       await loadDashboard();
       setPixStatus("success");
-      setPixKey("");
-      setAmount("");
-      setTimeout(() => { setPixOpen(false); setPixStatus("idle"); }, 900);
+      setTransactionPin("");
+      setTimeout(() => {
+        setPixOpen(false);
+        setPixStatus("idle");
+        setPixStep("details");
+        setPixKey("");
+        setAmount("");
+      }, 900);
     } catch (error) {
       setPixError(error instanceof Error ? error.message : "Não foi possível registrar o Pix.");
       setPixStatus("error");
@@ -279,7 +370,7 @@ export default function Home() {
     setAnalysisLoading(true);
     setAnalysisOpen(true);
     try {
-      const response = await fetch(`${API_BASE}/fraud/analyze`, {
+      const response = await apiFetch("/fraud/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: 2950, newDevice: true, unusualLocation: true, unusualTime: false }),
@@ -297,7 +388,7 @@ export default function Home() {
     setAnalyticsOpen(true);
     setAnalyticsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/analytics/summary`);
+      const response = await apiFetch("/analytics/summary");
       if (!response.ok) throw new Error();
       setAnalytics(await response.json());
     } catch {
@@ -311,7 +402,7 @@ export default function Home() {
     setDevicesOpen(true);
     setDevicesLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/devices`);
+      const response = await apiFetch("/devices");
       if (!response.ok) throw new Error();
       setDevices(await response.json());
     } catch {
@@ -322,7 +413,7 @@ export default function Home() {
   };
 
   const toggleDevice = async (id: number) => {
-    const response = await fetch(`${API_BASE}/devices/${id}/block`, { method: "PATCH" });
+    const response = await apiFetch(`/devices/${id}/block`, { method: "PATCH" });
     if (response.ok) {
       const updated: ConnectedDevice = await response.json();
       setDevices((current) => current.map((device) => device.id === id ? updated : device));
@@ -332,7 +423,7 @@ export default function Home() {
   const requestCloudStatus = async (path = "/status", method = "GET") => {
     setCloudLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/cloud${path}`, { method });
+      const response = await apiFetch(`/cloud${path}`, { method });
       if (!response.ok) throw new Error();
       setCloud(await response.json());
     } catch {
@@ -353,7 +444,7 @@ export default function Home() {
     setAutomation(null);
     setVisibleAutomationSteps(0);
     try {
-      const response = await fetch(`${API_BASE}/automation/run`, { method: "POST" });
+      const response = await apiFetch("/automation/run", { method: "POST" });
       if (!response.ok) throw new Error();
       const result: AutomationRun = await response.json();
       setAutomation(result);
@@ -373,7 +464,7 @@ export default function Home() {
     setChatInput("");
     setChatLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/chat`, {
+      const response = await apiFetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: cleanMessage }),
@@ -394,7 +485,7 @@ export default function Home() {
   const requestSustainability = async (optimize = false) => {
     setSustainabilityLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/sustainability/${optimize ? "optimize" : "status"}`, { method: optimize ? "POST" : "GET" });
+      const response = await apiFetch(`/sustainability/${optimize ? "optimize" : "status"}`, { method: optimize ? "POST" : "GET" });
       if (!response.ok) throw new Error();
       setSustainability(await response.json());
     } catch {
@@ -413,7 +504,7 @@ export default function Home() {
     setComparisonOpen(true);
     setComparisonLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/comparison?goal=${goal}`);
+      const response = await apiFetch(`/comparison?goal=${goal}`);
       if (!response.ok) throw new Error();
       setComparison(await response.json());
     } catch {
@@ -427,7 +518,7 @@ export default function Home() {
     setSecurityOpen(true);
     setSecurityLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/security/simulate?threat=${scenario}`);
+      const response = await apiFetch(`/security/simulate?threat=${scenario}`);
       if (!response.ok) throw new Error();
       setThreat(await response.json());
     } catch {
@@ -441,7 +532,7 @@ export default function Home() {
     setImmersiveOpen(true);
     setImmersiveLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/immersive?mode=${mode}`);
+      const response = await apiFetch(`/immersive?mode=${mode}`);
       if (!response.ok) throw new Error();
       setImmersive(await response.json());
     } catch {
@@ -455,7 +546,7 @@ export default function Home() {
     setRoboticsOpen(true);
     setRoboticsLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/robotics/mission?type=${type}`);
+      const response = await apiFetch(`/robotics/mission?type=${type}`);
       if (!response.ok) throw new Error();
       setRobotMission(await response.json());
     } catch {
@@ -469,7 +560,7 @@ export default function Home() {
     setAuthenticationOpen(true);
     setAuthenticationLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/authentication/simulate?scenario=${scenario}`, { method: "POST" });
+      const response = await apiFetch(`/authentication/simulate?scenario=${scenario}`, { method: "POST" });
       if (!response.ok) throw new Error();
       setAuthentication(await response.json());
     } catch {
@@ -483,7 +574,7 @@ export default function Home() {
     if (!window.confirm("Restaurar saldo, movimentações e dispositivos da demonstração?")) return;
     setResettingDemo(true);
     try {
-      const response = await fetch(`${API_BASE}/demo/reset`, { method: "POST" });
+      const response = await apiFetch("/demo/reset", { method: "POST" });
       if (!response.ok) throw new Error();
       await loadDashboard();
       setDevices([]);
@@ -495,6 +586,36 @@ export default function Home() {
       setResettingDemo(false);
     }
   };
+
+  if (authStatus === "checking") {
+    return <main className="login-shell"><section className="login-loading" aria-live="polite"><img src="/ranbank-logo.jpeg" alt="Ranbank"/><i/><p>Protegendo sua sessão…</p></section></main>;
+  }
+
+  if (authStatus === "unauthenticated") {
+    return (
+      <main className="login-shell">
+        <section className="login-visual" aria-hidden="true">
+          <div className="login-brand"><img src="/ranbank-logo.jpeg" alt=""/><span>RANBANK<small>Future Lab · Banco Seguro</small></span></div>
+          <div className="login-message"><span>SEGURANÇA EM CAMADAS</span><h1>Seu banco começa com uma identidade protegida.</h1><p>Uma experiência educacional que combina conta digital, autenticação e tecnologias emergentes.</p></div>
+          <div className="login-security-points"><span><b>01</b>PIN protegido</span><span><b>02</b>Sessão temporária</span><span><b>03</b>Senha transacional</span></div>
+        </section>
+        <section className="login-panel">
+          <form className="login-card" onSubmit={login}>
+            <header><span>ACESSO SEGURO</span><h2>Entre na sua conta</h2><p>Use seu CPF ou número da conta e o PIN de acesso.</p></header>
+            <label>CPF ou conta<input value={loginIdentification} onChange={(event) => setLoginIdentification(event.target.value.slice(0, 18))} autoComplete="username" inputMode="numeric" maxLength={18} placeholder="Digite seu CPF ou sua conta" aria-label="CPF ou número da conta"/></label>
+            <label>PIN de acesso<input className="login-pin-input" type="password" value={loginPin} onChange={(event) => setLoginPin(event.target.value.replace(/\D/g, "").slice(0,4))} autoComplete="current-password" inputMode="numeric" maxLength={4} placeholder="••••" aria-label="PIN de quatro dígitos"/></label>
+            <div className="pin-dots" aria-hidden="true">{[0,1,2,3].map((index) => <i key={index} className={index < loginPin.length ? "filled" : ""}/>)}</div>
+            <div className="numeric-keypad" aria-label="Teclado numérico">{[1,2,3,4,5,6,7,8,9].map((digit) => <button type="button" key={digit} onClick={() => appendLoginDigit(String(digit))}>{digit}</button>)}<button type="button" className="biometric-key" disabled aria-label="Biometria indisponível">◎</button><button type="button" onClick={() => appendLoginDigit("0")}>0</button><button type="button" className="erase-key" onClick={() => setLoginPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito">⌫</button></div>
+            {loginError && <p className="login-error" role="alert">{loginError}</p>}
+            <button className="login-submit" disabled={loginLoading || loginPin.length !== 4}>{loginLoading ? "Verificando…" : "Entrar com PIN"}</button>
+            <button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível nesta demonstração</small></div></button>
+            <div className="demo-credentials"><b>ACESSO PARA APRESENTAÇÃO</b><span>CPF 123.456.789-09</span><span>PIN 2580</span></div>
+            <footer>Ambiente demonstrativo · não use dados pessoais reais</footer>
+          </form>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="bank-shell">
@@ -523,7 +644,7 @@ export default function Home() {
             <p>{screen === "dashboard" ? "Visão geral" : "Laboratório de inovação"}</p>
             <h1>{screen === "dashboard" ? `Olá, ${data.customerName.split(" ")[0]}` : "Future Lab"}</h1>
           </div>
-          <div className="top-actions"><button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações">♧{!notificationsRead && <i/>}</button><button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label="Perfil de Ana Ribeiro">AR</button></div>
+          <div className="top-actions"><button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações">♧{!notificationsRead && <i/>}</button><button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Perfil de ${authUser?.customerName ?? "cliente"}`}>AR</button><button className="logout-button" onClick={logout} aria-label="Sair da conta" title="Sair da conta">↪</button></div>
         </header>
 
         {screen === "dashboard" ? (
@@ -536,7 +657,7 @@ export default function Home() {
 
               <div className="quick-actions" aria-label="Ações rápidas">
                 {[ ["◆", "Pix"], ["⇄", "Transferir"], ["▥", "Pagar"], ["▭", "Cartões"] ].map(([icon, label]) => (
-                  <button key={label} onClick={() => label === "Pix" ? setPixOpen(true) : label === "Cartões" ? setUtilityPanel("cards") : undefined}><span>{icon}</span>{label}</button>
+                  <button key={label} onClick={() => label === "Pix" || label === "Transferir" ? (setPixStep("details"), setPixOpen(true)) : label === "Cartões" ? setUtilityPanel("cards") : undefined}><span>{icon}</span>{label}</button>
                 ))}
               </div>
 
@@ -596,6 +717,7 @@ export default function Home() {
       {utilityPanel === "security" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal security-utility" role="dialog" aria-modal="true" aria-labelledby="security-hub-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CENTRAL DE PROTEÇÃO</span><h2 id="security-hub-title">Segurança da conta</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="security-health"><div className="security-shield">✓</div><div><span>NÍVEL DE PROTEÇÃO</span><strong>Conta protegida</strong><p>As principais camadas de segurança estão ativas.</p></div><b>92<small>/100</small></b></div><div className="security-settings"><article><span>Biometria</span><strong>Ativada</strong><i className="setting-on"/></article><article><span>Autenticação em dois fatores</span><strong>Ativada</strong><i className="setting-on"/></article><article><span>Avisos de movimentação</span><strong>Ativados</strong><i className="setting-on"/></article><article><span>Dispositivo atual</span><strong>Confiável</strong><i className="setting-on"/></article></div><div className="security-shortcuts"><button onClick={() => { setUtilityPanel(null); setScreen("lab"); simulateAuthentication(); }}><b>ID</b><span><strong>Testar autenticação</strong><small>Compare acesso habitual e suspeito</small></span><i>→</i></button><button onClick={() => { setUtilityPanel(null); setScreen("lab"); simulateThreat(); }}><b>!</b><span><strong>Simular malware</strong><small>Phishing, ransomware e trojan</small></span><i>→</i></button><button onClick={() => { setUtilityPanel(null); setScreen("lab"); loadDevices(); }}><b>IoT</b><span><strong>Gerenciar dispositivos</strong><small>Confiança, telemetria e bloqueios</small></span><i>→</i></button></div></section></div>}
       {utilityPanel === "notifications" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal notifications-utility" role="dialog" aria-modal="true" aria-labelledby="notifications-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CENTRAL DE ALERTAS</span><h2 id="notifications-title">Notificações</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="notification-list"><article className={!notificationsRead ? "unread" : ""}><b>✓</b><div><strong>Pix protegido</strong><p>As novas validações de saldo e chave estão ativas.</p><small>Agora</small></div></article><article className={!notificationsRead ? "unread" : ""}><b>!</b><div><strong>Tentativa suspeita simulada</strong><p>Novo dispositivo identificado no Future Lab.</p><small>Há 18 minutos</small></div></article><article><b>☁</b><div><strong>Serviços disponíveis</strong><p>Região principal da nuvem operando normalmente.</p><small>Hoje, 08:30</small></div></article></div><button className="read-all" onClick={() => setNotificationsRead(true)} disabled={notificationsRead}>{notificationsRead ? "Tudo lido ✓" : "Marcar todas como lidas"}</button></section></div>}
       {utilityPanel === "profile" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal profile-utility" role="dialog" aria-modal="true" aria-labelledby="profile-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>PERFIL DEMONSTRATIVO</span><h2 id="profile-title">Dados da cliente</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="profile-hero"><span>AR</span><div><strong>{data.customerName}</strong><small>Cliente Ranbank Future</small></div><b>CONTA ATIVA</b></div><div className="profile-fields"><article><span>E-mail</span><strong>ana.ribeiro@exemplo.com</strong></article><article><span>Telefone</span><strong>(11) •••••-4821</strong></article><article><span>Conta</span><strong>Ag. 0001 · {data.account}</strong></article><article><span>Preferência</span><strong>Notificações digitais</strong></article></div><div className="profile-notice"><b>i</b><p>Todos os dados exibidos são fictícios e existem apenas para a apresentação.</p></div><button className="profile-home" onClick={() => { setUtilityPanel(null); setScreen("dashboard"); }}>Voltar para minha conta</button></section></div>}
+      {pixOpen && pixStep === "review" && <div className="modal-backdrop pin-confirmation-backdrop" role="presentation" onMouseDown={() => { setPixOpen(false); setPixStep("details"); setTransactionPin(""); }}><section className="pin-confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="pin-confirmation-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CONFIRMAÇÃO SEGURA</span><h2 id="pin-confirmation-title">Revise sua transferência</h2></div><button onClick={() => { setPixOpen(false); setPixStep("details"); setTransactionPin(""); }} aria-label="Fechar">×</button></header><div className="transfer-review"><article><span>DESTINATÁRIO</span><strong>{pixKey.includes("@") ? pixKey : `Chave final ${pixKey.replace(/\D/g, "").slice(-4) || pixKey.slice(-4)}`}</strong></article><article><span>VALOR</span><strong>{money.format(Number(amount.replace(",", ".")))}</strong></article></div><div className="transaction-security-note"><b>4</b><p><strong>Segunda camada de proteção</strong><br/>Digite a senha de quatro dígitos do cartão para autorizar.</p></div><form onSubmit={sendPix}><label className="transaction-pin-field"><span>Senha do cartão</span><input type="password" value={transactionPin} onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, "").slice(0,4))} inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={4} placeholder="••••" aria-label="Senha de quatro dígitos do cartão"/></label><div className="transaction-pin-dots" aria-label={`${transactionPin.length} de 4 dígitos informados`}>{[0,1,2,3].map((index) => <i key={index} className={index < transactionPin.length ? "filled" : ""}/>)}</div><div className="numeric-keypad transaction-keypad" aria-label="Teclado da senha do cartão">{["1","2","3","4","5","6","7","8","9"].map((digit) => <button key={digit} type="button" onClick={() => appendTransactionDigit(digit)}>{digit}</button>)}<span aria-hidden="true"/><button type="button" onClick={() => appendTransactionDigit("0")}>0</button><button className="erase-key" type="button" onClick={() => setTransactionPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito da senha">⌫</button></div>{pixStatus === "error" && <p className="form-error" role="alert">{pixError}</p>}{pixStatus === "success" && <p className="transfer-success">Transferência autorizada e registrada ✓</p>}<div className="pin-confirmation-actions"><button type="button" onClick={() => { setPixStep("details"); setTransactionPin(""); setPixError(""); setPixStatus("idle"); }}>← Corrigir dados</button><button type="submit" className="authorize-transfer" disabled={pixStatus === "sending" || transactionPin.length !== 4}>{pixStatus === "sending" ? "Autorizando…" : pixStatus === "success" ? "Autorizada ✓" : "Autorizar transferência"}</button></div></form><footer>Senha transacional demonstrativa: <b>7314</b></footer></section></div>}
     </main>
   );
 }

@@ -2,6 +2,8 @@ package br.com.ranbank.transaction;
 
 import br.com.ranbank.account.BankAccount;
 import br.com.ranbank.account.BankAccountRepository;
+import br.com.ranbank.auth.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
@@ -31,22 +33,28 @@ public class TransactionController {
 
     private final BankTransactionRepository transactionRepository;
     private final BankAccountRepository accountRepository;
+    private final AuthenticationService authenticationService;
 
-    public TransactionController(BankTransactionRepository transactionRepository, BankAccountRepository accountRepository) {
+    public TransactionController(BankTransactionRepository transactionRepository, BankAccountRepository accountRepository,
+                                 AuthenticationService authenticationService) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
+        this.authenticationService = authenticationService;
     }
 
     @PostMapping
     @Transactional
-    public ResponseEntity<TransactionResponse> create(@Valid @RequestBody CreateTransactionRequest request) {
+    public ResponseEntity<TransactionResponse> create(@Valid @RequestBody CreateTransactionRequest request,
+                                                      HttpServletRequest servletRequest) {
         String pixKey = request.pixKey().trim();
         String normalizedDigits = pixKey.replaceAll("\\D", "");
         if (!isValidPixKey(pixKey, normalizedDigits)) {
             throw new PixValidationException("Informe uma chave Pix válida: CPF, celular, e-mail ou chave aleatória.");
         }
 
-        BankAccount account = accountRepository.findById(1L)
+        Long accountId = (Long) servletRequest.getAttribute(AuthenticationService.ACCOUNT_REQUEST_ATTRIBUTE);
+        authenticationService.verifyTransactionPin(accountId, request.transactionPin());
+        BankAccount account = accountRepository.findById(accountId)
             .orElseThrow(() -> new PixValidationException("Conta demonstrativa não encontrada."));
         try {
             account.debit(request.amount());
@@ -88,10 +96,17 @@ public class TransactionController {
         return ResponseEntity.badRequest().body(Map.of("message", message));
     }
 
+    @ExceptionHandler(AuthenticationService.AuthException.class)
+    ResponseEntity<Map<String, String>> handleAuthentication(AuthenticationService.AuthException exception) {
+        return ResponseEntity.status(exception.status()).body(Map.of("message", exception.getMessage()));
+    }
+
     public record CreateTransactionRequest(
         @NotBlank(message = "Informe a chave Pix") String pixKey,
         @NotNull(message = "Informe o valor")
-        @DecimalMin(value = "0.01", message = "O valor deve ser positivo") BigDecimal amount
+        @DecimalMin(value = "0.01", message = "O valor deve ser positivo") BigDecimal amount,
+        @NotBlank(message = "Informe a senha do cartão")
+        @jakarta.validation.constraints.Pattern(regexp = "\\d{4}", message = "A senha do cartão deve ter quatro dígitos") String transactionPin
     ) {}
 
     public record TransactionResponse(Long id, String title, String detail, BigDecimal amount, String type) {
