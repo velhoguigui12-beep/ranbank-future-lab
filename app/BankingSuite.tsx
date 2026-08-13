@@ -205,7 +205,7 @@ export default function BankingSuite({
                 <label>Beneficiário<input value={bill.payee} onChange={(event) => setBill({ ...bill, payee: event.target.value })} placeholder="Ex.: Energia Brasília" required /></label>
                 <div className="split-fields"><label>Valor<input value={bill.amount} onChange={(event) => setBill({ ...bill, amount: event.target.value })} inputMode="decimal" placeholder="0,00" required /></label><label>PIN do cartão<input type="password" value={bill.pin} onChange={(event) => setBill({ ...bill, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label></div>
                 <button disabled={working || bill.pin.length !== 4}>{working ? "Validando…" : "Pagar boleto"}</button>
-                <small>PIN demonstrativo: 7314</small>
+                <small>PIN transacional: 7314</small>
               </form>
             </div>
           )}
@@ -244,7 +244,7 @@ export default function BankingSuite({
           {tab === "savings" && overview && (
             <div className="savings-center">
               <div className="savings-hero"><div><span>RESERVA FUTURE</span><strong>{money.format(overview.savingsBalance)}</strong><small>Meta: {money.format(overview.savingsGoal)}</small></div><div className="savings-ring" style={{ "--progress": `${Math.min(100, overview.savingsBalance / overview.savingsGoal * 100)}%` } as React.CSSProperties}><b>{Math.round(Math.min(100, overview.savingsBalance / overview.savingsGoal * 100))}%</b></div></div>
-              <div className="savings-grid"><article><span>Rendimento projetado</span><strong>{money.format(overview.savingsBalance * 0.0105)}</strong><small>Simulação mensal a 1,05%</small></article><article><span>Disponível na conta</span><strong>{money.format(overview.balance)}</strong><small>Para transferir ao cofrinho</small></article></div>
+              <div className="savings-grid"><article><span>Rendimento projetado</span><strong>{money.format(overview.savingsBalance * 0.0105)}</strong><small>Projeção mensal a 1,05%</small></article><article><span>Disponível na conta</span><strong>{money.format(overview.balance)}</strong><small>Para transferir ao cofrinho</small></article></div>
               <div className="savings-form"><div><span>MOVIMENTAR RESERVA</span><h3>Guardar ou resgatar</h3><p>Acompanhe a evolução da sua reserva e a projeção mensal no mesmo painel.</p></div><form onSubmit={(event) => event.preventDefault()}><div className="split-fields"><label>Valor<input value={savings.amount} onChange={(event) => setSavings({ ...savings, amount: event.target.value })} inputMode="decimal" placeholder="0,00" /></label><label>PIN<input type="password" value={savings.pin} onChange={(event) => setSavings({ ...savings, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" /></label></div><div><button disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("deposit")}>Guardar</button><button className="secondary" disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("withdraw")}>Resgatar</button></div></form></div>
             </div>
           )}
@@ -255,3 +255,4 @@ export default function BankingSuite({
     </div>
   );
 }
+
