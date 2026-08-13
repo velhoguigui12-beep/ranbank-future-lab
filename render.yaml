@@ -16,7 +16,7 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /api/dashboard
+    healthCheckPath: /api/health
     envVars:
       - key: H2_CONSOLE_ENABLED
         value: "false"

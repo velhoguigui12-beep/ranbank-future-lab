@@ -2,6 +2,7 @@ package br.com.ranbank.config;
 
 import br.com.ranbank.account.BankAccount;
 import br.com.ranbank.account.BankAccountRepository;
+import br.com.ranbank.auth.AuthenticationService;
 import br.com.ranbank.device.ConnectedDevice;
 import br.com.ranbank.device.ConnectedDeviceRepository;
 import br.com.ranbank.transaction.BankTransaction;
@@ -16,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 public class DemoDataConfiguration {
     @Bean
     CommandLineRunner insertDemoData(BankTransactionRepository repository, BankAccountRepository accountRepository,
-                                     ConnectedDeviceRepository deviceRepository) {
+                                     ConnectedDeviceRepository deviceRepository, AuthenticationService authenticationService) {
         return args -> {
             if (!accountRepository.existsById(1L)) {
                 accountRepository.save(new BankAccount(1L, "Ana Ribeiro", "1234-5", new BigDecimal("8540.75")));
@@ -37,6 +38,7 @@ public class DemoDataConfiguration {
                     new ConnectedDevice("Caixa eletrônico 0842", "Terminal IoT", "Asa Sul, Brasília, DF", "Ontem, 17:42", true)
                 ));
             }
+            authenticationService.configureDemoCredentials();
         };
     }
 }

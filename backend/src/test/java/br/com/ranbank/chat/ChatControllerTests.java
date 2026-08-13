@@ -33,6 +33,14 @@ class ChatControllerTests {
     }
 
     @Test
+    void explainsNewBankingAndInnovationTopicsLocally() throws Exception {
+        ask("Como funciona o boleto?").andExpect(jsonPath("$.topic").value("Boletos"));
+        ask("O que é Open Finance?").andExpect(jsonPath("$.topic").value("Open Finance"));
+        ask("Como funciona o hash da auditoria?").andExpect(jsonPath("$.topic").value("Auditoria encadeada"));
+        ask("Olá").andExpect(jsonPath("$.mode").value("LOCAL"));
+    }
+
+    @Test
     void rejectsBlankQuestions() throws Exception {
         ask(" ").andExpect(status().isBadRequest());
     }

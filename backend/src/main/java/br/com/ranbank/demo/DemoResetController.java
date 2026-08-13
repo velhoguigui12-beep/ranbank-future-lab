@@ -2,6 +2,8 @@ package br.com.ranbank.demo;
 
 import br.com.ranbank.account.BankAccount;
 import br.com.ranbank.account.BankAccountRepository;
+import br.com.ranbank.auth.AuthenticationService;
+import br.com.ranbank.banking.ScheduledOperationRepository;
 import br.com.ranbank.device.ConnectedDevice;
 import br.com.ranbank.device.ConnectedDeviceRepository;
 import br.com.ranbank.transaction.BankTransaction;
@@ -22,17 +24,23 @@ public class DemoResetController {
     private final BankTransactionRepository transactionRepository;
     private final BankAccountRepository accountRepository;
     private final ConnectedDeviceRepository deviceRepository;
+    private final AuthenticationService authenticationService;
+    private final ScheduledOperationRepository scheduledOperationRepository;
 
     public DemoResetController(BankTransactionRepository transactionRepository, BankAccountRepository accountRepository,
-                               ConnectedDeviceRepository deviceRepository) {
+                               ConnectedDeviceRepository deviceRepository, AuthenticationService authenticationService,
+                               ScheduledOperationRepository scheduledOperationRepository) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.deviceRepository = deviceRepository;
+        this.authenticationService = authenticationService;
+        this.scheduledOperationRepository = scheduledOperationRepository;
     }
 
     @PostMapping("/reset")
     @Transactional
     public Map<String, String> reset() {
+        scheduledOperationRepository.deleteAll();
         transactionRepository.deleteAll();
         deviceRepository.deleteAll();
         accountRepository.deleteAll();
@@ -49,6 +57,7 @@ public class DemoResetController {
             new ConnectedDevice("Galaxy S24", "Celular", "Taguatinga, DF", "Hoje, 03:18", false),
             new ConnectedDevice("Caixa eletrônico 0842", "Terminal IoT", "Asa Sul, Brasília, DF", "Ontem, 17:42", true)
         ));
+        authenticationService.configureDemoCredentials();
         return Map.of("message", "Demonstração restaurada com sucesso.");
     }
 }
