@@ -8,7 +8,7 @@ type OpenFinance = { customer: string; consentExpires: string; institutions: Ins
 type Audit = { algorithm: string; integrityVerified: boolean; entries: Array<{ block: number; event: string; previousHash: string; hash: string; status: string }> };
 type Journey = { scenario: string; riskScore: number; decision: string; steps: Array<{ order: number; technology: string; title: string; explanation: string; status: string }> };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const labels: Array<{ id: InnovationTab; icon: string; label: string }> = [
   { id: "open-finance", icon: "OF", label: "Open Finance" },
@@ -127,3 +127,4 @@ export default function InnovationHub({ open, initialTab, onClose }: { open: boo
     </div>
   );
 }
+

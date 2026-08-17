@@ -49,7 +49,7 @@ public class AuthController {
     private ResponseCookie sessionCookie(String value, Duration maxAge, HttpServletRequest request) {
         boolean secure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
         return ResponseCookie.from(AuthenticationService.SESSION_COOKIE, value).httpOnly(true).secure(secure)
-            .sameSite("Lax").path("/api").maxAge(maxAge).build();
+            .sameSite(secure ? "None" : "Lax").path("/api").maxAge(maxAge).build();
     }
 
     @ExceptionHandler(AuthenticationService.AuthException.class)
@@ -63,3 +63,4 @@ public class AuthController {
     ) {}
     public record LoginResponse(String customerName, String accountNumber, String expiresAt) {}
 }
+

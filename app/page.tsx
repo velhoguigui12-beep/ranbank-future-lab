@@ -193,7 +193,7 @@ const parseMoneyInput = (value: string) => {
   if (/^\d{1,3}(\.\d{3})+$/.test(compact)) return Number(compact.replace(/\./g, ""));
   return Number(compact);
 };
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 const apiFetch = (path: string, init: RequestInit = {}) => fetch(`${API_BASE}${path}`, { ...init, credentials: "include" });
 
 export default function Home() {
