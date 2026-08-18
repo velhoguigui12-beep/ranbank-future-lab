@@ -65,7 +65,7 @@ public class ChatController {
         } else if (contains(normalized, "automacao", "n8n", "workflow")) {
             topic = "Automação"; answer = "A automação recebe o alerta, reúne contexto, aplica regras, solicita validação humana e registra o incidente. Ela organiza a resposta, mas não substitui as defesas.";
         } else if (contains(normalized, "energia", "sustentavel", "sustentabilidade", "green it", "carbono")) {
-            topic = "Tecnologia sustentável"; answer = "Green IT busca reduzir energia, emissões e desperdício. O painel compara consumo, energia renovável, PUE e ações como otimização de servidores e uso eficiente da nuvem.";
+            topic = "Tecnologia sustentável"; answer = "Green IT é o uso responsável da tecnologia para consumir menos energia e materiais. No Ranbank, ela aparece no uso de energia solar e eólica, na otimização de servidores e nuvem, na redução de emissões e no descarte responsável de cartões e equipamentos.";
         } else if (contains(normalized, "robotica", "robo", "automato")) {
             topic = "Robótica"; answer = "Robótica combina sensores, software e atuadores para perceber, decidir e agir. No Ranbank, o robô apoia recepção, acessibilidade e segurança com supervisão humana.";
         } else if (contains(normalized, "realidade aumentada", "realidade virtual", "imersiva") || hasToken(normalized, "ra") || hasToken(normalized, "vr")) {
@@ -90,3 +90,4 @@ public class ChatController {
     public record ChatRequest(@NotBlank(message = "Digite uma pergunta") String message) {}
     public record ChatResponse(String answer, String topic, String mode, boolean generatedByAi) {}
 }
+
