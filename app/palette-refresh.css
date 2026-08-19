@@ -1,0 +1,31 @@
+/* Blue-gray refinement: less white, still bank-like and restrained. */
+:root{
+  --rb-blue:#1d62d5;
+  --rb-blue-dark:#164da7;
+  --rb-bg:#cfd9e7;
+  --rb-surface:#d9e2ee;
+  --rb-surface-2:#e3e9f2;
+  --rb-panel:#c7d3e3;
+  --rb-border:#b6c4d6;
+  --rb-ink:#15253e;
+  --rb-muted:#596b82;
+  --rb-soft:#cbd9eb;
+  --paper:var(--rb-bg);
+  --ink:var(--rb-ink);
+  --muted:var(--rb-muted);
+  --line:var(--rb-border);
+  --blue:var(--rb-blue);
+  --white:var(--rb-surface);
+}
+html,body,.bank-shell,.workspace{background:linear-gradient(180deg,#cbd6e4 0%,#d4deea 100%)!important;color:var(--rb-ink)!important}
+.sidebar{background:#d3ddea!important;border-right:1px solid var(--rb-border)!important}
+.sidebar nav button{color:#586b83!important}.sidebar nav button:hover,.sidebar nav button.active{background:#c5d4e8!important;color:var(--rb-blue)!important}.sidebar-status{background:#c8d5e5!important;border-color:var(--rb-border)!important}.sidebar-status small{color:#66788e!important}
+.top-actions button{background:#dce5f0!important;border-color:var(--rb-border)!important}.top-actions .avatar{background:var(--rb-blue)!important;color:#fff!important}
+.quick-actions button,.transactions-panel,.future-card,.technology-card,.risk-panel,.lab-intro{background:var(--rb-surface)!important;border-color:var(--rb-border)!important;color:var(--rb-ink)!important}.quick-actions button:hover,.technology-card:hover{background:var(--rb-surface-2)!important;border-color:#93abd0!important}
+.future-card{background:#c9d8eb!important}.future-heading small{background:#dfe7f1!important}.future-visual span,.future-visual span:nth-child(1),.future-visual span:nth-child(2),.future-visual span:nth-child(3){background:#dfe7f2!important;border-color:#b8c8db!important}
+.lab-intro{background:#d6e0ec!important}.official-topic-list>span{background:#cbd7e6!important;border-color:#b3c1d3!important}.official-topic-list b{background:#bcd1ef!important}.technology-card>span,.quick-actions span{background:#c7d9ef!important}.support-card{background:#d2dce8!important}.comparison-card{background:#d8e1ec!important}
+.assistant-button{background:#dbe4ef!important}.assistant-panel{background:#dbe4ee!important}.chat-messages{background:#cbd6e4!important}.chat-assistant{background:#e0e7f0!important}.chat-form input{background:#dce5ef!important}.assistant-panel>footer{background:#dbe4ee!important}
+.presentation-modal{background:linear-gradient(180deg,#d9e3ef 0%,#ccd8e7 100%)!important;border-color:#aebed1!important}.presentation-modal>header,.presentation-modal>footer{background:#d4deea!important;border-color:#b8c6d7!important}.presentation-progress{background:#bcc9da!important}.presentation-visual{background:#c4d4e9!important}.presentation-visual>span{background:#e2e9f2!important}.speaker-note{background:#c6d3e3!important;border-left-color:var(--rb-blue)!important}.speaker-note p{color:#43576f!important}.institution-note{background:#d7e1ed!important;border-color:#aebfd4!important}.presentation-impact span{background:#c6d2e1!important;color:#42566e!important}.presentation-modal>footer>button{background:#dce4ed!important;border-color:#aebed0!important}.presentation-modal>footer>.presentation-next{background:var(--rb-blue)!important;color:#fff!important}
+.pix-modal,.devices-modal,.cloud-modal,.sustainability-modal,.immersive-modal,.robotics-modal,.comparison-modal,.analysis-modal,.analytics-modal,.security-modal,.authentication-modal,.automation-modal{background:#d8e2ee!important;border-color:#aebfd3!important;color:var(--rb-ink)!important}.pix-modal input,.chat-form input{background:#c4d3e6!important;border-color:#9fb2ca!important;color:#18304f!important}.pix-modal input::placeholder,.chat-form input::placeholder{color:#657b97!important}.education-note{background:#c5d7ec!important}.region-grid article,.metric-grid article,.device-list article,.green-metrics article{background:#d1dce9!important;border-color:#b2c1d2!important}.recovery-panel,.energy-sources{background:#d4dfeb!important;border-color:#b2c2d4!important}
+.lab-institute-copy{color:#566b84!important}.technology-section-heading>strong{color:#52657d!important}
+@media(max-width:650px){.sidebar{background:#d3ddea!important}.presentation-modal{background:#d6e0ec!important}}
