@@ -69,89 +69,52 @@ function setButtonTextKeepingSpan(selector: string, text: string) {
 
 export default function InstitutionalExperience() {
   useEffect(() => {
-    let applying = false;
+    let scheduled = false;
 
     const applyInstitutionalLayer = () => {
-      if (applying) return;
-      applying = true;
+      scheduled = false;
 
-      try {
-        setText(".future-heading span", "INSTITUTO RANBANK");
-        setText(".future-heading small", "Tecnologia e inovação");
-        setText(".future-card h2", "Inovação que conecta o banco ao futuro.");
-        setText(".future-card > p", "Pesquisa, parcerias e tecnologia aplicada a serviços financeiros e à sociedade.");
-        setButtonTextKeepingSpan(".future-card > button", "Conhecer iniciativas");
+      setText(".future-heading span", "INSTITUTO RANBANK");
+      setText(".future-heading small", "Tecnologia e inovação");
+      setText(".future-card h2", "Inovação que conecta o banco ao futuro.");
+      setText(".future-card > p", "Pesquisa, parcerias e tecnologia aplicada a serviços financeiros e à sociedade.");
+      setButtonTextKeepingSpan(".future-card > button", "Conhecer iniciativas");
 
-        setText(".lab-tag", "INSTITUTO RANBANK · 6 FRENTES DE INOVAÇÃO");
-        setText(".lab-intro h2", "Tecnologia aplicada no banco e apoiada além dele.");
+      setText(".lab-tag", "INSTITUTO RANBANK · 6 FRENTES DE INOVAÇÃO");
+      setText(".lab-intro h2", "Tecnologia aplicada no banco e apoiada além dele.");
 
-        const labIntroHeading = document.querySelector<HTMLElement>(".lab-intro h2");
-        if (labIntroHeading && !document.querySelector(".lab-institute-copy")) {
-          const paragraph = document.createElement("p");
-          paragraph.className = "lab-institute-copy";
-          paragraph.textContent = "O RanBank mantém conexões com universidades, institutos e centros de pesquisa para transformar tecnologias emergentes em serviços, pesquisa e impacto social.";
-          labIntroHeading.insertAdjacentElement("afterend", paragraph);
-        }
-
-        if (document.querySelector(".lab-layout")) {
-          setText(".topbar p", "Tecnologia e inovação");
-          setText(".topbar h1", "Instituto RanBank");
-        }
-
-        const presentation = document.querySelector<HTMLElement>(".presentation-modal");
-        if (presentation) {
-          setText(".presentation-brand small", "INSTITUTO RANBANK DE TECNOLOGIA");
-
-          const chapter = presentation.querySelector<HTMLElement>(".presentation-content > article > span")?.textContent?.trim() ?? "";
-          const initiative = initiatives.find((item) => chapter.startsWith(item.chapter));
-          const article = presentation.querySelector<HTMLElement>(".presentation-content > article");
-          const speakerNote = article?.querySelector<HTMLElement>(".speaker-note");
-
-          if (initiative && article && speakerNote) {
-            const speakerLabel = speakerNote.querySelector<HTMLElement>("b");
-            const speakerText = speakerNote.querySelector<HTMLElement>("p");
-            if (speakerLabel) speakerLabel.textContent = "APLICAÇÃO NO RANBANK";
-            if (speakerText) speakerText.textContent = initiative.bankApplication;
-
-            let note = article.querySelector<HTMLElement>(".institution-note");
-            if (!note) {
-              note = document.createElement("div");
-              note.className = "institution-note";
-              speakerNote.insertAdjacentElement("afterend", note);
-            } else if (note.previousElementSibling !== speakerNote) {
-              speakerNote.insertAdjacentElement("afterend", note);
-            }
-
-            if (note.dataset.chapter !== initiative.chapter) {
-              note.dataset.chapter = initiative.chapter;
-              note.replaceChildren();
-
-              const label = document.createElement("b");
-              label.textContent = "CONEXÃO COM A TECNOLOGIA";
-              const title = document.createElement("strong");
-              title.textContent = initiative.title;
-              const description = document.createElement("p");
-              description.textContent = initiative.description;
-              const impacts = document.createElement("div");
-              impacts.className = "presentation-impact";
-
-              initiative.impacts.forEach((impact) => {
-                const chip = document.createElement("span");
-                chip.textContent = impact;
-                impacts.appendChild(chip);
-              });
-
-              note.append(label, title, description, impacts);
-            }
-          }
-        }
-      } finally {
-        applying = false;
+      if (document.querySelector(".lab-layout")) {
+        setText(".topbar p", "Tecnologia e inovação");
+        setText(".topbar h1", "Instituto RanBank");
       }
+
+      const presentation = document.querySelector<HTMLElement>(".presentation-modal");
+      if (!presentation) return;
+
+      setText(".presentation-brand small", "INSTITUTO RANBANK DE TECNOLOGIA");
+
+      const chapter = presentation.querySelector<HTMLElement>(".presentation-content > article > span")?.textContent?.trim() ?? "";
+      const initiative = initiatives.find((item) => chapter.startsWith(item.chapter));
+      const speakerNote = presentation.querySelector<HTMLElement>(".speaker-note");
+      if (!initiative || !speakerNote) return;
+
+      const speakerLabel = speakerNote.querySelector<HTMLElement>("b");
+      const speakerText = speakerNote.querySelector<HTMLElement>("p");
+      if (speakerLabel && speakerLabel.textContent !== "APLICAÇÃO NO RANBANK") speakerLabel.textContent = "APLICAÇÃO NO RANBANK";
+      if (speakerText && speakerText.textContent !== initiative.bankApplication) speakerText.textContent = initiative.bankApplication;
+
+      const connection = `${initiative.title} — ${initiative.description} ${initiative.impacts.join(" · ")}`;
+      if (speakerNote.dataset.connection !== connection) speakerNote.dataset.connection = connection;
     };
 
-    applyInstitutionalLayer();
-    const observer = new MutationObserver(applyInstitutionalLayer);
+    const scheduleApply = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(applyInstitutionalLayer);
+    };
+
+    scheduleApply();
+    const observer = new MutationObserver(scheduleApply);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     return () => observer.disconnect();
