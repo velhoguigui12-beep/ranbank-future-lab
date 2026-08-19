@@ -1,0 +1,6 @@
+/* Presentation safety layer: keeps extra institutional copy outside React's DOM tree. */
+.lab-intro>div:first-child::after{content:"O RanBank mantém conexões com universidades, institutos e centros de pesquisa para transformar tecnologias emergentes em serviços, pesquisa e impacto social.";display:block;max-width:680px;margin-top:10px;color:#4a5c73;font-size:11px;line-height:1.65}
+.speaker-note[data-connection]{margin-top:18px!important;padding:16px 18px!important;border-left:3px solid #2268df!important;border-radius:0 12px 12px 0!important;background:#b2c0d1!important}
+.speaker-note[data-connection]>b{color:#174fae!important}.speaker-note[data-connection]>p{color:#41556f!important}
+.speaker-note[data-connection]::after{content:"CONEXÃO COM A TECNOLOGIA\A" attr(data-connection);white-space:pre-wrap;display:block;margin-top:14px;padding:14px 16px;border:1px solid #93a5ba;border-radius:12px;background:#cbd4df;color:#43566e;font-size:10px;line-height:1.55}
+@media(max-width:650px){.lab-intro>div:first-child::after{font-size:13px}.speaker-note[data-connection]::after{font-size:11px}}
