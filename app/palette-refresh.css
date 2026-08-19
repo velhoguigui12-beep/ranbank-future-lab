@@ -1,15 +1,17 @@
-/* Blue-gray refinement: less white, still bank-like and restrained. */
+/* RanBank market palette v2 — navy/slate surfaces with restrained financial-product contrast. */
 :root{
-  --rb-blue:#1d62d5;
-  --rb-blue-dark:#164da7;
-  --rb-bg:#cfd9e7;
-  --rb-surface:#d9e2ee;
-  --rb-surface-2:#e3e9f2;
-  --rb-panel:#c7d3e3;
-  --rb-border:#b6c4d6;
-  --rb-ink:#15253e;
-  --rb-muted:#596b82;
-  --rb-soft:#cbd9eb;
+  --rb-blue:#2268df;
+  --rb-blue-dark:#174ca7;
+  --rb-navy:#10213a;
+  --rb-bg:#9faec2;
+  --rb-bg-2:#b7c2d1;
+  --rb-surface:#c5cfdb;
+  --rb-surface-2:#d1d8e2;
+  --rb-panel:#b7c4d4;
+  --rb-border:#8f9fb3;
+  --rb-ink:#101c2f;
+  --rb-muted:#485a71;
+  --rb-soft:#b6c7df;
   --paper:var(--rb-bg);
   --ink:var(--rb-ink);
   --muted:var(--rb-muted);
@@ -17,15 +19,21 @@
   --blue:var(--rb-blue);
   --white:var(--rb-surface);
 }
-html,body,.bank-shell,.workspace{background:linear-gradient(180deg,#cbd6e4 0%,#d4deea 100%)!important;color:var(--rb-ink)!important}
-.sidebar{background:#d3ddea!important;border-right:1px solid var(--rb-border)!important}
-.sidebar nav button{color:#586b83!important}.sidebar nav button:hover,.sidebar nav button.active{background:#c5d4e8!important;color:var(--rb-blue)!important}.sidebar-status{background:#c8d5e5!important;border-color:var(--rb-border)!important}.sidebar-status small{color:#66788e!important}
-.top-actions button{background:#dce5f0!important;border-color:var(--rb-border)!important}.top-actions .avatar{background:var(--rb-blue)!important;color:#fff!important}
-.quick-actions button,.transactions-panel,.future-card,.technology-card,.risk-panel,.lab-intro{background:var(--rb-surface)!important;border-color:var(--rb-border)!important;color:var(--rb-ink)!important}.quick-actions button:hover,.technology-card:hover{background:var(--rb-surface-2)!important;border-color:#93abd0!important}
-.future-card{background:#c9d8eb!important}.future-heading small{background:#dfe7f1!important}.future-visual span,.future-visual span:nth-child(1),.future-visual span:nth-child(2),.future-visual span:nth-child(3){background:#dfe7f2!important;border-color:#b8c8db!important}
-.lab-intro{background:#d6e0ec!important}.official-topic-list>span{background:#cbd7e6!important;border-color:#b3c1d3!important}.official-topic-list b{background:#bcd1ef!important}.technology-card>span,.quick-actions span{background:#c7d9ef!important}.support-card{background:#d2dce8!important}.comparison-card{background:#d8e1ec!important}
-.assistant-button{background:#dbe4ef!important}.assistant-panel{background:#dbe4ee!important}.chat-messages{background:#cbd6e4!important}.chat-assistant{background:#e0e7f0!important}.chat-form input{background:#dce5ef!important}.assistant-panel>footer{background:#dbe4ee!important}
-.presentation-modal{background:linear-gradient(180deg,#d9e3ef 0%,#ccd8e7 100%)!important;border-color:#aebed1!important}.presentation-modal>header,.presentation-modal>footer{background:#d4deea!important;border-color:#b8c6d7!important}.presentation-progress{background:#bcc9da!important}.presentation-visual{background:#c4d4e9!important}.presentation-visual>span{background:#e2e9f2!important}.speaker-note{background:#c6d3e3!important;border-left-color:var(--rb-blue)!important}.speaker-note p{color:#43576f!important}.institution-note{background:#d7e1ed!important;border-color:#aebfd4!important}.presentation-impact span{background:#c6d2e1!important;color:#42566e!important}.presentation-modal>footer>button{background:#dce4ed!important;border-color:#aebed0!important}.presentation-modal>footer>.presentation-next{background:var(--rb-blue)!important;color:#fff!important}
-.pix-modal,.devices-modal,.cloud-modal,.sustainability-modal,.immersive-modal,.robotics-modal,.comparison-modal,.analysis-modal,.analytics-modal,.security-modal,.authentication-modal,.automation-modal{background:#d8e2ee!important;border-color:#aebfd3!important;color:var(--rb-ink)!important}.pix-modal input,.chat-form input{background:#c4d3e6!important;border-color:#9fb2ca!important;color:#18304f!important}.pix-modal input::placeholder,.chat-form input::placeholder{color:#657b97!important}.education-note{background:#c5d7ec!important}.region-grid article,.metric-grid article,.device-list article,.green-metrics article{background:#d1dce9!important;border-color:#b2c1d2!important}.recovery-panel,.energy-sources{background:#d4dfeb!important;border-color:#b2c2d4!important}
-.lab-institute-copy{color:#566b84!important}.technology-section-heading>strong{color:#52657d!important}
-@media(max-width:650px){.sidebar{background:#d3ddea!important}.presentation-modal{background:#d6e0ec!important}}
+html,body{background:#a8b6c9!important;color:var(--rb-ink)!important}
+body{background:linear-gradient(145deg,#96a7bd 0%,#b5c1d0 45%,#a7b5c8 100%)!important}
+.bank-shell,.workspace{background:transparent!important}
+.sidebar{background:#263b58!important;border-right:1px solid #39506e!important;color:#edf3fb!important;box-shadow:none!important}
+.sidebar nav button{color:#c8d3e2!important}.sidebar nav button span{color:#b9c8da!important}.sidebar nav button:hover,.sidebar nav button.active{background:#36527a!important;color:#fff!important}.sidebar nav button.active span{color:#8fc0ff!important}.sidebar-status{background:#1d314d!important;border-color:#3d587a!important;color:#f2f6fb!important}.sidebar-status small{color:#aebed2!important}
+.topbar p{color:#52647c!important}.topbar h1{color:#10213a!important}.top-actions button{background:#c8d2de!important;border-color:#92a2b6!important;color:#32465f!important}.top-actions .avatar{background:var(--rb-blue)!important;color:#fff!important}
+.balance-card{background:linear-gradient(135deg,#174fae,#2268df 72%,#2a7ae4)!important;box-shadow:0 16px 34px #344d6a29!important}
+.quick-actions button,.transactions-panel,.future-card,.technology-card,.risk-panel,.lab-intro{background:var(--rb-surface)!important;border-color:var(--rb-border)!important;color:var(--rb-ink)!important;box-shadow:0 8px 18px #455b7312!important}
+.quick-actions button:hover,.technology-card:hover{background:var(--rb-surface-2)!important;border-color:#718cb0!important}
+.quick-actions span,.technology-card>span{background:#afc5e4!important;color:#174fae!important}
+.transactions-panel .transaction,.panel-title{border-color:#aeb9c8!important}.transaction-icon{background:#afc5e4!important;color:#174fae!important}
+.future-card{background:linear-gradient(180deg,#b8c5d6,#aebdd0)!important}.future-heading small{background:#d4dce6!important;color:#44566e!important}.future-card h2{color:#10213a!important}.future-card>p{color:#45576e!important}.future-visual span,.future-visual span:nth-child(1),.future-visual span:nth-child(2),.future-visual span:nth-child(3){background:#d4dde7!important;border-color:#98aac1!important;color:#344a63!important}
+.lab-intro{background:linear-gradient(135deg,#b9c6d6,#c7d0dc)!important}.lab-tag{color:#164fae!important}.lab-intro h2{color:#10213a!important}.lab-intro p,.lab-institute-copy{color:#4a5c73!important}.official-topic-list>span{background:#afbdce!important;border-color:#8fa0b5!important;color:#2e425d!important}.official-topic-list b{background:#91b2df!important;color:#103d87!important}.technology-section-heading{border-color:#94a4b8!important}.technology-section-heading>span{color:#144da9!important}.technology-section-heading>strong{color:#42546b!important}.technology-card{background:#c6d0dc!important}.support-card{background:#b9c6d4!important}.comparison-card{background:#b4c4d8!important}.technology-card h3{color:#10213a!important}.technology-card p{color:#46586f!important}.technology-card b{color:#174fae!important}
+.assistant-button{background:#263b58!important;color:#fff!important;border-color:#36527a!important;box-shadow:0 10px 24px #263b5833!important}.assistant-button span{color:#9bc8ff!important}.assistant-panel{background:#c5cfdb!important;border-color:#8396ad!important}.chat-messages{background:#b7c3d2!important}.chat-assistant{background:#d0d8e2!important;border-color:#9baabd!important;color:#33475f!important}.chat-user{background:#2268df!important}.chat-form input{background:#d1d9e3!important;color:#17283f!important}.assistant-panel>footer{background:#c5cfdb!important;color:#56687f!important}
+.presentation-backdrop{background:#0d1b2ccc!important;backdrop-filter:blur(7px)!important}.presentation-modal{background:linear-gradient(145deg,#b7c4d4,#c6d0db)!important;border-color:#7f91a8!important;color:#10213a!important;box-shadow:0 30px 90px #10213a66!important}.presentation-modal>header,.presentation-modal>footer{background:#aebdce!important;border-color:#8598af!important}.presentation-brand>span{color:#10213a!important}.presentation-count{color:#475a72!important}.presentation-progress{background:#8fa1b8!important}.presentation-visual{background:#a9bedb!important}.presentation-visual>span{background:#d6dee8!important;color:#1755ba!important}.presentation-content>article>span{color:#174fae!important}.presentation-content h2{color:#10213a!important}.presentation-content>article>p{color:#42556d!important}.presentation-application{background:#b2c0d1!important;border-left-color:#2268df!important}.presentation-application>b{color:#174fae!important}.presentation-application>strong{color:#10213a!important}.presentation-application>p{color:#41556f!important}.institution-note{background:#cbd4df!important;border-color:#93a5ba!important}.institution-note>b{color:#174fae!important}.institution-note>strong{color:#10213a!important}.institution-note>p{color:#43566e!important}.presentation-impact span{background:#aebccc!important;color:#31465f!important}.presentation-modal>footer>button{background:#c8d1dc!important;border-color:#8da0b6!important;color:#31445e!important}.presentation-modal>footer>.presentation-next{background:#2268df!important;color:#fff!important;border-color:#2268df!important}
+.pix-modal,.devices-modal,.cloud-modal,.sustainability-modal,.immersive-modal,.robotics-modal,.comparison-modal,.analysis-modal,.analytics-modal,.security-modal,.authentication-modal,.automation-modal{background:#bec9d6!important;border-color:#8497ae!important;color:#10213a!important;box-shadow:0 26px 80px #14274052!important}.pix-modal h2,.devices-modal h2,.cloud-modal h2,.sustainability-modal h2,.immersive-modal h2,.robotics-modal h2,.comparison-modal h2,.analysis-modal h2,.analytics-modal h2,.security-modal h2,.authentication-modal h2{color:#10213a!important}.pix-modal input,.chat-form input{background:#9fb1c7!important;border-color:#71869f!important;color:#132841!important}.pix-modal input::placeholder,.chat-form input::placeholder{color:#4f657f!important}.education-note{background:#a9bdd6!important}.region-grid article,.metric-grid article,.device-list article,.green-metrics article{background:#b3c0cf!important;border-color:#8b9db2!important;color:#10213a!important}.recovery-panel,.energy-sources{background:#b8c5d3!important;border-color:#8fa1b5!important}
+.modal-backdrop{background:#0c192ca6!important}
+@media(max-width:650px){.sidebar{background:#263b58!important;border-top:1px solid #39506e!important}.presentation-modal{background:#bcc8d6!important}}
