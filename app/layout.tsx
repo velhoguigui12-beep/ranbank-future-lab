@@ -6,6 +6,7 @@ import "./banking-suite.css";
 import "./innovation-hub.css";
 import "./market-ui.css";
 import "./institutional-content.css";
+import "./palette-refresh.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
