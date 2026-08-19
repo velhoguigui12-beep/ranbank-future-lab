@@ -7,6 +7,7 @@ type Initiative = {
   title: string;
   description: string;
   impacts: string[];
+  bankApplication: string;
 };
 
 const initiatives: Initiative[] = [
@@ -15,36 +16,42 @@ const initiatives: Initiative[] = [
     title: "RanBank Intelligence & Research",
     description: "Parcerias com universidades e centros de dados para desenvolver detecção de fraudes, segurança financeira e educação orientada por dados.",
     impacts: ["Pesquisa aplicada", "Segurança financeira", "Formação de talentos"],
+    bankApplication: "No RanBank, IA e Big Data analisam padrões de transações, identificam comportamentos fora do comum e ajudam equipes humanas a tomar decisões de segurança com mais contexto.",
   },
   {
     chapter: "2 · IOT E SUSTENTABILIDADE",
     title: "RanBank Smart & Green",
     description: "Apoio a projetos de cidades inteligentes, eficiência energética e sensores para reduzir desperdícios em agências, equipamentos e data centers.",
     impacts: ["Eficiência energética", "IoT aplicado", "Tecnologia sustentável"],
+    bankApplication: "Sensores conectados permitem acompanhar consumo de energia, condições de equipamentos e uso das agências em tempo real, ajudando o banco a reduzir desperdícios e antecipar manutenção.",
   },
   {
     chapter: "3 · VR E RA",
     title: "RanBank Immersive Lab",
     description: "Parcerias com laboratórios de realidade aumentada e virtual para treinamento, inclusão digital, acessibilidade e novas experiências de atendimento.",
     impacts: ["Treinamento", "Acessibilidade", "Experiência"],
+    bankApplication: "A realidade virtual pode treinar equipes em situações complexas, enquanto a realidade aumentada pode orientar clientes em serviços, atendimento e uso de equipamentos de forma mais intuitiva.",
   },
   {
     chapter: "4 · COMPUTAÇÃO EM NUVEM",
     title: "RanCloud Innovation Program",
     description: "Infraestrutura e apoio técnico para startups, laboratórios e projetos que precisam de disponibilidade, escala e recuperação de falhas.",
     impacts: ["Escalabilidade", "Continuidade", "Ecossistema de inovação"],
+    bankApplication: "A nuvem mantém os serviços digitais disponíveis, permite crescer a capacidade quando a demanda aumenta e ajuda o RanBank a recuperar sistemas com rapidez quando alguma região apresenta falha.",
   },
   {
     chapter: "5 · COMPARAÇÃO",
     title: "Conselho de Tecnologia RanBank",
     description: "O banco avalia impacto, custo, maturidade e risco para decidir onde aplicar e apoiar cada tecnologia de forma responsável.",
     impacts: ["Estratégia", "Custo x benefício", "Escolha responsável"],
+    bankApplication: "O RanBank compara tecnologias conforme o problema que precisa resolver. Segurança, eficiência, escala, experiência e custo recebem pesos diferentes antes de qualquer investimento ou implantação.",
   },
   {
     chapter: "6 · ROBÓTICA",
     title: "RanBank Robotics Initiative",
     description: "Apoio a institutos, universidades e centros de ciência robótica com bolsas, laboratórios e projetos de automação, acessibilidade e atendimento.",
     impacts: ["Pesquisa robótica", "Bolsas e laboratórios", "Impacto social"],
+    bankApplication: "Dentro do banco, a robótica pode apoiar recepção, acessibilidade, inspeção e tarefas repetitivas. Decisões sensíveis continuam sob responsabilidade humana.",
   },
 ];
 
@@ -94,7 +101,6 @@ export default function InstitutionalExperience() {
         const presentation = document.querySelector<HTMLElement>(".presentation-modal");
         if (presentation) {
           setText(".presentation-brand small", "INSTITUTO RANBANK DE TECNOLOGIA");
-          setText(".speaker-note > b", "COMO APRESENTAR");
 
           const chapter = presentation.querySelector<HTMLElement>(".presentation-content > article > span")?.textContent?.trim() ?? "";
           const initiative = initiatives.find((item) => chapter.startsWith(item.chapter));
@@ -102,11 +108,18 @@ export default function InstitutionalExperience() {
           const speakerNote = article?.querySelector<HTMLElement>(".speaker-note");
 
           if (initiative && article && speakerNote) {
+            const speakerLabel = speakerNote.querySelector<HTMLElement>("b");
+            const speakerText = speakerNote.querySelector<HTMLElement>("p");
+            if (speakerLabel) speakerLabel.textContent = "APLICAÇÃO NO RANBANK";
+            if (speakerText) speakerText.textContent = initiative.bankApplication;
+
             let note = article.querySelector<HTMLElement>(".institution-note");
             if (!note) {
               note = document.createElement("div");
               note.className = "institution-note";
-              speakerNote.insertAdjacentElement("beforebegin", note);
+              speakerNote.insertAdjacentElement("afterend", note);
+            } else if (note.previousElementSibling !== speakerNote) {
+              speakerNote.insertAdjacentElement("afterend", note);
             }
 
             if (note.dataset.chapter !== initiative.chapter) {
@@ -114,7 +127,7 @@ export default function InstitutionalExperience() {
               note.replaceChildren();
 
               const label = document.createElement("b");
-              label.textContent = "CONEXÃO RANBANK";
+              label.textContent = "CONEXÃO COM A TECNOLOGIA";
               const title = document.createElement("strong");
               title.textContent = initiative.title;
               const description = document.createElement("p");
