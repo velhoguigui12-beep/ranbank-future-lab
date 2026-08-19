@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import InstitutionalExperience from "./InstitutionalExperience";
+import PublicSiteGate from "./PublicSiteGate";
 import "./globals.css";
 import "./banking-suite.css";
 import "./innovation-hub.css";
@@ -8,6 +9,7 @@ import "./market-ui.css";
 import "./institutional-content.css";
 import "./palette-refresh.css";
 import "./presentation-safe.css";
+import "./public-site.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
@@ -18,5 +20,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><body className={geist.variable}><InstitutionalExperience />{children}</body></html>;
+  return <html lang="pt-BR"><body className={geist.variable}><InstitutionalExperience /><PublicSiteGate />{children}</body></html>;
 }
