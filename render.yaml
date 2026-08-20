@@ -20,7 +20,35 @@ services:
     dockerContext: .
     healthCheckPath: /api/health
     envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: "postgresql"
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: ranbank-postgres
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: ranbank-postgres
+          property: port
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: ranbank-postgres
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: ranbank-postgres
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: ranbank-postgres
+          property: password
       - key: H2_CONSOLE_ENABLED
         value: "false"
       - key: APP_CORS_ALLOWED_ORIGIN_PATTERNS
         value: "http://localhost:3000,http://localhost:5173,https://*.onrender.com"
+
+databases:
+  - name: ranbank-postgres
+    plan: free
+    databaseName: ranbank
+    user: ranbank

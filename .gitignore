@@ -1,4 +1,6 @@
 node_modules/
+.m2/
+.npm-cache/
 dist/
 .next/
 .vinext/

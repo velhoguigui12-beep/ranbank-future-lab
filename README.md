@@ -4,9 +4,11 @@ Aplicação acadêmica que combina uma interface bancária com módulos interati
 
 ## Recursos principais
 
-- Conta com login, sessão protegida e PIN transacional separado.
-- Pix com validação de chave e saldo, boleto, agendamentos e comprovantes.
+- Conta demo criada pelo próprio usuário, login multiusuário, sessão persistente e PIN transacional separado.
+- Pix entre duas contas com resolução do destinatário, idempotência, liquidação atômica e comprovante.
 - Extrato pesquisável, cartão virtual com controle de limite e cofrinho.
+- Notificações persistentes com atualização em tempo real via SSE.
+- RanFlow com execuções persistidas e trilha automática para cada Pix.
 - Future Lab com IA explicável, Big Data, IoT, nuvem, automação e cibersegurança.
 - Open Finance com consentimentos revogáveis e visão consolidada.
 - Ledger de auditoria com hashes encadeados e jornada antifraude integrada.
@@ -15,7 +17,7 @@ Aplicação acadêmica que combina uma interface bancária com módulos interati
 
 - **Frontend:** React 19, TypeScript e Vinext.
 - **Backend:** Java 21 e Spring Boot 3.5.
-- **Banco:** H2 em arquivo local.
+- **Banco:** H2 para desenvolvimento local e PostgreSQL para ambientes persistentes, com migrations Flyway.
 - **Chatbot:** base educacional local, sem API externa.
 
 ## Executar localmente
@@ -43,10 +45,31 @@ PIN de acesso: 2580
 Senha de 4 dígitos para Pix: 7314
 ```
 
-O login cria uma sessão temporária em cookie `HttpOnly`. O PIN de acesso e a senha
+O login cria uma sessão temporária persistida e envia apenas o token em cookie `HttpOnly`. O PIN de acesso e a senha
 transacional são diferentes e ficam armazenados no H2 somente como hashes BCrypt.
 Após cinco tentativas de login ou três tentativas da senha transacional, a respectiva
 credencial é bloqueada temporariamente. Todas as credenciais são fictícias.
+
+Na tela de login também é possível criar uma nova conta educacional. O e-mail informado
+é cadastrado como chave Pix e a conta recebe saldo inicial fictício. Para demonstrar uma
+transferência a partir da conta de apresentação, use `maria@ranbank.demo` como destino.
+
+## Endpoints evolutivos
+
+- `POST /api/demo-accounts`: cria e autentica uma conta educacional.
+- `GET /api/pix/recipients/resolve`: confirma o recebedor antes do Pix.
+- `POST /api/pix/transfers`: transfere com `Idempotency-Key` e PIN transacional.
+- `GET /api/pix/transfers/{id}/receipt`: recupera o comprovante.
+- `GET /api/notifications` e `GET /api/notifications/stream`: central e SSE.
+- `GET /api/automation/executions`: histórico persistido do RanFlow.
+- `GET /api/admin/insights/summary`: métricas globais restritas ao papel administrativo.
+
+## Qualidade e persistência
+
+- Sete migrations Flyway criam o esquema e suas relações em H2 ou PostgreSQL.
+- Testes de integração cobrem autenticação, contas, Pix, idempotência, reset bilateral e migrations.
+- O teste PostgreSQL usa Testcontainers e é executado automaticamente quando Docker está disponível.
+- O `render.yaml` provisiona um PostgreSQL gerenciado e injeta as credenciais sem gravá-las no repositório.
 
 ## Variáveis de hospedagem
 
@@ -67,6 +90,18 @@ RANBANK_DEMO_ACCESS_PIN=2580
 RANBANK_DEMO_TRANSACTION_PIN=7314
 RANBANK_SESSION_MINUTES=30
 ```
+
+Para PostgreSQL, ative o perfil e informe uma URL JDBC:
+
+```text
+SPRING_PROFILES_ACTIVE=postgresql
+SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/ranbank
+SPRING_DATASOURCE_USERNAME=ranbank
+SPRING_DATASOURCE_PASSWORD=senha-segura
+```
+
+Também é possível informar separadamente `POSTGRES_HOST`, `POSTGRES_PORT`,
+`POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PASSWORD`, como faz o Blueprint do Render.
 
 O backend contém um `Dockerfile` pronto para serviços compatíveis com contêineres Java. Depois que o backend receber uma URL HTTPS, essa URL deve ser configurada no frontend por meio de `NEXT_PUBLIC_API_URL`.
 
