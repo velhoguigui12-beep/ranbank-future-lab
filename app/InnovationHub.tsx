@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions -- Modal backdrops intentionally handle pointer dismissal. */
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -44,8 +45,10 @@ export default function InnovationHub({ open, initialTab, onClose }: { open: boo
 
   useEffect(() => {
     if (!open) return;
-    setTab(initialTab);
-    load(initialTab);
+    queueMicrotask(() => {
+      setTab(initialTab);
+      void load(initialTab);
+    });
   }, [open, initialTab]);
 
   const connectedTotal = useMemo(() => openFinance?.institutions.filter((item) => item.connected).reduce((total, item) => total + item.balance, 0) ?? 0, [openFinance]);

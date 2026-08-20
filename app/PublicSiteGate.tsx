@@ -1,6 +1,8 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Vinext serves these local brand images directly. */
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const products = [
   { eyebrow: "Conta", title: "Uma conta para o dia a dia.", text: "Pix, pagamentos, transferências e movimentações em uma experiência simples e segura.", icon: "R$" },
@@ -147,8 +149,8 @@ export function InstitutePublicPage() {
   return (
     <div className="rb-public-shell rb-institute-page">
       <header className="rb-public-header rb-institute-header">
-        <a className="rb-public-brand" href="/"><img src="/ranbank-logo.jpeg" alt="RanBank" /></a>
-        <nav className="rb-public-nav"><a href="/">Banco</a><a href="#iniciativas">Iniciativas</a><a href="#robotica">Robótica</a></nav>
+        <Link className="rb-public-brand" href="/"><img src="/ranbank-logo.jpeg" alt="RanBank" /></Link>
+        <nav className="rb-public-nav"><Link href="/">Banco</Link><a href="#iniciativas">Iniciativas</a><a href="#robotica">Robótica</a></nav>
         <a className="rb-public-login" href="/banco">Acessar banco <span>→</span></a>
       </header>
       <main>
@@ -170,7 +172,7 @@ export function InstitutePublicPage() {
         </section>
         <section className="rb-final-cta"><div><span>AMBIENTE DEMONSTRATIVO</span><h2>Veja a tecnologia funcionando dentro do banco.</h2><p>Entre no RanBank para acessar o Future Lab, demonstrações e apresentação guiada.</p></div><a className="rb-btn rb-btn-light" href="/banco">Acessar RanBank →</a></section>
       </main>
-      <footer className="rb-public-footer"><a href="/">← Voltar ao RanBank</a><span>Instituto RanBank de Tecnologia</span><a href="/banco">Acessar conta</a></footer>
+      <footer className="rb-public-footer"><Link href="/">← Voltar ao RanBank</Link><span>Instituto RanBank de Tecnologia</span><a href="/banco">Acessar conta</a></footer>
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
-/* eslint-disable jsx-a11y/no-autofocus */
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex, @next/next/no-img-element -- Modal backdrops and the keyboard-controlled presentation surface intentionally handle input; Vinext serves local decorative images directly. */
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import BankingSuite, { type BankingTab } from "./BankingSuite";
 import InnovationHub, { type InnovationTab } from "./InnovationHub";
 
@@ -9,6 +10,11 @@ type DashboardData = {
   customerName: string;
   balance: number;
   account: string;
+  email: string;
+  maskedDocument: string;
+  role: string;
+  createdAt: string;
+  card: { lastFour: string; blocked: boolean; limit: number; spent: number; available: number };
   transactions: Array<{ id: number; title: string; detail: string; amount: number; type: "credit" | "debit" }>;
 };
 
@@ -60,6 +66,11 @@ type AutomationRun = {
 
 type ChatMessage = { role: "assistant" | "user"; text: string; topic?: string };
 type AuthUser = { customerName: string; accountNumber: string };
+type PixRecipient = { accountId: number; name: string; accountNumber: string; keyType: string; maskedKey: string };
+type BankNotification = { id: number; type: string; title: string; message: string; referenceId?: string; createdAt: string; read: boolean };
+type PixReceipt = { transferId: string; transactionId: number; status: string; amount: number; timestamp: string; recipientName: string; recipientAccount: string; maskedPixKey: string; idempotencyKey: string };
+type FlowExecution = { id: string; flowType: string; triggerType: string; referenceId?: string; status: string; startedAt: string; completedAt?: string; steps: AutomationRun["steps"] };
+type AdminInsights = { generatedAt: string; totalAccounts: number; totalDeposits: number; totalTransactions: number; transactionVolume: number; pixTransfers: number; unreadNotifications: number; flowExecutions: number };
 
 type SustainabilityStatus = {
   optimized: boolean;
@@ -126,6 +137,11 @@ const demoData: DashboardData = {
   customerName: "Ana Ribeiro",
   balance: 8540.75,
   account: "1234-5",
+  email: "ana@ranbank.demo",
+  maskedDocument: "•••.•••.•••-09",
+  role: "ADMIN",
+  createdAt: new Date().toISOString(),
+  card: { lastFour: "1234", blocked: false, limit: 6000, spent: 1248.9, available: 4751.1 },
   transactions: [
     { id: 1, title: "Pix recebido", detail: "Maria Silva · hoje, 09:41", amount: 250, type: "credit" },
     { id: 2, title: "Transferência enviada", detail: "João Pereira · hoje, 08:15", amount: -120, type: "debit" },
@@ -197,6 +213,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 const apiFetch = (path: string, init: RequestInit = {}) => fetch(`${API_BASE}${path}`, { ...init, credentials: "include" });
 
 export default function Home() {
+  const pathname = usePathname();
   const [data, setData] = useState(demoData);
   const [authStatus, setAuthStatus] = useState<"checking" | "authenticated" | "unauthenticated">("checking");
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
@@ -204,14 +221,15 @@ export default function Home() {
   const [loginPin, setLoginPin] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "create">("login");
+  const [signup, setSignup] = useState({ customerName: "", documentId: "", email: "", accessPin: "", transactionPin: "" });
   const [screen, setScreen] = useState<"dashboard" | "lab">("dashboard");
   const [utilityPanel, setUtilityPanel] = useState<"account" | "cards" | "security" | "notifications" | "profile" | null>(null);
-  const [cardBlocked, setCardBlocked] = useState(false);
   const [bankingOpen, setBankingOpen] = useState(false);
   const [bankingTab, setBankingTab] = useState<BankingTab>("statement");
   const [innovationOpen, setInnovationOpen] = useState(false);
   const [innovationTab, setInnovationTab] = useState<InnovationTab>("open-finance");
-  const [notificationsRead, setNotificationsRead] = useState(false);
+  const [notifications, setNotifications] = useState<BankNotification[]>([]);
   const [backendOnline, setBackendOnline] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [pixOpen, setPixOpen] = useState(false);
@@ -221,6 +239,9 @@ export default function Home() {
   const [pixStep, setPixStep] = useState<"details" | "review">("details");
   const [pixStatus, setPixStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [pixError, setPixError] = useState("");
+  const [pixRecipient, setPixRecipient] = useState<PixRecipient | null>(null);
+  const [pixIdempotencyKey, setPixIdempotencyKey] = useState("");
+  const [pixReceipt, setPixReceipt] = useState<PixReceipt | null>(null);
   const [analysis, setAnalysis] = useState<FraudAnalysis | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [analysisLoading, setAnalysisLoading] = useState(false);
@@ -237,6 +258,12 @@ export default function Home() {
   const [automationOpen, setAutomationOpen] = useState(false);
   const [automationRunning, setAutomationRunning] = useState(false);
   const [visibleAutomationSteps, setVisibleAutomationSteps] = useState(0);
+  const [flowHistory, setFlowHistory] = useState<FlowExecution[]>([]);
+  const [flowHistoryOpen, setFlowHistoryOpen] = useState(false);
+  const [flowHistoryLoading, setFlowHistoryLoading] = useState(false);
+  const [adminInsights, setAdminInsights] = useState<AdminInsights | null>(null);
+  const [adminInsightsOpen, setAdminInsightsOpen] = useState(false);
+  const [adminInsightsLoading, setAdminInsightsLoading] = useState(false);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [chatMode, setChatMode] = useState<"LOCAL" | "OPENAI" | "LOCAL_FALLBACK">("LOCAL");
@@ -278,6 +305,7 @@ export default function Home() {
   };
 
   useEffect(() => {
+    if (pathname === "/") return;
     const restoreSession = async () => {
       try {
         const response = await apiFetch("/auth/session");
@@ -291,7 +319,21 @@ export default function Home() {
       }
     };
     restoreSession();
-  }, []);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (authStatus !== "authenticated") return;
+    let active = true;
+    apiFetch("/notifications").then(async (response) => {
+      if (active && response.ok) setNotifications(await response.json());
+    }).catch(() => undefined);
+    const source = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
+    source.addEventListener("notification", (event) => {
+      const incoming = JSON.parse((event as MessageEvent).data) as BankNotification;
+      setNotifications((current) => [incoming, ...current.filter((item) => item.id !== incoming.id)]);
+    });
+    return () => { active = false; source.close(); };
+  }, [authStatus]);
 
   const login = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -315,6 +357,28 @@ export default function Home() {
     } catch (error) {
       setLoginPin("");
       setLoginError(error instanceof Error ? error.message : "Não foi possível entrar.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const createDemoAccount = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoginLoading(true);
+    setLoginError("");
+    try {
+      const response = await apiFetch("/demo-accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(signup),
+      });
+      const result = await response.json().catch(() => ({ message: "Não foi possível criar a conta." }));
+      if (!response.ok) throw new Error(result.message);
+      setAuthUser({ customerName: result.customerName, accountNumber: result.accountNumber });
+      setAuthStatus("authenticated");
+      await loadDashboard();
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : "Não foi possível criar a conta.");
     } finally {
       setLoginLoading(false);
     }
@@ -353,7 +417,7 @@ export default function Home() {
     setTransactionPin((current) => current.length < 4 ? current + digit : current);
   };
 
-  const reviewPix = (event: React.FormEvent<HTMLFormElement>) => {
+  const reviewPix = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const numericAmount = parseMoneyInput(amount);
     if (!pixKey.trim() || !Number.isFinite(numericAmount) || numericAmount <= 0) {
@@ -361,9 +425,20 @@ export default function Home() {
       setPixStatus("error");
       return;
     }
+    setPixStatus("sending");
     setPixError("");
-    setPixStatus("idle");
-    setPixStep("review");
+    try {
+      const response = await apiFetch(`/pix/recipients/resolve?key=${encodeURIComponent(pixKey)}`);
+      const result = await response.json().catch(() => ({ message: "Destinatário não encontrado." }));
+      if (!response.ok) throw new Error(result.message);
+      setPixRecipient(result);
+      setPixIdempotencyKey(crypto.randomUUID());
+      setPixStatus("idle");
+      setPixStep("review");
+    } catch (error) {
+      setPixStatus("error");
+      setPixError(error instanceof Error ? error.message : "Destinatário não encontrado.");
+    }
   };
 
   const sendPix = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -375,25 +450,27 @@ export default function Home() {
     setPixStatus("sending");
     setPixError("");
     try {
-      const response = await apiFetch("/transactions", {
+      const response = await apiFetch("/pix/transfers", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Idempotency-Key": pixIdempotencyKey || crypto.randomUUID() },
         body: JSON.stringify({ pixKey, amount: parseMoneyInput(amount), transactionPin }),
       });
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: "Não foi possível registrar o Pix." }));
         throw new Error(error.message);
       }
+      const receipt: PixReceipt = await response.json();
       await loadDashboard();
       setPixStatus("success");
       setTransactionPin("");
-      setTimeout(() => {
-        setPixOpen(false);
-        setPixStatus("idle");
-        setPixStep("details");
-        setPixKey("");
-        setAmount("");
-      }, 900);
+      setPixReceipt(receipt);
+      setPixOpen(false);
+      setPixStatus("idle");
+      setPixStep("details");
+      setPixKey("");
+      setAmount("");
+      setPixRecipient(null);
+      setPixIdempotencyKey("");
     } catch (error) {
       setPixError(error instanceof Error ? error.message : "Não foi possível registrar o Pix.");
       setPixStatus("error");
@@ -621,6 +698,46 @@ export default function Home() {
     }
   };
 
+  const openFlowHistory = async () => {
+    setFlowHistoryOpen(true);
+    setFlowHistoryLoading(true);
+    try {
+      const response = await apiFetch("/automation/executions");
+      if (!response.ok) throw new Error();
+      setFlowHistory(await response.json());
+    } catch {
+      setFlowHistory([]);
+    } finally {
+      setFlowHistoryLoading(false);
+    }
+  };
+
+  const openAdminInsights = async () => {
+    setAdminInsightsOpen(true);
+    setAdminInsightsLoading(true);
+    try {
+      const response = await apiFetch("/admin/insights/summary");
+      if (!response.ok) throw new Error();
+      setAdminInsights(await response.json());
+    } catch {
+      setAdminInsights(null);
+    } finally {
+      setAdminInsightsLoading(false);
+    }
+  };
+
+  const toggleUtilityCard = async () => {
+    const response = await apiFetch("/banking/card/toggle", { method: "PATCH" });
+    if (response.ok) await loadDashboard();
+  };
+
+  const markAllNotificationsRead = async () => {
+    const response = await apiFetch("/notifications/read-all", { method: "PATCH" });
+    if (response.ok) setNotifications((current) => current.map((item) => ({ ...item, read: true })));
+  };
+
+  if (pathname === "/") return null;
+
   if (authStatus === "checking") {
     return <main className="login-shell"><section className="login-loading" aria-live="polite"><img src="/ranbank-logo.jpeg" alt="Ranbank"/><i/><p>Protegendo sua sessão…</p></section></main>;
   }
@@ -634,16 +751,24 @@ export default function Home() {
           <div className="login-security-points"><span><b>01</b>PIN protegido</span><span><b>02</b>Sessão temporária</span><span><b>03</b>Senha transacional</span></div>
         </section>
         <section className="login-panel">
-          <form className="login-card" onSubmit={login}>
-            <header><span>ACESSO SEGURO</span><h2>Entre na sua conta</h2><p>Use seu CPF ou número da conta e o PIN de acesso.</p></header>
-            <label>CPF ou conta<input value={loginIdentification} onChange={(event) => setLoginIdentification(event.target.value.slice(0, 18))} autoComplete="username" inputMode="numeric" maxLength={18} placeholder="Digite seu CPF ou sua conta" aria-label="CPF ou número da conta"/></label>
-            <label>PIN de acesso<input className="login-pin-input" type="password" value={loginPin} onChange={(event) => setLoginPin(event.target.value.replace(/\D/g, "").slice(0,4))} autoComplete="current-password" inputMode="numeric" maxLength={4} placeholder="••••" aria-label="PIN de quatro dígitos"/></label>
-            <div className="pin-dots" aria-hidden="true">{[0,1,2,3].map((index) => <i key={index} className={index < loginPin.length ? "filled" : ""}/>)}</div>
-            <div className="numeric-keypad" aria-label="Teclado numérico">{[1,2,3,4,5,6,7,8,9].map((digit) => <button type="button" key={digit} onClick={() => appendLoginDigit(String(digit))}>{digit}</button>)}<button type="button" className="biometric-key" disabled aria-label="Biometria indisponível">◎</button><button type="button" onClick={() => appendLoginDigit("0")}>0</button><button type="button" className="erase-key" onClick={() => setLoginPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito">⌫</button></div>
+          <form className={`login-card ${authMode === "create" ? "signup-card" : ""}`} onSubmit={authMode === "login" ? login : createDemoAccount}>
+            <header><span>ACESSO SEGURO</span><h2>{authMode === "login" ? "Entre na sua conta" : "Crie sua conta demo"}</h2><p>{authMode === "login" ? "Use seu CPF ou número da conta e o PIN de acesso." : "Seus dados ficam neste ambiente educacional e o e-mail vira sua chave Pix."}</p></header>
+            <div className="auth-mode-tabs"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => { setAuthMode("login"); setLoginError(""); }}>Entrar</button><button type="button" className={authMode === "create" ? "active" : ""} onClick={() => { setAuthMode("create"); setLoginError(""); }}>Criar conta</button></div>
+            {authMode === "login" ? <>
+              <label>CPF ou conta<input value={loginIdentification} onChange={(event) => setLoginIdentification(event.target.value.slice(0, 18))} autoComplete="username" inputMode="numeric" maxLength={18} placeholder="Digite seu CPF ou sua conta" aria-label="CPF ou número da conta"/></label>
+              <label>PIN de acesso<input className="login-pin-input" type="password" value={loginPin} onChange={(event) => setLoginPin(event.target.value.replace(/\D/g, "").slice(0,4))} autoComplete="current-password" inputMode="numeric" maxLength={4} placeholder="••••" aria-label="PIN de quatro dígitos"/></label>
+              <div className="pin-dots" aria-hidden="true">{[0,1,2,3].map((index) => <i key={index} className={index < loginPin.length ? "filled" : ""}/>)}</div>
+              <div className="numeric-keypad" aria-label="Teclado numérico">{[1,2,3,4,5,6,7,8,9].map((digit) => <button type="button" key={digit} onClick={() => appendLoginDigit(String(digit))}>{digit}</button>)}<button type="button" className="biometric-key" disabled aria-label="Biometria indisponível">◎</button><button type="button" onClick={() => appendLoginDigit("0")}>0</button><button type="button" className="erase-key" onClick={() => setLoginPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito">⌫</button></div>
+            </> : <div className="signup-fields">
+              <label>Nome completo<input value={signup.customerName} onChange={(event) => setSignup({ ...signup, customerName: event.target.value })} autoComplete="name" required/></label>
+              <label>CPF fictício<input value={signup.documentId} onChange={(event) => setSignup({ ...signup, documentId: event.target.value.replace(/\D/g, "").slice(0, 11) })} inputMode="numeric" minLength={11} maxLength={11} required/></label>
+              <label className="signup-wide">E-mail e chave Pix<input type="email" value={signup.email} onChange={(event) => setSignup({ ...signup, email: event.target.value })} autoComplete="email" required/></label>
+              <label>PIN de acesso<input type="password" value={signup.accessPin} onChange={(event) => setSignup({ ...signup, accessPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
+              <label>PIN transacional<input type="password" value={signup.transactionPin} onChange={(event) => setSignup({ ...signup, transactionPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
+            </div>}
             {loginError && <p className="login-error" role="alert">{loginError}</p>}
-            <button className="login-submit" disabled={loginLoading || loginPin.length !== 4}>{loginLoading ? "Verificando…" : "Entrar com PIN"}</button>
-            <button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível neste dispositivo</small></div></button>
-            <div className="demo-credentials"><b>ACESSO PARA APRESENTAÇÃO</b><span>CPF 123.456.789-09</span><span>PIN 2580</span></div>
+            <button className="login-submit" disabled={loginLoading || (authMode === "login" && loginPin.length !== 4)}>{loginLoading ? "Processando…" : authMode === "login" ? "Entrar com PIN" : "Criar e acessar conta"}</button>
+            {authMode === "login" && <><button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível neste dispositivo</small></div></button><div className="demo-credentials"><b>ACESSO PARA APRESENTAÇÃO</b><span>CPF 123.456.789-09</span><span>PIN 2580</span></div></>}
             <footer>Conexão protegida · sessão temporária</footer>
           </form>
         </section>
@@ -678,7 +803,7 @@ export default function Home() {
             <p>{screen === "dashboard" ? "Visão geral" : "Laboratório de inovação"}</p>
             <h1>{screen === "dashboard" ? `Olá, ${data.customerName.split(" ")[0]}` : "Future Lab"}</h1>
           </div>
-          <div className="top-actions"><button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações">♧{!notificationsRead && <i/>}</button><button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Perfil de ${authUser?.customerName ?? "cliente"}`}>AR</button><button className="logout-button" onClick={logout} aria-label="Sair da conta" title="Sair da conta">↪</button></div>
+          <div className="top-actions"><button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações">♧{notifications.some((item) => !item.read) && <i/>}</button><button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Perfil de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button><button className="logout-button" onClick={logout} aria-label="Sair da conta" title="Sair da conta">↪</button></div>
         </header>
 
         {screen === "dashboard" ? (
@@ -729,6 +854,8 @@ export default function Home() {
               <button className="technology-card support-card" onClick={() => openInnovation("open-finance")}><span>OF</span><h3>Open Finance</h3><p>Controle consentimentos e reúna dados de instituições diferentes.</p><b>Abrir apoio →</b></button>
               <button className="technology-card support-card" onClick={() => openInnovation("audit")}><span>#</span><h3>Auditoria encadeada</h3><p>Entenda hashes, integridade e rastreabilidade de eventos bancários.</p><b>Abrir apoio →</b></button>
               <button className="technology-card support-card" onClick={() => openInnovation("journey")}><span>360</span><h3>Jornada antifraude</h3><p>Veja IA, dados, IoT, nuvem e automação trabalhando em conjunto.</p><b>Abrir apoio →</b></button>
+              <button className="technology-card support-card" onClick={openFlowHistory}><span>RF</span><h3>Histórico RanFlow</h3><p>Acompanhe liquidações Pix e respostas a incidentes persistidas.</p><b>Ver execuções →</b></button>
+              {data.role === "ADMIN" && <button className="technology-card support-card admin-card" onClick={openAdminInsights}><span>BI</span><h3>Insights administrativos</h3><p>Visão agregada de contas, depósitos, Pix, alertas e automações.</p><b>Abrir painel →</b></button>}
             </div>
             <div className="risk-panel">
               <div className="risk-score"><span>Nível de risco</span><div><strong>68</strong><small>/100</small></div><b>MÉDIO</b></div>
@@ -740,7 +867,7 @@ export default function Home() {
 
       <button className="assistant-button" onClick={() => setAssistantOpen(!assistantOpen)}><span>✦</span> Assistente</button>
       {assistantOpen && <aside className="assistant-panel" aria-label="Assistente educacional Ranbank"><div className="assistant-header"><span className="assistant-icon">R</span><div><strong>Assistente Ranbank</strong><small className={`assistant-mode mode-${chatMode.toLowerCase()}`}>{chatMode === "OPENAI" ? "IA conectada · OpenAI API" : chatMode === "LOCAL_FALLBACK" ? "API indisponível · modo local" : "Modo local · conteúdo educacional"}</small></div><button onClick={() => setAssistantOpen(false)} aria-label="Fechar assistente">×</button></div><div className="chat-messages" aria-live="polite">{chatMessages.map((message,index) => <article key={index} className={`chat-${message.role}`}>{message.topic && <span>{message.topic}</span>}<p>{message.text}</p></article>)}{chatLoading && <article className="chat-assistant chat-typing" aria-label="Assistente digitando"><i/><i/><i/></article>}</div><div className="chat-suggestions"><button onClick={() => sendChatMessage("Oi")}>Dizer oi</button><button onClick={() => sendChatMessage("O que é phishing?")}>Phishing</button><button onClick={() => sendChatMessage("O que posso perguntar?")}>Ver assuntos</button></div><form className="chat-form" onSubmit={(event) => { event.preventDefault(); sendChatMessage(); }}><input value={chatInput} maxLength={300} onChange={(event) => setChatInput(event.target.value)} placeholder="Digite sua pergunta…" aria-label="Pergunta para o assistente"/><button type="submit" disabled={chatLoading || !chatInput.trim()} aria-label="Enviar pergunta">→</button></form><footer>Conteúdo educacional · não fornece orientação financeira</footer></aside>}
-      {pixOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setPixOpen(false)}><section className="pix-modal" role="dialog" aria-modal="true" aria-labelledby="pix-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>PIX RANBANK</span><h2 id="pix-title">Enviar um Pix</h2></div><button onClick={() => setPixOpen(false)} aria-label="Fechar">×</button></header><div className="education-note"><b>i</b><p><strong>Validação segura</strong><br/>Confira a chave, o valor e autorize com o PIN transacional.</p></div><form onSubmit={sendPix}><label>Chave Pix<input value={pixKey} onChange={(event) => setPixKey(event.target.value)} placeholder="CPF, celular, e-mail ou chave aleatória" required /><small className="field-help">Celular com DDD · CPF com 11 dígitos · chave aleatória no formato UUID</small></label><label>Valor disponível: {money.format(data.balance)}<input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0,00" inputMode="decimal" required /></label>{pixStatus === "error" && <p className="form-error">{pixError}</p>}<button className="confirm-pix" disabled={pixStatus === "sending"}>{pixStatus === "sending" ? "Validando…" : pixStatus === "success" ? "Pix registrado ✓" : "Confirmar Pix"}</button></form></section></div>}
+      {pixOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setPixOpen(false)}><section className="pix-modal" role="dialog" aria-modal="true" aria-labelledby="pix-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>PIX RANBANK</span><h2 id="pix-title">Enviar um Pix</h2></div><button onClick={() => setPixOpen(false)} aria-label="Fechar">×</button></header><div className="education-note"><b>i</b><p><strong>Transferência entre contas</strong><br/>O destinatário será localizado antes da autorização, e débito e crédito ocorrerão juntos.</p></div><form onSubmit={sendPix}><label>Chave Pix<input value={pixKey} onChange={(event) => setPixKey(event.target.value)} placeholder="E-mail cadastrado no Ranbank" required /><small className="field-help">Para testar com a conta demo, use maria@ranbank.demo</small></label><label>Valor disponível: {money.format(data.balance)}<input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0,00" inputMode="decimal" required /></label>{pixStatus === "error" && <p className="form-error">{pixError}</p>}<button className="confirm-pix" disabled={pixStatus === "sending"}>{pixStatus === "sending" ? "Localizando destinatário…" : pixStatus === "success" ? "Pix concluído ✓" : "Revisar Pix"}</button></form></section></div>}
       {analysisOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalysisOpen(false)}><section className="analysis-modal" role="dialog" aria-modal="true" aria-labelledby="analysis-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>SEGURANÇA EXPLICÁVEL</span><h2 id="analysis-title">Resultado da análise</h2></div><button onClick={() => setAnalysisOpen(false)} aria-label="Fechar">×</button></header>{analysisLoading ? <div className="analysis-loading"><i/><p>Analisando sinais da transação…</p></div> : analysis ? <><div className={`analysis-summary level-${analysis.level.toLowerCase()}`}><div><strong>{analysis.score}</strong><small>/100</small></div><span>Risco {analysis.level}</span></div><div className="method-label">{analysis.method} · resultado demonstrativo</div><div className="signal-list">{analysis.signals.map((signal) => <article key={signal.name}><b>{signal.weight}</b><div><strong>{signal.name}</strong><p>{signal.explanation}</p></div></article>)}</div><div className="recommendation"><span>Recomendação do sistema</span><strong>{analysis.recommendation}</strong></div></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar o simulador.</p></div>}</section></div>}
       {analyticsOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalyticsOpen(false)}><section className="analytics-modal" role="dialog" aria-modal="true" aria-labelledby="analytics-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>BIG DATA · DADOS DO H2</span><h2 id="analytics-title">Inteligência de movimentações</h2></div><button onClick={() => setAnalyticsOpen(false)} aria-label="Fechar">×</button></header>{analyticsLoading ? <div className="analysis-loading"><i/><p>Agregando movimentações…</p></div> : analytics ? <><div className="metric-grid"><article><span>Eventos analisados</span><strong>{analytics.totalTransactions}</strong><small>{analytics.creditCount} entradas · {analytics.debitCount} saídas</small></article><article><span>Total de entradas</span><strong className="metric-positive">{money.format(analytics.totalIn)}</strong><small>Valores creditados</small></article><article><span>Total de saídas</span><strong>{money.format(analytics.totalOut)}</strong><small>Valores debitados</small></article><article><span>Média por saída</span><strong>{money.format(analytics.averageOut)}</strong><small>Maior: {money.format(analytics.largestOut)}</small></article></div><div className="data-chart"><div><span>VOLUME RELATIVO</span><small>Cada barra representa uma movimentação armazenada</small></div><div className="data-bars">{analytics.series.map((value,index) => { const max = Math.max(...analytics.series.map(Math.abs),1); return <i key={index} className={value >= 0 ? "bar-credit" : "bar-debit"} style={{height:`${Math.max(12, Math.abs(value)/max*100)}%`}} title={money.format(value)}/>; })}</div><div className="chart-legend"><span><i className="legend-credit"/>Entrada</span><span><i className="legend-debit"/>Saída</span></div></div><div className="data-pipeline"><div><b>1</b><span><strong>Coleta</strong><small>Pix e movimentações</small></span></div><i>→</i><div><b>2</b><span><strong>Armazenamento</strong><small>Banco H2</small></span></div><i>→</i><div><b>3</b><span><strong>Agregação</strong><small>API Java</small></span></div><i>→</i><div><b>4</b><span><strong>Visualização</strong><small>Painel React</small></span></div></div><p className="analytics-caption">Em um banco real, esse fluxo processaria volumes muito maiores e exigiria infraestrutura distribuída. Aqui ele foi reduzido para fins didáticos.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar as estatísticas.</p></div>}</section></div>}
       {devicesOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setDevicesOpen(false)}><section className="devices-modal" role="dialog" aria-modal="true" aria-labelledby="devices-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>IOT · TELEMETRIA DEMONSTRATIVA</span><h2 id="devices-title">Dispositivos conectados</h2></div><button onClick={() => setDevicesOpen(false)} aria-label="Fechar">×</button></header><div className="iot-summary"><div><strong>{devices.filter((device) => !device.blocked).length}</strong><small>ativos</small></div><div><strong>{devices.filter((device) => device.trusted).length}</strong><small>confiáveis</small></div><div><strong>{devices.filter((device) => device.blocked).length}</strong><small>bloqueados</small></div><p>O banco recebe sinais dos aparelhos e reage quando encontra comportamento fora do padrão.</p></div>{devicesLoading ? <div className="analysis-loading"><i/><p>Consultando dispositivos…</p></div> : devices.length ? <div className="device-list">{devices.map((device) => <article key={device.id} className={!device.trusted ? "device-alert" : ""}><span className="device-icon">{device.type === "Celular" ? "▯" : device.type === "Computador" ? "▱" : "IoT"}</span><div><div className="device-name"><strong>{device.name}</strong>{device.blocked ? <b className="blocked-pill">Bloqueado</b> : device.trusted ? <b className="trusted-pill">Confiável</b> : <b className="alert-pill">Revisar</b>}</div><p>{device.type} · {device.location}</p><small>Último sinal: {device.lastAccess}</small></div><button className={device.blocked ? "unblock-button" : "block-button"} onClick={() => toggleDevice(device.id)}>{device.blocked ? "Reativar" : "Bloquear"}</button></article>)}</div> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar os dispositivos.</p></div>}<div className="iot-flow"><span>Dispositivo</span><i>envia telemetria →</i><span>API Java</span><i>avalia confiança →</i><span>Resposta</span></div><p className="analytics-caption">Acompanhe telemetria, confiança e respostas de segurança dos dispositivos conectados.</p></section></div>}
@@ -802,11 +929,14 @@ export default function Home() {
       {presentationOpen && <div className="presentation-backdrop" role="presentation"><section className="presentation-modal" role="dialog" aria-modal="true" aria-labelledby="presentation-title" tabIndex={0} onKeyDown={(event) => { if (event.key === "ArrowRight") setPresentationStep((step) => Math.min(presentationSlides.length - 1, step + 1)); if (event.key === "ArrowLeft") setPresentationStep((step) => Math.max(0, step - 1)); if (event.key === "Escape") setPresentationOpen(false); }}><header><div className="presentation-brand"><b>R</b><span>RANBANK<br/><small>6 TÓPICOS DA APRESENTAÇÃO</small></span></div><div className="presentation-count">{String(presentationStep + 1).padStart(2,"0")} / {String(presentationSlides.length).padStart(2,"0")}</div><button onClick={() => setPresentationOpen(false)} aria-label="Fechar apresentação">×</button></header><div className="presentation-progress"><i style={{width:`${((presentationStep + 1) / presentationSlides.length) * 100}%`}}/></div><div className="presentation-content"><div className="presentation-visual"><span>{presentationSlides[presentationStep].icon}</span><div>{presentationSlides[presentationStep].points.map((point,index) => <i key={point} style={{transform:`rotate(${index * 120}deg) translateY(-82px)`}}><b style={{transform:`rotate(-${index * 120}deg)`}}>{point}</b></i>)}</div></div><article><span>{presentationSlides[presentationStep].chapter}</span><h2 id="presentation-title">{presentationSlides[presentationStep].title}</h2><p>{presentationSlides[presentationStep].text}</p><div className="speaker-note"><b>DICA DE FALA</b><p>{presentationSlides[presentationStep].talk}</p></div></article></div><footer><button disabled={presentationStep === 0} onClick={() => setPresentationStep((step) => Math.max(0, step - 1))}>← Anterior</button><div>{presentationSlides.map((_,index) => <button key={index} className={index === presentationStep ? "active" : ""} onClick={() => setPresentationStep(index)} aria-label={`Ir para etapa ${index + 1}`}/>)}</div>{presentationStep < presentationSlides.length - 1 ? <button className="presentation-next" onClick={() => setPresentationStep((step) => step + 1)}>Próximo →</button> : <button className="presentation-next" onClick={() => { setPresentationOpen(false); loadRobotMission(); }}>Abrir robótica →</button>}</footer></section></div>}
       {authenticationOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAuthenticationOpen(false)}><section className="authentication-modal" role="dialog" aria-modal="true" aria-labelledby="authentication-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>IDENTIDADE DIGITAL · DEFESA EM CAMADAS</span><h2 id="authentication-title">Autenticação moderna</h2></div><button onClick={() => setAuthenticationOpen(false)} aria-label="Fechar">×</button></header><div className="auth-scenarios"><button className={authentication?.risk === 14 ? "active" : ""} onClick={() => simulateAuthentication("trusted")}><b>✓</b><span>Acesso habitual<small>Aparelho conhecido</small></span></button><button className={authentication?.risk === 82 ? "active danger" : ""} onClick={() => simulateAuthentication("suspicious")}><b>!</b><span>Acesso suspeito<small>Novo contexto</small></span></button></div>{authenticationLoading && !authentication ? <div className="analysis-loading"><i/><p>Verificando identidade…</p></div> : authentication ? <><div className={`auth-context ${authentication.risk > 50 ? "auth-danger" : ""}`}><div><span>CONTEXTO OBSERVADO</span><strong>{authentication.context}</strong></div><div className="auth-risk"><span>RISCO</span><b>{authentication.risk}</b><small>/100</small></div></div><div className="auth-factors"><div className="auth-factor-heading"><span>FATORES DE AUTENTICAÇÃO</span><small>Mais de uma evidência protege melhor que apenas uma senha</small></div>{authentication.factors.map((factor,index) => <article key={factor.name} className={`factor-${factor.status}`}><div><b>{index + 1}</b>{index < authentication.factors.length - 1 && <i/>}</div><section><span>{factor.category}</span><strong>{factor.name}</strong></section><em>{factor.status === "aprovado" ? "APROVADO ✓" : factor.status === "revisar" ? "REVISAR" : "BLOQUEADO"}</em></article>)}</div><div className={`auth-decision ${authentication.risk > 50 ? "decision-blocked" : ""}`}><span>{authentication.risk > 50 ? "×" : "✓"}</span><div><small>DECISÃO ADAPTATIVA</small><strong>{authentication.decision}</strong><p>{authentication.explanation}</p></div></div><p className="auth-caption">A autenticação combina fatores de identidade, dispositivo e comportamento para avaliar o acesso.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para executar a autenticação.</p></div>}</section></div>}
       {utilityPanel === "account" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal account-utility" role="dialog" aria-modal="true" aria-labelledby="account-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CONTA DIGITAL</span><h2 id="account-title">Minha conta</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="account-summary"><div><span>Saldo disponível</span><strong>{money.format(data.balance)}</strong><small>Conta corrente · Ag. 0001</small></div><b>•••• {data.account}</b></div><div className="account-details"><article><span>Titular</span><strong>{data.customerName}</strong></article><article><span>Tipo de conta</span><strong>Conta digital</strong></article><article><span>Status</span><strong className="status-safe">Ativa e protegida</strong></article><article><span>Instituição</span><strong>Ranbank Digital</strong></article></div><div className="utility-section-title"><span>ÚLTIMAS MOVIMENTAÇÕES</span><button onClick={() => { setUtilityPanel(null); setScreen("dashboard"); }}>Ver na tela inicial</button></div><div className="compact-transactions">{data.transactions.slice(0,4).map((transaction) => <article key={transaction.id}><span>{transaction.type === "credit" ? "↓" : "↑"}</span><div><strong>{transaction.title}</strong><small>{transaction.detail}</small></div><b className={transaction.type}>{transaction.amount > 0 ? "+ " : "- "}{money.format(Math.abs(transaction.amount))}</b></article>)}</div><p className="utility-caption">Movimentações organizadas por data, categoria e valor.</p></section></div>}
-      {utilityPanel === "cards" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal cards-utility" role="dialog" aria-modal="true" aria-labelledby="cards-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CARTÃO VIRTUAL · DEMONSTRAÇÃO</span><h2 id="cards-title">Meus cartões</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className={`bank-card ${cardBlocked ? "card-is-blocked" : ""}`}><div><img src="/ranbank-logo.jpeg" alt=""/><span>RANBANK PLATINUM</span></div><strong>•••• &nbsp;•••• &nbsp;•••• &nbsp;4821</strong><footer><span>ANA RIBEIRO</span><b>VIRTUAL</b></footer>{cardBlocked && <em>BLOQUEADO</em>}</div><div className="card-metrics"><article><span>Fatura atual</span><strong>{money.format(1248.9)}</strong><small>Fecha em 12 dias</small></article><article><span>Limite disponível</span><strong>{money.format(4751.1)}</strong><small>de R$ 6.000,00</small></article></div><button className={`card-toggle ${cardBlocked ? "unlock" : ""}`} onClick={() => setCardBlocked(!cardBlocked)}><span>{cardBlocked ? "✓" : "×"}</span><div><strong>{cardBlocked ? "Desbloquear cartão" : "Bloquear temporariamente"}</strong><small>{cardBlocked ? "Voltar a permitir compras" : "Impede novas compras até o desbloqueio"}</small></div></button><div className="card-actions"><button onClick={() => window.alert("Dados protegidos: 4821 · validade 08/31 · CVV oculto")}>▣ <span>Ver dados</span></button><button onClick={() => window.alert("Fatura atual de R$ 1.248,90")}>▤ <span>Ver fatura</span></button><button onClick={() => window.alert("Ajuste de limite disponível na Central Financeira")}>↕ <span>Ajustar limite</span></button></div><p className="utility-caption">Controle o limite, a fatura e o bloqueio do cartão virtual.</p></section></div>}
+      {utilityPanel === "cards" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal cards-utility" role="dialog" aria-modal="true" aria-labelledby="cards-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CARTÃO VIRTUAL · DEMONSTRAÇÃO</span><h2 id="cards-title">Meus cartões</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className={`bank-card ${data.card.blocked ? "card-is-blocked" : ""}`}><div><img src="/ranbank-logo.jpeg" alt=""/><span>RANBANK PLATINUM</span></div><strong>•••• &nbsp;•••• &nbsp;•••• &nbsp;{data.card.lastFour}</strong><footer><span>{data.customerName.toUpperCase()}</span><b>VIRTUAL</b></footer>{data.card.blocked && <em>BLOQUEADO</em>}</div><div className="card-metrics"><article><span>Fatura atual</span><strong>{money.format(data.card.spent)}</strong><small>Valores da conta autenticada</small></article><article><span>Limite disponível</span><strong>{money.format(data.card.available)}</strong><small>de {money.format(data.card.limit)}</small></article></div><button className={`card-toggle ${data.card.blocked ? "unlock" : ""}`} onClick={toggleUtilityCard}><span>{data.card.blocked ? "✓" : "×"}</span><div><strong>{data.card.blocked ? "Desbloquear cartão" : "Bloquear temporariamente"}</strong><small>{data.card.blocked ? "Voltar a permitir compras" : "Impede novas compras até o desbloqueio"}</small></div></button><div className="card-actions"><button onClick={() => window.alert(`Cartão final ${data.card.lastFour} · validade 08/31 · CVV oculto`)}>▣ <span>Ver dados</span></button><button onClick={() => window.alert(`Fatura atual de ${money.format(data.card.spent)}`)}>▤ <span>Ver fatura</span></button><button onClick={() => { setUtilityPanel(null); openBanking("card"); }}>↕ <span>Ajustar limite</span></button></div><p className="utility-caption">Controle o limite, a fatura e o bloqueio do cartão virtual.</p></section></div>}
       {utilityPanel === "security" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal security-utility" role="dialog" aria-modal="true" aria-labelledby="security-hub-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CENTRAL DE PROTEÇÃO</span><h2 id="security-hub-title">Segurança da conta</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="security-health"><div className="security-shield">✓</div><div><span>NÍVEL DE PROTEÇÃO</span><strong>Conta protegida</strong><p>As principais camadas de segurança estão ativas.</p></div><b>92<small>/100</small></b></div><div className="security-settings"><article><span>Biometria</span><strong>Ativada</strong><i className="setting-on"/></article><article><span>Autenticação em dois fatores</span><strong>Ativada</strong><i className="setting-on"/></article><article><span>Avisos de movimentação</span><strong>Ativados</strong><i className="setting-on"/></article><article><span>Dispositivo atual</span><strong>Confiável</strong><i className="setting-on"/></article></div><div className="security-shortcuts"><button onClick={() => { setUtilityPanel(null); setScreen("lab"); simulateAuthentication(); }}><b>ID</b><span><strong>Testar autenticação</strong><small>Compare acesso habitual e suspeito</small></span><i>→</i></button><button onClick={() => { setUtilityPanel(null); setScreen("lab"); simulateThreat(); }}><b>!</b><span><strong>Simular malware</strong><small>Phishing, ransomware e trojan</small></span><i>→</i></button><button onClick={() => { setUtilityPanel(null); setScreen("lab"); loadDevices(); }}><b>IoT</b><span><strong>Gerenciar dispositivos</strong><small>Confiança, telemetria e bloqueios</small></span><i>→</i></button></div></section></div>}
-      {utilityPanel === "notifications" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal notifications-utility" role="dialog" aria-modal="true" aria-labelledby="notifications-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CENTRAL DE ALERTAS</span><h2 id="notifications-title">Notificações</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="notification-list"><article className={!notificationsRead ? "unread" : ""}><b>✓</b><div><strong>Pix protegido</strong><p>As novas validações de saldo e chave estão ativas.</p><small>Agora</small></div></article><article className={!notificationsRead ? "unread" : ""}><b>!</b><div><strong>Tentativa suspeita simulada</strong><p>Novo dispositivo identificado no Future Lab.</p><small>Há 18 minutos</small></div></article><article><b>☁</b><div><strong>Serviços disponíveis</strong><p>Região principal da nuvem operando normalmente.</p><small>Hoje, 08:30</small></div></article></div><button className="read-all" onClick={() => setNotificationsRead(true)} disabled={notificationsRead}>{notificationsRead ? "Tudo lido ✓" : "Marcar todas como lidas"}</button></section></div>}
-      {utilityPanel === "profile" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal profile-utility" role="dialog" aria-modal="true" aria-labelledby="profile-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>PERFIL RANBANK</span><h2 id="profile-title">Dados da cliente</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="profile-hero"><span>AR</span><div><strong>{data.customerName}</strong><small>Cliente Ranbank Future</small></div><b>CONTA ATIVA</b></div><div className="profile-fields"><article><span>E-mail</span><strong>ana.ribeiro@exemplo.com</strong></article><article><span>Telefone</span><strong>(61) •••••-4821</strong></article><article><span>Conta</span><strong>Ag. 0001 · {data.account}</strong></article><article><span>Preferência</span><strong>Notificações digitais</strong></article></div><div className="profile-notice"><b>i</b><p>Seus dados e preferências estão protegidos pelas camadas de segurança da conta.</p></div><button className="profile-home" onClick={() => { setUtilityPanel(null); setScreen("dashboard"); }}>Voltar para minha conta</button></section></div>}
-      {pixOpen && pixStep === "review" && <div className="modal-backdrop pin-confirmation-backdrop" role="presentation" onMouseDown={() => { setPixOpen(false); setPixStep("details"); setTransactionPin(""); }}><section className="pin-confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="pin-confirmation-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CONFIRMAÇÃO SEGURA</span><h2 id="pin-confirmation-title">Revise sua transferência</h2></div><button onClick={() => { setPixOpen(false); setPixStep("details"); setTransactionPin(""); }} aria-label="Fechar">×</button></header><div className="transfer-review"><article><span>DESTINATÁRIO</span><strong>{pixKey.includes("@") ? pixKey : `Chave final ${pixKey.replace(/\D/g, "").slice(-4) || pixKey.slice(-4)}`}</strong></article><article><span>VALOR</span><strong>{money.format(Number(amount.replace(",", ".")))}</strong></article></div><div className="transaction-security-note"><b>4</b><p><strong>Segunda camada de proteção</strong><br/>Digite a senha de quatro dígitos do cartão para autorizar.</p></div><form onSubmit={sendPix}><label className="transaction-pin-field"><span>Senha do cartão</span><input type="password" value={transactionPin} onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, "").slice(0,4))} inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={4} placeholder="••••" aria-label="Senha de quatro dígitos do cartão"/></label><div className="transaction-pin-dots" aria-label={`${transactionPin.length} de 4 dígitos informados`}>{[0,1,2,3].map((index) => <i key={index} className={index < transactionPin.length ? "filled" : ""}/>)}</div><div className="numeric-keypad transaction-keypad" aria-label="Teclado da senha do cartão">{["1","2","3","4","5","6","7","8","9"].map((digit) => <button key={digit} type="button" onClick={() => appendTransactionDigit(digit)}>{digit}</button>)}<span aria-hidden="true"/><button type="button" onClick={() => appendTransactionDigit("0")}>0</button><button className="erase-key" type="button" onClick={() => setTransactionPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito da senha">⌫</button></div>{pixStatus === "error" && <p className="form-error" role="alert">{pixError}</p>}{pixStatus === "success" && <p className="transfer-success">Transferência autorizada e registrada ✓</p>}<div className="pin-confirmation-actions"><button type="button" onClick={() => { setPixStep("details"); setTransactionPin(""); setPixError(""); setPixStatus("idle"); }}>← Corrigir dados</button><button type="submit" className="authorize-transfer" disabled={pixStatus === "sending" || transactionPin.length !== 4}>{pixStatus === "sending" ? "Autorizando…" : pixStatus === "success" ? "Autorizada ✓" : "Autorizar transferência"}</button></div></form><footer>PIN transacional: <b>7314</b></footer></section></div>}
+      {utilityPanel === "notifications" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal notifications-utility" role="dialog" aria-modal="true" aria-labelledby="notifications-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CENTRAL DE ALERTAS · TEMPO REAL</span><h2 id="notifications-title">Notificações</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="notification-list">{notifications.length ? notifications.map((item) => <article key={item.id} className={!item.read ? "unread" : ""}><b>{item.type === "PIX_RECEIVED" ? "↓" : "✓"}</b><div><strong>{item.title}</strong><p>{item.message}</p><small>{new Date(item.createdAt).toLocaleString("pt-BR")}</small></div></article>) : <div className="empty-notifications"><strong>Nenhum alerta por aqui</strong><p>Novos Pix e eventos de segurança aparecerão em tempo real.</p></div>}</div><button className="read-all" onClick={markAllNotificationsRead} disabled={!notifications.some((item) => !item.read)}>{notifications.some((item) => !item.read) ? "Marcar todas como lidas" : "Tudo lido ✓"}</button></section></div>}
+      {utilityPanel === "profile" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal profile-utility" role="dialog" aria-modal="true" aria-labelledby="profile-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>PERFIL RANBANK</span><h2 id="profile-title">Dados da conta</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="profile-hero"><span>{data.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase()}</span><div><strong>{data.customerName}</strong><small>Cliente Ranbank Future</small></div><b>{data.role === "ADMIN" ? "ADMIN" : "CONTA ATIVA"}</b></div><div className="profile-fields"><article><span>E-mail e chave Pix</span><strong>{data.email || "Não informado"}</strong></article><article><span>CPF</span><strong>{data.maskedDocument}</strong></article><article><span>Conta</span><strong>Ag. 0001 · {data.account}</strong></article><article><span>Cliente desde</span><strong>{data.createdAt ? new Date(data.createdAt).toLocaleDateString("pt-BR") : "Hoje"}</strong></article></div><div className="profile-notice"><b>i</b><p>Os dados exibidos pertencem à conta autenticada e estão isolados dos demais clientes.</p></div><button className="profile-home" onClick={() => { setUtilityPanel(null); setScreen("dashboard"); }}>Voltar para minha conta</button></section></div>}
+      {pixReceipt && <div className="modal-backdrop receipt-result-backdrop" role="presentation" onMouseDown={() => setPixReceipt(null)}><section className="receipt-result-modal" role="dialog" aria-modal="true" aria-labelledby="pix-receipt-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>COMPROVANTE PIX</span><h2 id="pix-receipt-title">Transferência concluída</h2></div><button onClick={() => setPixReceipt(null)} aria-label="Fechar comprovante">×</button></header><div className="receipt-success-mark">✓</div><strong className="receipt-result-amount">{money.format(pixReceipt.amount)}</strong><p>Enviado para <b>{pixReceipt.recipientName}</b></p><dl><div><dt>Conta de destino</dt><dd>{pixReceipt.recipientAccount}</dd></div><div><dt>Chave Pix</dt><dd>{pixReceipt.maskedPixKey}</dd></div><div><dt>Data e hora</dt><dd>{new Date(pixReceipt.timestamp).toLocaleString("pt-BR")}</dd></div><div><dt>Identificador</dt><dd>{pixReceipt.transferId}</dd></div><div><dt>Idempotência</dt><dd>{pixReceipt.idempotencyKey}</dd></div><div><dt>Status</dt><dd>{pixReceipt.status === "COMPLETED" ? "Concluído" : pixReceipt.status}</dd></div></dl><button className="receipt-result-done" onClick={() => setPixReceipt(null)}>Concluir</button></section></div>}
+      {flowHistoryOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setFlowHistoryOpen(false)}><section className="flow-history-modal" role="dialog" aria-modal="true" aria-labelledby="flow-history-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>RANFLOW · EXECUÇÕES PERSISTIDAS</span><h2 id="flow-history-title">Histórico de automações</h2></div><button onClick={() => setFlowHistoryOpen(false)} aria-label="Fechar histórico">×</button></header>{flowHistoryLoading ? <div className="analysis-loading"><i/><p>Carregando execuções…</p></div> : flowHistory.length ? <div className="flow-history-list">{flowHistory.map((flow) => <article key={flow.id}><div><span>{flow.flowType === "PIX_SETTLEMENT" ? "PIX" : "INCIDENTE"}</span><strong>{flow.flowType === "PIX_SETTLEMENT" ? "Liquidação Pix" : "Resposta a incidente"}</strong><small>{new Date(flow.startedAt).toLocaleString("pt-BR")}</small></div><b>{flow.status === "COMPLETED" ? "CONCLUÍDO" : flow.status}</b><p>{flow.steps.length} etapas · gatilho {flow.triggerType}{flow.referenceId ? ` · ref. ${flow.referenceId.slice(0,8)}` : ""}</p></article>)}</div> : <div className="empty-notifications"><strong>Nenhuma execução registrada</strong><p>Execute uma automação ou faça um Pix para alimentar o histórico.</p></div>}</section></div>}
+      {adminInsightsOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAdminInsightsOpen(false)}><section className="admin-insights-modal" role="dialog" aria-modal="true" aria-labelledby="admin-insights-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>RANBANK BI · ACESSO ADMINISTRATIVO</span><h2 id="admin-insights-title">Insights da operação</h2></div><button onClick={() => setAdminInsightsOpen(false)} aria-label="Fechar insights">×</button></header>{adminInsightsLoading ? <div className="analysis-loading"><i/><p>Agregando dados do banco…</p></div> : adminInsights ? <><div className="admin-insights-grid"><article><span>Contas</span><strong>{adminInsights.totalAccounts}</strong><small>clientes cadastrados</small></article><article><span>Depósitos</span><strong>{money.format(adminInsights.totalDeposits)}</strong><small>saldo agregado</small></article><article><span>Pix</span><strong>{adminInsights.pixTransfers}</strong><small>transferências concluídas</small></article><article><span>Movimentações</span><strong>{adminInsights.totalTransactions}</strong><small>{money.format(adminInsights.transactionVolume)} em volume</small></article><article><span>Alertas pendentes</span><strong>{adminInsights.unreadNotifications}</strong><small>notificações não lidas</small></article><article><span>RanFlow</span><strong>{adminInsights.flowExecutions}</strong><small>execuções persistidas</small></article></div><p className="admin-generated">Atualizado em {new Date(adminInsights.generatedAt).toLocaleString("pt-BR")}</p></> : <div className="analysis-error"><strong>Acesso indisponível</strong><p>Este painel exige uma conta administradora.</p></div>}</section></div>}
+      {pixOpen && pixStep === "review" && <div className="modal-backdrop pin-confirmation-backdrop" role="presentation" onMouseDown={() => { setPixOpen(false); setPixStep("details"); setTransactionPin(""); }}><section className="pin-confirmation-modal" role="dialog" aria-modal="true" aria-labelledby="pin-confirmation-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CONFIRMAÇÃO SEGURA</span><h2 id="pin-confirmation-title">Revise sua transferência</h2></div><button onClick={() => { setPixOpen(false); setPixStep("details"); setTransactionPin(""); }} aria-label="Fechar">×</button></header><div className="transfer-review"><article><span>DESTINATÁRIO</span><strong>{pixRecipient?.name ?? "Destinatário validado"}</strong><small>{pixRecipient?.maskedKey} · conta {pixRecipient?.accountNumber}</small></article><article><span>VALOR</span><strong>{money.format(parseMoneyInput(amount))}</strong></article></div><div className="transaction-security-note"><b>4</b><p><strong>Segunda camada de proteção</strong><br/>Digite a senha de quatro dígitos do cartão para autorizar.</p></div><form onSubmit={sendPix}><label className="transaction-pin-field"><span>Senha do cartão</span><input type="password" value={transactionPin} onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, "").slice(0,4))} inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={4} placeholder="••••" aria-label="Senha de quatro dígitos do cartão"/></label><div className="transaction-pin-dots" aria-label={`${transactionPin.length} de 4 dígitos informados`}>{[0,1,2,3].map((index) => <i key={index} className={index < transactionPin.length ? "filled" : ""}/>)}</div><div className="numeric-keypad transaction-keypad" aria-label="Teclado da senha do cartão">{["1","2","3","4","5","6","7","8","9"].map((digit) => <button key={digit} type="button" onClick={() => appendTransactionDigit(digit)}>{digit}</button>)}<span aria-hidden="true"/><button type="button" onClick={() => appendTransactionDigit("0")}>0</button><button className="erase-key" type="button" onClick={() => setTransactionPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito da senha">⌫</button></div>{pixStatus === "error" && <p className="form-error" role="alert">{pixError}</p>}{pixStatus === "success" && <p className="transfer-success">Transferência concluída nas duas contas ✓</p>}<div className="pin-confirmation-actions"><button type="button" onClick={() => { setPixStep("details"); setTransactionPin(""); setPixError(""); setPixStatus("idle"); }}>← Corrigir dados</button><button type="submit" className="authorize-transfer" disabled={pixStatus === "sending" || transactionPin.length !== 4}>{pixStatus === "sending" ? "Autorizando…" : pixStatus === "success" ? "Concluída ✓" : "Autorizar transferência"}</button></div></form><footer>Conta demo: PIN transacional <b>7314</b></footer></section></div>}
       <BankingSuite open={bankingOpen} initialTab={bankingTab} onClose={() => setBankingOpen(false)} onChanged={loadDashboard} />
       <InnovationHub open={innovationOpen} initialTab={innovationTab} onClose={() => setInnovationOpen(false)} />
     </main>

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-static-element-interactions, @next/next/no-img-element -- Modal backdrops intentionally handle pointer dismissal; Vinext serves these local decorative images directly. */
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -7,6 +8,8 @@ export type BankingTab = "statement" | "bill" | "schedule" | "card" | "savings";
 type StatementItem = { id: number; title: string; detail: string; amount: number; type: "credit" | "debit" };
 type ScheduleItem = { id: number; kind: string; recipient: string; amount: number; scheduledDate: string; status: string };
 type BankingOverview = {
+  customerName: string;
+  cardLastFour: string;
   balance: number;
   savingsBalance: number;
   savingsGoal: number;
@@ -88,10 +91,12 @@ export default function BankingSuite({
 
   useEffect(() => {
     if (!open) return;
-    setTab(initialTab);
-    setSuccess("");
-    setError("");
-    loadOverview();
+    queueMicrotask(() => {
+      setTab(initialTab);
+      setSuccess("");
+      setError("");
+      void loadOverview();
+    });
   }, [open, initialTab]);
 
   const statement = useMemo(() => {
@@ -227,7 +232,7 @@ export default function BankingSuite({
 
           {tab === "card" && overview && (
             <div className="card-center">
-              <div className={`suite-card ${overview.card.blocked ? "blocked" : ""}`}><header><img src="/ranbank-logo.jpeg" alt=""/><span>PLATINUM VIRTUAL</span></header><strong>•••• &nbsp;•••• &nbsp;•••• &nbsp;4821</strong><footer><span>ANA RIBEIRO</span><b>08/31</b></footer>{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div>
+              <div className={`suite-card ${overview.card.blocked ? "blocked" : ""}`}><header><img src="/ranbank-logo.jpeg" alt=""/><span>PLATINUM VIRTUAL</span></header><strong>•••• &nbsp;•••• &nbsp;•••• &nbsp;{overview.cardLastFour}</strong><footer><span>{overview.customerName.toUpperCase()}</span><b>08/31</b></footer>{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div>
               <div className="card-control-panel">
                 <div className="card-numbers"><article><span>Fatura atual</span><strong>{money.format(overview.card.spent)}</strong></article><article><span>Limite disponível</span><strong>{money.format(overview.card.available)}</strong></article></div>
                 <div className="limit-meter"><span><i style={{ width: `${Math.min(100, overview.card.spent / overview.card.limit * 100)}%` }}/></span><small>{money.format(overview.card.spent)} usados de {money.format(overview.card.limit)}</small></div>
