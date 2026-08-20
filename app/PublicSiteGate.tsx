@@ -1,8 +1,12 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Vinext serves these local brand images directly. */
+/* eslint-disable jsx-a11y/media-has-caption -- These visual concept clips contain no instructional dialogue. */
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useEffect } from "react";
+
+const PUBLIC_API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 const products = [
   { eyebrow: "Conta", title: "Uma conta para o dia a dia.", text: "Pix, pagamentos, transferências e movimentações em uma experiência simples e segura.", icon: "R$" },
@@ -19,6 +23,13 @@ const tech = [
   ["Robótica", "Pesquisa, automação responsável e apoio a institutos de ciência robótica."],
 ];
 
+const showcaseVideos = [
+  ["Segurança inteligente", "Acesso, alertas e proteção no dia a dia.", "/videos/ranbank-demonstracao-01.mp4"],
+  ["Proteção para seu veículo", "Uma visão simples dos serviços conectados à conta.", "/videos/ranbank-demonstracao-02.mp4"],
+  ["Seguro sempre por perto", "Conveniência e proteção em uma experiência integrada.", "/videos/ranbank-demonstracao-03.mp4"],
+  ["Agência do futuro", "Um conceito imersivo para o atendimento RanBank.", "/videos/ranbank-demonstracao-04.mp4"],
+];
+
 export default function PublicSiteGate() {
   const pathname = usePathname();
   if (pathname !== "/") return null;
@@ -26,6 +37,21 @@ export default function PublicSiteGate() {
 }
 
 export function PublicHome() {
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+
+    void fetch(`${PUBLIC_API_BASE}/health`, {
+      credentials: "omit",
+      signal: controller.signal,
+    }).catch(() => undefined).finally(() => window.clearTimeout(timeout));
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, []);
+
   return (
     <div className="rb-public-shell">
       <header className="rb-public-header">
@@ -59,11 +85,11 @@ export function PublicHome() {
               <small>•••• 2048</small>
             </div>
             <div className="rb-phone">
-              <div className="rb-phone-top"><b>Olá, Ana</b><span>•••</span></div>
-              <small>Saldo disponível</small>
-              <strong>R$ 8.540,75</strong>
+              <div className="rb-phone-top"><b>Sua conta RanBank</b><span>•••</span></div>
+              <small>Experiência financeira</small>
+              <strong className="rb-phone-value">Tudo sob controle.</strong>
               <div className="rb-phone-actions"><span>Pix</span><span>Pagar</span><span>Cartão</span></div>
-              <div className="rb-phone-line"><i>↓</i><div><b>Pix recebido</b><small>Hoje, 09:41</small></div><em>+ R$ 250</em></div>
+              <div className="rb-phone-line"><i>✓</i><div><b>Proteção ativa</b><small>Conta personalizada</small></div><em>Seguro</em></div>
             </div>
           </div>
         </section>
@@ -115,6 +141,25 @@ export function PublicHome() {
             ))}
           </div>
           <a className="rb-btn rb-btn-primary" href="/instituto">Conhecer o Instituto RanBank</a>
+        </section>
+
+        <section className="rb-section rb-showcase" id="experiencias">
+          <div className="rb-section-heading">
+            <span>RANBANK EM MOVIMENTO</span>
+            <h2>Ideias que aproximam banco e tecnologia.</h2>
+            <p>Conceitos visuais do projeto RanBank para segurança, serviços e novas experiências de atendimento.</p>
+          </div>
+          <div className="rb-video-grid">
+            {showcaseVideos.map(([title, description, src]) => (
+              <article className="rb-video-card" key={src}>
+                <video controls playsInline preload="metadata" aria-label={title}>
+                  <source src={src} type="video/mp4" />
+                  Seu navegador não oferece suporte à reprodução deste vídeo.
+                </video>
+                <div><h3>{title}</h3><p>{description}</p></div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="rb-institute-teaser">
