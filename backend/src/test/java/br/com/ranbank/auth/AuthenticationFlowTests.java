@@ -46,6 +46,23 @@ class AuthenticationFlowTests {
             .andExpect(jsonPath("$.message").value("Senha de quatro dígitos incorreta."));
     }
 
+    @Test
+    void createsAndAuthenticatesAnIndependentDemoAccount() throws Exception {
+        String body = "{\"customerName\":\"Joana Teste\",\"documentId\":\"11122233344\","
+            + "\"email\":\"joana.teste@ranbank.demo\",\"accessPin\":\"2468\",\"transactionPin\":\"1357\"}";
+        MvcResult result = mockMvc.perform(post("/api/demo-accounts").contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.customerName").value("Joana Teste"))
+            .andExpect(jsonPath("$.balance").value(2500.00))
+            .andReturn();
+
+        Cookie session = result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
+        mockMvc.perform(get("/api/dashboard").cookie(session))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.customerName").value("Joana Teste"))
+            .andExpect(jsonPath("$.transactions").isEmpty());
+    }
+
     private Cookie login() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"identification\":\"12345678909\",\"pin\":\"2580\"}"))

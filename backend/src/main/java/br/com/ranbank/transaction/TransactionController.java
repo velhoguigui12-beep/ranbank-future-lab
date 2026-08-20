@@ -3,6 +3,7 @@ package br.com.ranbank.transaction;
 import br.com.ranbank.account.BankAccount;
 import br.com.ranbank.account.BankAccountRepository;
 import br.com.ranbank.auth.AuthenticationService;
+import br.com.ranbank.pix.PixTransferService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -34,40 +35,25 @@ public class TransactionController {
     private final BankTransactionRepository transactionRepository;
     private final BankAccountRepository accountRepository;
     private final AuthenticationService authenticationService;
+    private final PixTransferService pixTransferService;
 
     public TransactionController(BankTransactionRepository transactionRepository, BankAccountRepository accountRepository,
-                                 AuthenticationService authenticationService) {
+                                 AuthenticationService authenticationService, PixTransferService pixTransferService) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
         this.authenticationService = authenticationService;
+        this.pixTransferService = pixTransferService;
     }
 
     @PostMapping
     @Transactional
     public ResponseEntity<TransactionResponse> create(@Valid @RequestBody CreateTransactionRequest request,
                                                       HttpServletRequest servletRequest) {
-        String pixKey = request.pixKey().trim();
-        String normalizedDigits = pixKey.replaceAll("\\D", "");
-        if (!isValidPixKey(pixKey, normalizedDigits)) {
-            throw new PixValidationException("Informe uma chave Pix válida: CPF, celular, e-mail ou chave aleatória.");
-        }
-
         Long accountId = (Long) servletRequest.getAttribute(AuthenticationService.ACCOUNT_REQUEST_ATTRIBUTE);
-        authenticationService.verifyTransactionPin(accountId, request.transactionPin());
-        BankAccount account = accountRepository.findById(accountId)
-            .orElseThrow(() -> new PixValidationException("Conta demonstrativa não encontrada."));
-        try {
-            account.debit(request.amount());
-        } catch (IllegalArgumentException exception) {
-            throw new PixValidationException(exception.getMessage());
-        }
-
-        BankTransaction transaction = transactionRepository.save(new BankTransaction(
-            "Pix enviado", maskPixKey(pixKey, normalizedDigits) + " · agora",
-            request.amount().negate(), "debit"
-        ));
-        accountRepository.save(account);
-        return ResponseEntity.status(HttpStatus.CREATED).body(TransactionResponse.from(transaction));
+        PixTransferService.Receipt receipt = pixTransferService.transfer(accountId, request.pixKey(), request.amount(),
+            request.transactionPin(), servletRequest.getHeader("Idempotency-Key"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new TransactionResponse(receipt.transactionId(),
+            "Pix enviado", receipt.recipientName() + " · agora", receipt.amount().negate(), "debit"));
     }
 
     private boolean isValidPixKey(String original, String digits) {
@@ -94,6 +80,11 @@ public class TransactionController {
         String message = exception.getBindingResult().getFieldErrors().stream()
             .findFirst().map(error -> error.getDefaultMessage()).orElse("Dados inválidos.");
         return ResponseEntity.badRequest().body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(PixTransferService.PixException.class)
+    ResponseEntity<Map<String, String>> handlePixTransfer(PixTransferService.PixException exception) {
+        return ResponseEntity.unprocessableEntity().body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(AuthenticationService.AuthException.class)

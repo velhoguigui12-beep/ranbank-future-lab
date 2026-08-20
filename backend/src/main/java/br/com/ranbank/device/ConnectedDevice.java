@@ -12,6 +12,7 @@ public class ConnectedDevice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long accountId;
     private String name;
     private String type;
     private String location;
@@ -21,7 +22,8 @@ public class ConnectedDevice {
 
     protected ConnectedDevice() {}
 
-    public ConnectedDevice(String name, String type, String location, String lastAccess, boolean trusted) {
+    public ConnectedDevice(Long accountId, String name, String type, String location, String lastAccess, boolean trusted) {
+        this.accountId = accountId;
         this.name = name;
         this.type = type;
         this.location = location;
@@ -31,6 +33,7 @@ public class ConnectedDevice {
     }
 
     public Long getId() { return id; }
+    public Long getAccountId() { return accountId; }
     public String getName() { return name; }
     public String getType() { return type; }
     public String getLocation() { return location; }
@@ -38,4 +41,5 @@ public class ConnectedDevice {
     public boolean isTrusted() { return trusted; }
     public boolean isBlocked() { return blocked; }
     public void toggleBlocked() { blocked = !blocked; }
+    public void assignTo(Long accountId) { if (this.accountId == null) this.accountId = accountId; }
 }

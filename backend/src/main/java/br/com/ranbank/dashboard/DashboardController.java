@@ -4,6 +4,8 @@ import br.com.ranbank.account.BankAccount;
 import br.com.ranbank.account.BankAccountRepository;
 import br.com.ranbank.transaction.BankTransaction;
 import br.com.ranbank.transaction.BankTransactionRepository;
+import br.com.ranbank.auth.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,17 +26,30 @@ public class DashboardController {
     }
 
     @GetMapping
-    public DashboardResponse dashboard() {
-        List<TransactionResponse> transactions = transactionRepository.findAll().stream()
+    public DashboardResponse dashboard(HttpServletRequest request) {
+        Long accountId = (Long) request.getAttribute(AuthenticationService.ACCOUNT_REQUEST_ATTRIBUTE);
+        List<TransactionResponse> transactions = transactionRepository.findByAccountIdOrderByIdAsc(accountId).stream()
             .map(TransactionResponse::from)
             .toList();
 
-        BankAccount account = accountRepository.findById(1L)
-            .orElse(new BankAccount(1L, "Ana Ribeiro", "1234-5", new BigDecimal("8540.75")));
-        return new DashboardResponse(account.getCustomerName(), account.getBalance(), account.getAccountNumber(), transactions);
+        BankAccount account = accountRepository.findById(accountId)
+            .orElseThrow(() -> new IllegalStateException("Conta autenticada não encontrada."));
+        String document = account.getDocumentId();
+        String maskedDocument = document == null || document.length() < 4 ? "Não informado"
+            : "•••.•••.•••-" + document.substring(document.length() - 2);
+        String digits = account.getAccountNumber().replaceAll("\\D", "");
+        String cardLastFour = digits.length() >= 4 ? digits.substring(digits.length() - 4)
+            : String.format("%04d", account.getId() % 10000);
+        CardResponse card = new CardResponse(cardLastFour, account.isCardBlocked(), account.getCardLimit(),
+            account.getCardSpent(), account.getCardLimit().subtract(account.getCardSpent()).max(BigDecimal.ZERO));
+        return new DashboardResponse(account.getCustomerName(), account.getBalance(), account.getAccountNumber(),
+            account.getEmail(), maskedDocument, account.getRole(), account.getCreatedAt(), card, transactions);
     }
 
-    public record DashboardResponse(String customerName, BigDecimal balance, String account, List<TransactionResponse> transactions) {}
+    public record DashboardResponse(String customerName, BigDecimal balance, String account, String email,
+                                    String maskedDocument, String role, java.time.Instant createdAt,
+                                    CardResponse card, List<TransactionResponse> transactions) {}
+    public record CardResponse(String lastFour, boolean blocked, BigDecimal limit, BigDecimal spent, BigDecimal available) {}
 
     public record TransactionResponse(Long id, String title, String detail, BigDecimal amount, String type) {
         static TransactionResponse from(BankTransaction transaction) {

@@ -1,5 +1,7 @@
 package br.com.ranbank.device;
 
+import br.com.ranbank.auth.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,17 +24,22 @@ public class ConnectedDeviceController {
     }
 
     @GetMapping
-    public List<DeviceResponse> list() {
-        return repository.findAll().stream().map(DeviceResponse::from).toList();
+    public List<DeviceResponse> list(HttpServletRequest request) {
+        Long accountId = accountId(request);
+        return repository.findByAccountIdOrderByIdAsc(accountId).stream().map(DeviceResponse::from).toList();
     }
 
     @PatchMapping("/{id}/block")
     @ResponseStatus(HttpStatus.OK)
-    public DeviceResponse toggleBlock(@PathVariable Long id) {
-        ConnectedDevice device = repository.findById(id)
+    public DeviceResponse toggleBlock(@PathVariable Long id, HttpServletRequest request) {
+        ConnectedDevice device = repository.findByIdAndAccountId(id, accountId(request))
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dispositivo não encontrado."));
         device.toggleBlocked();
         return DeviceResponse.from(repository.save(device));
+    }
+
+    private Long accountId(HttpServletRequest request) {
+        return (Long) request.getAttribute(AuthenticationService.ACCOUNT_REQUEST_ATTRIBUTE);
     }
 
     public record DeviceResponse(Long id, String name, String type, String location,

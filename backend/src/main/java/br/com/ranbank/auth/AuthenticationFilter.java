@@ -29,8 +29,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) return true;
         return path.equals("/api/health") || path.equals("/api/auth/login") || path.equals("/api/auth/logout")
+            || path.equals("/api/demo-accounts")
             || path.startsWith("/api/chat") || path.startsWith("/api/fraud")
-            || path.startsWith("/api/cloud") || path.startsWith("/api/automation")
+            || path.startsWith("/api/cloud")
             || path.startsWith("/api/sustainability") || path.startsWith("/api/comparison")
             || path.startsWith("/api/security") || path.startsWith("/api/immersive")
             || path.startsWith("/api/robotics") || path.startsWith("/api/authentication")

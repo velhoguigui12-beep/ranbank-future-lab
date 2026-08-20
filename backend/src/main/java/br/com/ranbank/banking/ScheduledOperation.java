@@ -1,6 +1,7 @@
 package br.com.ranbank.banking;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,6 +16,7 @@ public class ScheduledOperation {
     private Long accountId;
     private String kind;
     private String recipient;
+    @Column(precision = 19, scale = 2)
     private BigDecimal amount;
     private LocalDate scheduledDate;
     private String status;

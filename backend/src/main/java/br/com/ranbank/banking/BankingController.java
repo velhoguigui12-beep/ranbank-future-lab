@@ -53,10 +53,10 @@ public class BankingController {
     public BankingOverview overview(HttpServletRequest request) {
         BankAccount account = account(request);
         return new BankingOverview(
-            account.getBalance(), account.getSavingsBalance(), account.getSavingsGoal(),
+            account.getCustomerName(), cardLastFour(account), account.getBalance(), account.getSavingsBalance(), account.getSavingsGoal(),
             new CardSummary(account.isCardBlocked(), account.getCardLimit(), account.getCardSpent(),
                 account.getCardLimit().subtract(account.getCardSpent()).max(BigDecimal.ZERO)),
-            transactions.findAll().stream().map(StatementItem::from).toList(),
+            transactions.findByAccountIdOrderByIdAsc(account.getId()).stream().map(StatementItem::from).toList(),
             schedules.findByAccountIdOrderByScheduledDateAsc(account.getId()).stream().map(ScheduleItem::from).toList()
         );
     }
@@ -69,7 +69,7 @@ public class BankingController {
         BankAccount account = account(request);
         authentication.verifyTransactionPin(account.getId(), body.transactionPin());
         debit(account, body.amount());
-        BankTransaction saved = transactions.save(new BankTransaction(
+        BankTransaction saved = transactions.save(new BankTransaction(account.getId(),
             "Boleto pago", body.payee().trim() + " · cód. " + barcode.substring(barcode.length() - 6),
             body.amount().negate(), "debit"
         ));
@@ -101,7 +101,7 @@ public class BankingController {
         BankAccount account = account(request);
         authentication.verifyTransactionPin(account.getId(), body.transactionPin());
         try { account.depositSavings(body.amount()); } catch (IllegalArgumentException error) { throw new BankingException(error.getMessage()); }
-        transactions.save(new BankTransaction("Aplicação no cofrinho", "Reserva Future · agora", body.amount().negate(), "debit"));
+        transactions.save(new BankTransaction(account.getId(), "Aplicação no cofrinho", "Reserva Future · agora", body.amount().negate(), "debit"));
         accounts.save(account);
         return overview(request);
     }
@@ -112,7 +112,7 @@ public class BankingController {
         BankAccount account = account(request);
         authentication.verifyTransactionPin(account.getId(), body.transactionPin());
         try { account.withdrawSavings(body.amount()); } catch (IllegalArgumentException error) { throw new BankingException(error.getMessage()); }
-        transactions.save(new BankTransaction("Resgate do cofrinho", "Reserva Future · agora", body.amount(), "credit"));
+        transactions.save(new BankTransaction(account.getId(), "Resgate do cofrinho", "Reserva Future · agora", body.amount(), "credit"));
         accounts.save(account);
         return overview(request);
     }
@@ -164,6 +164,12 @@ public class BankingController {
             account.getCardLimit().subtract(account.getCardSpent()).max(BigDecimal.ZERO));
     }
 
+    private String cardLastFour(BankAccount account) {
+        String digits = account.getAccountNumber().replaceAll("\\D", "");
+        return digits.length() >= 4 ? digits.substring(digits.length() - 4)
+            : String.format("%04d", account.getId() % 10000);
+    }
+
     @ExceptionHandler(BankingException.class)
     ResponseEntity<Map<String, String>> handle(BankingException error) {
         return ResponseEntity.unprocessableEntity().body(Map.of("message", error.getMessage()));
@@ -174,7 +180,7 @@ public class BankingController {
         return ResponseEntity.status(error.status()).body(Map.of("message", error.getMessage()));
     }
 
-    public record BankingOverview(BigDecimal balance, BigDecimal savingsBalance, BigDecimal savingsGoal,
+    public record BankingOverview(String customerName, String cardLastFour, BigDecimal balance, BigDecimal savingsBalance, BigDecimal savingsGoal,
                                   CardSummary card, List<StatementItem> statement, List<ScheduleItem> schedules) {}
     public record CardSummary(boolean blocked, BigDecimal limit, BigDecimal spent, BigDecimal available) {}
     public record StatementItem(Long id, String title, String detail, BigDecimal amount, String type) {

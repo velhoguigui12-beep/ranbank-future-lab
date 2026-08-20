@@ -5,6 +5,8 @@ import br.com.ranbank.transaction.BankTransactionRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import br.com.ranbank.auth.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,8 +23,9 @@ public class AnalyticsController {
     }
 
     @GetMapping("/summary")
-    public AnalyticsSummary summary() {
-        List<BankTransaction> transactions = repository.findAll();
+    public AnalyticsSummary summary(HttpServletRequest request) {
+        Long accountId = (Long) request.getAttribute(AuthenticationService.ACCOUNT_REQUEST_ATTRIBUTE);
+        List<BankTransaction> transactions = repository.findByAccountIdOrderByIdAsc(accountId);
         List<BigDecimal> credits = transactions.stream().map(BankTransaction::getAmount)
             .filter(value -> value.signum() > 0).toList();
         List<BigDecimal> debits = transactions.stream().map(BankTransaction::getAmount)

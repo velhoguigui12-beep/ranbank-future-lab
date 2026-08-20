@@ -3,11 +3,16 @@ package br.com.ranbank.auth;
 import br.com.ranbank.account.BankAccount;
 import br.com.ranbank.account.BankAccountRepository;
 import java.security.SecureRandom;
+import java.security.MessageDigest;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HexFormat;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,9 +27,9 @@ public class AuthenticationService {
     private static final Duration LOCK_DURATION = Duration.ofSeconds(30);
 
     private final BankAccountRepository accountRepository;
+    private final BankSessionRepository sessionRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
     private final SecureRandom secureRandom = new SecureRandom();
-    private final Map<String, Session> sessions = new ConcurrentHashMap<>();
     private final Map<Long, AttemptState> loginAttempts = new ConcurrentHashMap<>();
     private final Map<Long, AttemptState> transactionAttempts = new ConcurrentHashMap<>();
     private final String demoLoginId;
@@ -32,12 +37,13 @@ public class AuthenticationService {
     private final String demoTransactionPin;
     private final Duration sessionDuration;
 
-    public AuthenticationService(BankAccountRepository accountRepository,
+    public AuthenticationService(BankAccountRepository accountRepository, BankSessionRepository sessionRepository,
             @Value("${ranbank.demo.login-id}") String demoLoginId,
             @Value("${ranbank.demo.access-pin}") String demoAccessPin,
             @Value("${ranbank.demo.transaction-pin}") String demoTransactionPin,
             @Value("${ranbank.session.minutes:30}") long sessionMinutes) {
         this.accountRepository = accountRepository;
+        this.sessionRepository = sessionRepository;
         this.demoLoginId = digits(demoLoginId);
         this.demoAccessPin = demoAccessPin;
         this.demoTransactionPin = demoTransactionPin;
@@ -58,8 +64,9 @@ public class AuthenticationService {
         }
     }
 
+    @Transactional
     public LoginResult login(String identification, String pin) {
-        BankAccount account = accountRepository.findById(1L)
+        BankAccount account = findAccount(identification)
             .orElseThrow(() -> invalidCredentials(null));
         assertNotLocked(loginAttempts, account.getId(), "Muitas tentativas. Aguarde antes de tentar novamente.");
         String normalized = digits(identification);
@@ -74,20 +81,23 @@ public class AuthenticationService {
         loginAttempts.remove(account.getId());
         String token = newToken();
         Instant expiresAt = Instant.now().plus(sessionDuration);
-        sessions.put(token, new Session(account.getId(), expiresAt));
+        sessionRepository.save(new BankSession(hashToken(token), account.getId(), expiresAt));
         return new LoginResult(token, expiresAt, account.getCustomerName(), account.getAccountNumber());
     }
 
+    @Transactional
     public Long resolveSession(String token) {
         if (token == null || token.isBlank()) return null;
-        Session session = sessions.get(token);
+        String tokenHash = hashToken(token);
+        BankSession session = sessionRepository.findById(tokenHash).orElse(null);
         if (session == null) return null;
-        if (session.expiresAt().isBefore(Instant.now())) {
-            sessions.remove(token);
+        if (session.getExpiresAt().isBefore(Instant.now())) {
+            sessionRepository.delete(session);
             return null;
         }
-        sessions.put(token, new Session(session.accountId(), Instant.now().plus(sessionDuration)));
-        return session.accountId();
+        session.renew(Instant.now().plus(sessionDuration));
+        sessionRepository.save(session);
+        return session.getAccountId();
     }
 
     public SessionView sessionView(Long accountId) {
@@ -96,9 +106,15 @@ public class AuthenticationService {
         return new SessionView(account.getCustomerName(), account.getAccountNumber());
     }
 
+    @Transactional
     public void logout(String token) {
-        if (token != null) sessions.remove(token);
+        if (token != null && !token.isBlank()) sessionRepository.deleteById(hashToken(token));
     }
+
+    public String hashPin(String pin) { return passwordEncoder.encode(pin); }
+
+    @Transactional
+    public void invalidateAccountSessions(Long accountId) { sessionRepository.deleteByAccountId(accountId); }
 
     public void verifyTransactionPin(Long accountId, String pin) {
         assertNotLocked(transactionAttempts, accountId,
@@ -146,9 +162,27 @@ public class AuthenticationService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    private Optional<BankAccount> findAccount(String identification) {
+        String raw = identification == null ? "" : identification.trim();
+        String normalized = digits(raw);
+        return accountRepository.findByDocumentId(normalized)
+            .or(() -> accountRepository.findByAccountNumber(raw))
+            .or(() -> accountRepository.findAll().stream()
+                .filter(account -> normalized.equals(digits(account.getAccountNumber())))
+                .findFirst());
+    }
+
+    private String hashToken(String token) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                .digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (java.security.NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 não disponível.", exception);
+        }
+    }
+
     private static String digits(String value) { return value == null ? "" : value.replaceAll("\\D", ""); }
 
-    private record Session(Long accountId, Instant expiresAt) {}
     private record AttemptState(int failures, Instant lockedUntil) {}
     public record LoginResult(String token, Instant expiresAt, String customerName, String accountNumber) {}
     public record SessionView(String customerName, String accountNumber) {}
