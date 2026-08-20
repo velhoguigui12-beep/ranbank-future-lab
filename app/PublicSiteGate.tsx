@@ -24,10 +24,10 @@ const tech = [
 ];
 
 const showcaseVideos = [
-  ["Segurança inteligente", "Acesso, alertas e proteção no dia a dia.", "/videos/ranbank-demonstracao-01.mp4"],
-  ["Proteção para seu veículo", "Uma visão simples dos serviços conectados à conta.", "/videos/ranbank-demonstracao-02.mp4"],
-  ["Seguro sempre por perto", "Conveniência e proteção em uma experiência integrada.", "/videos/ranbank-demonstracao-03.mp4"],
-  ["Agência do futuro", "Um conceito imersivo para o atendimento RanBank.", "/videos/ranbank-demonstracao-04.mp4"],
+  ["Segurança inteligente", "Acesso, alertas e proteção no dia a dia.", "/media/ranbank-demonstracao-01.mp4"],
+  ["Proteção para seu veículo", "Uma visão simples dos serviços conectados à conta.", "/media/ranbank-demonstracao-02.mp4"],
+  ["Seguro sempre por perto", "Conveniência e proteção em uma experiência integrada.", "/media/ranbank-demonstracao-03.mp4"],
+  ["Agência do futuro", "Um conceito imersivo para o atendimento RanBank.", "/media/ranbank-demonstracao-04.mp4"],
 ];
 
 export default function PublicSiteGate() {
