@@ -22,26 +22,10 @@ services:
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: "postgresql"
-      - key: POSTGRES_HOST
+      - key: DATABASE_URL
         fromDatabase:
           name: ranbank-postgres
-          property: host
-      - key: POSTGRES_PORT
-        fromDatabase:
-          name: ranbank-postgres
-          property: port
-      - key: POSTGRES_DB
-        fromDatabase:
-          name: ranbank-postgres
-          property: database
-      - key: POSTGRES_USER
-        fromDatabase:
-          name: ranbank-postgres
-          property: user
-      - key: POSTGRES_PASSWORD
-        fromDatabase:
-          name: ranbank-postgres
-          property: password
+          property: connectionString
       - key: H2_CONSOLE_ENABLED
         value: "false"
       - key: APP_CORS_ALLOWED_ORIGIN_PATTERNS
