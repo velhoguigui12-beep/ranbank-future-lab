@@ -41,6 +41,7 @@ test("requires a separate four-digit password before sending Pix", async () => {
 
 test("provides a Brasília-first public bank and privacy center", async () => {
   const publicSite = await readFile(publicSiteUrl, "utf8");
+  const page = await readFile(pageUrl, "utf8");
   assert.match(publicSite, /Feito em Brasília para o futuro/i);
   assert.match(publicSite, /\(61\) 4004-2028/);
   assert.match(publicSite, /CENTRAL DE SEGURANÇA RANBANK/);
@@ -49,6 +50,10 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   assert.match(publicSite, /Aceitar todos/);
   assert.match(publicSite, /SecurityPublicPage/);
   assert.match(publicSite, /PrivacyPublicPage/);
+  assert.match(publicSite, /RANBANK EM MOVIMENTO/);
+  assert.match(publicSite, /ranbank-demonstracao-04\.mp4/);
+  assert.match(publicSite, /\/banco\?modo=criar-conta/);
+  assert.match(page, /requestedMode === "criar-conta"/);
 });
 
 test("keeps account controls inside the customer profile", async () => {
