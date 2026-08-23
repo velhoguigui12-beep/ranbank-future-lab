@@ -9,7 +9,6 @@ import "./innovation-hub.css";
 import "./market-ui.css";
 import "./institutional-content.css";
 import "./palette-refresh.css";
-import "./presentation-safe.css";
 import "./public-site.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });

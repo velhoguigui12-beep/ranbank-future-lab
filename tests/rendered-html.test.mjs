@@ -37,3 +37,14 @@ test("requires a separate four-digit password before sending Pix", async () => {
   assert.match(page, /appendTransactionDigit/);
   assert.match(page, /Autorizar transferência/);
 });
+
+test("keeps account controls inside the customer profile", async () => {
+  const page = await readFile(pageUrl, "utf8");
+  assert.doesNotMatch(page, /Java conectado/);
+  assert.doesNotMatch(page, /Iniciar apresentação guiada/);
+  assert.doesNotMatch(page, /pix-modal-tools/);
+  assert.match(page, /profile-actions/);
+  assert.match(page, /Gerenciar chaves Pix/);
+  assert.match(page, /Sair da conta/);
+  assert.ok(page.indexOf('title: "Robótica"') < page.indexOf('title: "Comparar"'));
+});
