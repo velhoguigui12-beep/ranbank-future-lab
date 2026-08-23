@@ -14,12 +14,12 @@ import "./public-site.css";
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Ranbank | Banco Digital",
-  description: "Conta digital Ranbank com segurança, serviços financeiros e iniciativas de tecnologia e inovação.",
+  title: "RanBank | Banco digital de Brasília para o futuro",
+  description: "Conta digital RanBank com segurança em camadas, Pix, cartões, serviços e tecnologia com referência em Brasília, DF.",
   icons: { icon: "/ranbank-logo.jpeg" },
   appleWebApp: { capable: true, title: "Ranbank", statusBarStyle: "black-translucent" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><body className={geist.variable}><InstitutionalExperience /><PublicSiteGate />{children}<PwaInstaller /></body></html>;
+  return <html lang="pt-BR"><head><meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="theme-color" content="#061a33"/></head><body className={geist.variable}><InstitutionalExperience /><PublicSiteGate />{children}<PwaInstaller /></body></html>;
 }

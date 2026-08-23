@@ -58,7 +58,11 @@ async function proxy(request: Request, context: RouteContext) {
     }
 
     const responseHeaders = new Headers();
-    for (const name of ["content-type", "cache-control", "set-cookie", "location"]) {
+    for (const name of [
+      "content-type", "cache-control", "set-cookie", "location", "content-security-policy",
+      "permissions-policy", "referrer-policy", "strict-transport-security", "x-content-type-options",
+      "x-frame-options",
+    ]) {
       const value = upstream.headers.get(name);
       if (value) responseHeaders.set(name, value);
     }

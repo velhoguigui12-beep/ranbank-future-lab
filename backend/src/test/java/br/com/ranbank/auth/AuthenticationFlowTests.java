@@ -3,7 +3,9 @@ package br.com.ranbank.auth;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
@@ -21,7 +23,10 @@ class AuthenticationFlowTests {
 
     @Test
     void protectsDashboardAndCreatesSessionWithCorrectPin() throws Exception {
-        mockMvc.perform(get("/api/dashboard")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/dashboard")).andExpect(status().isUnauthorized())
+            .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+            .andExpect(header().string("X-Frame-Options", "DENY"))
+            .andExpect(header().string("Cache-Control", "no-store, max-age=0"));
 
         Cookie session = login();
         mockMvc.perform(get("/api/dashboard").cookie(session))
@@ -49,7 +54,7 @@ class AuthenticationFlowTests {
     @Test
     void createsAndAuthenticatesAnIndependentDemoAccount() throws Exception {
         String body = "{\"customerName\":\"Joana Teste\",\"documentId\":\"11122233344\","
-            + "\"email\":\"joana.teste@ranbank.demo\",\"phoneNumber\":\"(11) 97777-3344\","
+            + "\"email\":\"joana.teste@ranbank.demo\",\"phoneNumber\":\"(61) 97777-3344\","
             + "\"accessPin\":\"2468\",\"transactionPin\":\"1357\"}";
         MvcResult result = mockMvc.perform(post("/api/demo-accounts").contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isCreated())
@@ -61,14 +66,17 @@ class AuthenticationFlowTests {
         mockMvc.perform(get("/api/dashboard").cookie(session))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.customerName").value("Joana Teste"))
-            .andExpect(jsonPath("$.phoneNumber").value("(11) 97777-3344"))
+            .andExpect(jsonPath("$.phoneNumber").value("(61) 97777-3344"))
             .andExpect(jsonPath("$.transactions").isEmpty());
     }
 
     private Cookie login() throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+        MvcResult result = mockMvc.perform(post("/api/auth/login").header("X-Forwarded-Proto", "https").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"identification\":\"12345678909\",\"pin\":\"2580\"}"))
             .andExpect(status().isOk()).andReturn();
+        String setCookie = result.getResponse().getHeader("Set-Cookie");
+        assertTrue(setCookie != null && setCookie.contains("HttpOnly") && setCookie.contains("Secure")
+            && setCookie.contains("SameSite=Strict"));
         return result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
     }
 }

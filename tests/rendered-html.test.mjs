@@ -6,6 +6,7 @@ const pageUrl = new URL("../app/page.tsx", import.meta.url);
 const authUrl = new URL("../app/bank/AuthScreen.tsx", import.meta.url);
 const apiUrl = new URL("../app/bank/api.ts", import.meta.url);
 const masksUrl = new URL("../app/bank/inputMasks.ts", import.meta.url);
+const publicSiteUrl = new URL("../app/PublicSiteGate.tsx", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
@@ -36,6 +37,18 @@ test("requires a separate four-digit password before sending Pix", async () => {
   assert.match(page, /Teclado da senha do cart/);
   assert.match(page, /appendTransactionDigit/);
   assert.match(page, /Autorizar transferência/);
+});
+
+test("provides a Brasília-first public bank and privacy center", async () => {
+  const publicSite = await readFile(publicSiteUrl, "utf8");
+  assert.match(publicSite, /Feito em Brasília para o futuro/i);
+  assert.match(publicSite, /\(61\) 4004-2028/);
+  assert.match(publicSite, /CENTRAL DE SEGURANÇA RANBANK/);
+  assert.match(publicSite, /HttpOnly, Secure e SameSite Strict/);
+  assert.match(publicSite, /Somente essenciais/);
+  assert.match(publicSite, /Aceitar todos/);
+  assert.match(publicSite, /SecurityPublicPage/);
+  assert.match(publicSite, /PrivacyPublicPage/);
 });
 
 test("keeps account controls inside the customer profile", async () => {

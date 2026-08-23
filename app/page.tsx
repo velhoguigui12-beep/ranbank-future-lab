@@ -846,7 +846,7 @@ export default function Home() {
             </div>
             <div className="risk-panel">
               <div className="risk-score"><span>Nível de risco</span><div><strong>68</strong><small>/100</small></div><b>MÉDIO</b></div>
-              <div className="risk-chart"><div className="panel-title"><div><p>IA E BIG DATA</p><h2>Análise de transação</h2></div><span className="live-pill">● cenário preparado</span></div><div className="bars" aria-label="Gráfico de risco"><i style={{height:"28%"}}/><i style={{height:"46%"}}/><i style={{height:"38%"}}/><i style={{height:"64%"}}/><i style={{height:"52%"}}/><i style={{height:"82%"}}/><i style={{height:"68%"}}/></div><div className="suspicious"><span>!</span><div><strong>Compra fora do padrão</strong><small>Novo dispositivo · R$ 2.950,00 · Brasília, DF</small></div><button onClick={analyzeSuspiciousTransaction}>Analisar agora</button></div></div>
+              <div className="risk-chart"><div className="panel-title"><div><p>IA E BIG DATA</p><h2>Análise de transação</h2></div><span className="live-pill">● cenário preparado</span></div><div className="bars" aria-label="Gráfico de risco"><i style={{height:"28%"}}/><i style={{height:"46%"}}/><i style={{height:"38%"}}/><i style={{height:"64%"}}/><i style={{height:"52%"}}/><i style={{height:"82%"}}/><i style={{height:"68%"}}/></div><div className="suspicious"><span>!</span><div><strong>Compra fora do padrão</strong><small>Novo dispositivo · R$ 2.950,00 · Manaus, AM · distante de Brasília</small></div><button onClick={analyzeSuspiciousTransaction}>Analisar agora</button></div></div>
             </div>
           </div>
         )}

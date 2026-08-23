@@ -39,12 +39,12 @@ public class DemoDataConfiguration {
             if (!accountRepository.existsById(2L)) {
                 BankAccount maria = new BankAccount(2L, "Maria Silva", "4321-0", "98765432100",
                     "maria@ranbank.demo", new BigDecimal("3200.00"));
-                maria.updatePhoneNumber("11988880202");
+                maria.updatePhoneNumber("61988880202");
                 accountRepository.save(maria);
             } else {
                 BankAccount maria = accountRepository.findById(2L).orElseThrow();
                 if (maria.getPhoneNumber() == null) {
-                    maria.updatePhoneNumber("11988880202");
+                    maria.updatePhoneNumber("61988880202");
                     accountRepository.save(maria);
                 }
             }
@@ -63,8 +63,8 @@ public class DemoDataConfiguration {
             if (!pixKeyRepository.existsByNormalizedKey("98765432100")) {
                 pixKeyRepository.save(new PixKey(2L, "CPF", "98765432100", "987.654.321-00"));
             }
-            if (!pixKeyRepository.existsByNormalizedKey("11988880202")) {
-                pixKeyRepository.save(new PixKey(2L, "PHONE", "11988880202", "(11) 98888-0202"));
+            if (!pixKeyRepository.existsByNormalizedKey("61988880202")) {
+                pixKeyRepository.save(new PixKey(2L, "PHONE", "61988880202", "(61) 98888-0202"));
             }
             for (BankAccount account : accountRepository.findAll()) {
                 if (!account.isActive()) continue;
