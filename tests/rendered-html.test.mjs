@@ -14,6 +14,8 @@ test("includes the protected access experience", async () => {
   assert.match(auth, /Entrar com PIN/);
   assert.match(auth, /Biometria indisponível/);
   assert.match(auth, /Recupere seu PIN/);
+  assert.match(auth, /Esqueci meu PIN/);
+  assert.match(auth, /Voltar para entrar/);
   assert.match(api, /credentials: "include"/);
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);

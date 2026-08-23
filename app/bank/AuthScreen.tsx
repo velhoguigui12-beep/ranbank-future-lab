@@ -42,19 +42,28 @@ export default function AuthScreen(props: Props) {
   };
 
   return <main className="login-shell">
-    <section className="login-visual" aria-hidden="true">
+    <section className="login-visual">
       <div className="login-brand"><img src="/ranbank-logo.jpeg" alt=""/><span>RANBANK<small>Future Lab · Banco Seguro</small></span></div>
       <div className="login-message"><span>SEGURANÇA EM CAMADAS</span><h1>Seu banco começa com uma identidade protegida.</h1><p>Uma experiência educacional que combina conta digital, autenticação e tecnologias emergentes.</p></div>
-      <div className="login-security-points"><span><b>01</b>PIN protegido</span><span><b>02</b>Sessão temporária</span><span><b>03</b>Senha transacional</span></div>
+      <div className="login-visual-footer">
+        <div className="login-security-points" aria-hidden="true"><span><b>01</b>PIN protegido</span><span><b>02</b>Sessão temporária</span><span><b>03</b>Senha transacional</span></div>
+        <aside className="demo-access-card" aria-label="Credenciais de acesso para apresentação">
+          <div><small>AMBIENTE DEMONSTRATIVO</small><strong>Acesso para apresentação</strong></div>
+          <span><small>CPF</small><b>123.456.789-09</b></span>
+          <span><small>PIN</small><b>2580</b></span>
+        </aside>
+      </div>
     </section>
     <section className="login-panel">
       <form className={`login-card ${props.mode !== "login" ? "signup-card" : ""}`} onSubmit={submit}>
+        {props.mode === "recover" && <button className="recovery-back-link" type="button" onClick={() => changeMode("login")}>← Voltar para entrar</button>}
         <header><span>ACESSO SEGURO</span><h2>{title}</h2><p>{description}</p></header>
-        <div className="auth-mode-tabs"><button type="button" className={props.mode === "login" ? "active" : ""} onClick={() => changeMode("login")}>Entrar</button><button type="button" className={props.mode === "create" ? "active" : ""} onClick={() => changeMode("create")}>Criar conta</button><button type="button" className={props.mode === "recover" ? "active" : ""} onClick={() => changeMode("recover")}>Recuperar PIN</button></div>
+        {props.mode !== "recover" && <div className="auth-mode-tabs"><button type="button" className={props.mode === "login" ? "active" : ""} onClick={() => changeMode("login")}>Entrar</button><button type="button" className={props.mode === "create" ? "active" : ""} onClick={() => changeMode("create")}>Criar conta</button></div>}
         {props.mode === "login" && <>
           <label>CPF ou conta<input value={props.identification} onChange={(event) => props.setIdentification(event.target.value.slice(0, 18))} autoComplete="username" inputMode="numeric" maxLength={18} placeholder="Digite seu CPF ou sua conta" aria-label="CPF ou número da conta"/></label>
           <label>PIN de acesso<input className="login-pin-input" type="password" value={props.pin} onChange={(event) => props.setPin(event.target.value.replace(/\D/g, "").slice(0,4))} autoComplete="current-password" inputMode="numeric" maxLength={4} placeholder="••••" aria-label="PIN de quatro dígitos"/></label>
           <div className="pin-dots" aria-hidden="true">{[0,1,2,3].map((index) => <i key={index} className={index < props.pin.length ? "filled" : ""}/>)}</div>
+          <div className="forgot-pin-row"><button type="button" onClick={() => changeMode("recover")}>Esqueci meu PIN</button></div>
           <div className="numeric-keypad" aria-label="Teclado numérico">{[1,2,3,4,5,6,7,8,9].map((digit) => <button type="button" key={digit} onClick={() => props.appendDigit(String(digit))}>{digit}</button>)}<button type="button" className="biometric-key" disabled aria-label="Biometria indisponível">◎</button><button type="button" onClick={() => props.appendDigit("0")}>0</button><button type="button" className="erase-key" onClick={() => props.setPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito">⌫</button></div>
         </>}
         {props.mode === "create" && <div className="signup-fields">
@@ -72,7 +81,7 @@ export default function AuthScreen(props: Props) {
         </div>}
         {props.error && <p className="login-error" role="alert">{props.error}</p>}
         <button className="login-submit" disabled={props.loading || (props.mode === "login" && props.pin.length !== 4)}>{props.loading ? "Processando…" : props.mode === "login" ? "Entrar com PIN" : props.mode === "create" ? "Criar e acessar conta" : "Definir novo PIN"}</button>
-        {props.mode === "login" && <><button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível neste dispositivo</small></div></button><div className="demo-credentials"><b>ACESSO PARA APRESENTAÇÃO</b><span>CPF 123.456.789-09</span><span>PIN 2580</span></div></>}
+        {props.mode === "login" && <button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível neste dispositivo</small></div></button>}
         <footer>Conexão protegida · sessão temporária</footer>
       </form>
     </section>
