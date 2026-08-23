@@ -81,7 +81,7 @@ public class AccountAdminController {
     }
 
     public record StatusRequest(boolean active) {}
-    public record AccountView(Long id, String customerName, String accountNumber, String email,
+    public record AccountView(Long id, String customerName, String accountNumber, String email, String phoneNumber,
                               String maskedDocument, String role, boolean active, boolean deleted,
                               BigDecimal balance, Instant createdAt) {
         static AccountView from(BankAccount account) {
@@ -89,7 +89,7 @@ public class AccountAdminController {
             String masked = document == null || !document.matches("\\d{11}") ? "Não disponível"
                 : "•••.•••.•••-" + document.substring(9);
             return new AccountView(account.getId(), account.getCustomerName(), account.getAccountNumber(),
-                account.getEmail(), masked, account.getRole(), account.isActive(), account.getDeletedAt() != null,
+                account.getEmail(), account.getPhoneNumber(), masked, account.getRole(), account.isActive(), account.getDeletedAt() != null,
                 account.getBalance(), account.getCreatedAt());
         }
     }

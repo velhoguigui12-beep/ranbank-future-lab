@@ -11,6 +11,7 @@ import br.com.ranbank.pix.PixKey;
 import br.com.ranbank.pix.PixKeyRepository;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,19 +31,58 @@ public class DemoDataConfiguration {
             }
             BankAccount demoAccount = accountRepository.findById(1L).orElseThrow();
             if (!"ADMIN".equals(demoAccount.getRole())) demoAccount.grantAdminRole();
-            if (demoAccount.getEmail() == null) {
-                demoAccount.updateProfile("ana@ranbank.demo");
+            if (demoAccount.getEmail() == null || demoAccount.getPhoneNumber() == null) {
+                demoAccount.updateProfile(demoAccount.getEmail() == null ? "ana@ranbank.demo" : demoAccount.getEmail(),
+                    demoAccount.getPhoneNumber() == null ? "61999990101" : demoAccount.getPhoneNumber());
             }
             accountRepository.save(demoAccount);
             if (!accountRepository.existsById(2L)) {
-                accountRepository.save(new BankAccount(2L, "Maria Silva", "4321-0", "98765432100",
-                    "maria@ranbank.demo", new BigDecimal("3200.00")));
+                BankAccount maria = new BankAccount(2L, "Maria Silva", "4321-0", "98765432100",
+                    "maria@ranbank.demo", new BigDecimal("3200.00"));
+                maria.updatePhoneNumber("11988880202");
+                accountRepository.save(maria);
+            } else {
+                BankAccount maria = accountRepository.findById(2L).orElseThrow();
+                if (maria.getPhoneNumber() == null) {
+                    maria.updatePhoneNumber("11988880202");
+                    accountRepository.save(maria);
+                }
             }
             if (!pixKeyRepository.existsByNormalizedKey("ana@ranbank.demo")) {
                 pixKeyRepository.save(new PixKey(1L, "EMAIL", "ana@ranbank.demo", "ana@ranbank.demo"));
             }
             if (!pixKeyRepository.existsByNormalizedKey("maria@ranbank.demo")) {
                 pixKeyRepository.save(new PixKey(2L, "EMAIL", "maria@ranbank.demo", "maria@ranbank.demo"));
+            }
+            if (!pixKeyRepository.existsByNormalizedKey("12345678909")) {
+                pixKeyRepository.save(new PixKey(1L, "CPF", "12345678909", "123.456.789-09"));
+            }
+            if (!pixKeyRepository.existsByNormalizedKey("61999990101")) {
+                pixKeyRepository.save(new PixKey(1L, "PHONE", "61999990101", "(61) 99999-0101"));
+            }
+            if (!pixKeyRepository.existsByNormalizedKey("98765432100")) {
+                pixKeyRepository.save(new PixKey(2L, "CPF", "98765432100", "987.654.321-00"));
+            }
+            if (!pixKeyRepository.existsByNormalizedKey("11988880202")) {
+                pixKeyRepository.save(new PixKey(2L, "PHONE", "11988880202", "(11) 98888-0202"));
+            }
+            for (BankAccount account : accountRepository.findAll()) {
+                if (!account.isActive()) continue;
+                String document = account.getDocumentId();
+                if (document != null && document.matches("\\d{11}")
+                        && !pixKeyRepository.existsByNormalizedKey(document)) {
+                    pixKeyRepository.save(new PixKey(account.getId(), "CPF", document, formatCpf(document)));
+                }
+                String email = account.getEmail();
+                String normalizedEmail = email == null ? null : email.toLowerCase(Locale.ROOT);
+                if (normalizedEmail != null && !pixKeyRepository.existsByNormalizedKey(normalizedEmail)) {
+                    pixKeyRepository.save(new PixKey(account.getId(), "EMAIL", normalizedEmail, normalizedEmail));
+                }
+                String phone = account.getPhoneNumber();
+                if (phone != null && (phone.length() == 10 || phone.length() == 11)
+                        && !pixKeyRepository.existsByNormalizedKey(phone)) {
+                    pixKeyRepository.save(new PixKey(account.getId(), "PHONE", phone, formatPhone(phone)));
+                }
             }
             if (repository.count() == 0) {
                 repository.saveAll(List.of(
@@ -70,5 +110,15 @@ public class DemoDataConfiguration {
             deviceRepository.saveAll(legacyDevices);
             authenticationService.configureDemoCredentials();
         };
+    }
+
+    private static String formatCpf(String value) {
+        return "%s.%s.%s-%s".formatted(value.substring(0, 3), value.substring(3, 6),
+            value.substring(6, 9), value.substring(9));
+    }
+
+    private static String formatPhone(String value) {
+        int prefix = value.length() == 11 ? 7 : 6;
+        return "(%s) %s-%s".formatted(value.substring(0, 2), value.substring(2, prefix), value.substring(prefix));
     }
 }

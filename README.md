@@ -55,10 +55,11 @@ transacional são diferentes e ficam armazenados no H2 somente como hashes BCryp
 Após cinco tentativas de login ou três tentativas da senha transacional, a respectiva
 credencial é bloqueada temporariamente. Todas as credenciais são fictícias.
 
-Na tela de login também é possível criar uma nova conta educacional. O e-mail informado
-é cadastrado como chave Pix e a conta recebe saldo inicial fictício. Para demonstrar uma
+Na tela de login também é possível criar uma nova conta educacional. E-mail, CPF e telefone
+são cadastrados automaticamente como chaves Pix, e a conta recebe saldo inicial fictício.
+Os campos de CPF e telefone aplicam a máscara brasileira durante a digitação. Para demonstrar uma
 transferência a partir da conta de apresentação, use `maria@ranbank.demo` como destino.
-O botão **Recuperar PIN** exige o CPF ou número da conta, o e-mail cadastrado e o PIN
+O link **Esqueci meu PIN** exige o CPF ou número da conta, o e-mail cadastrado e o PIN
 transacional. A recuperação invalida as sessões anteriores da conta.
 
 Depois de entrar, use **Gerenciar minhas chaves** na área Pix. Contas administrativas
@@ -82,7 +83,7 @@ são anonimizados, as sessões e chaves Pix são removidas e o histórico financ
 
 ## Qualidade e persistência
 
-- Oito migrations Flyway criam o esquema e suas relações em H2 ou PostgreSQL.
+- Nove migrations Flyway criam o esquema e suas relações em H2 ou PostgreSQL.
 - Testes de integração cobrem autenticação, recuperação de PIN, ciclo de vida das contas,
   chaves Pix, idempotência, reset bilateral e migrations.
 - O teste PostgreSQL usa Testcontainers e é executado automaticamente quando Docker está disponível.

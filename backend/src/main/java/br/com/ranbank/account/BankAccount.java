@@ -16,6 +16,7 @@ public class BankAccount {
     private String customerName;
     private String accountNumber;
     private String email;
+    private String phoneNumber;
     @Column(precision = 19, scale = 2)
     private BigDecimal balance;
     private String documentId;
@@ -57,6 +58,7 @@ public class BankAccount {
     public String getCustomerName() { return customerName; }
     public String getAccountNumber() { return accountNumber; }
     public String getEmail() { return email; }
+    public String getPhoneNumber() { return phoneNumber; }
     public BigDecimal getBalance() { return balance; }
     public String getDocumentId() { return documentId; }
     public String getAccessPinHash() { return accessPinHash; }
@@ -95,12 +97,18 @@ public class BankAccount {
         this.customerName = "Conta removida";
         this.documentId = "deleted-" + id;
         this.email = "deleted-" + id + "@ranbank.invalid";
+        this.phoneNumber = null;
         this.accessPinHash = null;
         this.transactionPinHash = null;
         this.cardBlocked = true;
     }
 
     public void updateProfile(String email) { this.email = email; }
+    public void updateProfile(String email, String phoneNumber) {
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+    }
+    public void updatePhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public void grantAdminRole() { this.role = "ADMIN"; }
 
     public void restoreDemoState() {

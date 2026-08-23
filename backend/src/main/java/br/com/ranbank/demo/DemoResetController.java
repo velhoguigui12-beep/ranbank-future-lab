@@ -99,6 +99,12 @@ public class DemoResetController {
         if (!pixKeyRepository.existsByNormalizedKey("ana@ranbank.demo")) {
             pixKeyRepository.save(new PixKey(1L, "EMAIL", "ana@ranbank.demo", "ana@ranbank.demo"));
         }
+        if (!pixKeyRepository.existsByNormalizedKey("12345678909")) {
+            pixKeyRepository.save(new PixKey(1L, "CPF", "12345678909", "123.456.789-09"));
+        }
+        if (!pixKeyRepository.existsByNormalizedKey("61999990101")) {
+            pixKeyRepository.save(new PixKey(1L, "PHONE", "61999990101", "(61) 99999-0101"));
+        }
         transactionRepository.saveAll(List.of(
             new BankTransaction(1L, "Pix recebido", "Maria Silva · hoje, 09:41", new BigDecimal("250.00"), "credit"),
             new BankTransaction(1L, "Transferência enviada", "João Pereira · hoje, 08:15", new BigDecimal("-120.00"), "debit"),

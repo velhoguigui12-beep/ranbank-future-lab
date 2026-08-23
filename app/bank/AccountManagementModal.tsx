@@ -3,8 +3,9 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch, responseMessage } from "./api";
+import { formatBrazilianPhone } from "./inputMasks";
 
-type Account = { id: number; customerName: string; accountNumber: string; email: string; maskedDocument: string; role: string; active: boolean; deleted: boolean; balance: number; createdAt: string };
+type Account = { id: number; customerName: string; accountNumber: string; email: string; phoneNumber?: string; maskedDocument: string; role: string; active: boolean; deleted: boolean; balance: number; createdAt: string };
 type Props = { open: boolean; onClose: () => void };
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -65,7 +66,7 @@ export default function AccountManagementModal({ open, onClose }: Props) {
     <div className="management-summary"><strong>{accounts.filter((account) => account.active).length}</strong><span>contas ativas</span><b>{accounts.length} registros</b></div>
     {error && <p className="management-error" role="alert">{error}</p>}
     {loading ? <div className="analysis-loading"><i/><p>Carregando contas…</p></div> : <div className="account-management-list">{accounts.map((account) => <article key={account.id} className={`${!account.active ? "inactive" : ""} ${account.deleted ? "deleted" : ""}`}>
-      <div className="account-identity"><span>{account.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("")}</span><div><strong>{account.customerName}</strong><small>{account.email} · {account.accountNumber}</small></div></div>
+      <div className="account-identity"><span>{account.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("")}</span><div><strong>{account.customerName}</strong><small>{account.email} · {account.phoneNumber ? formatBrazilianPhone(account.phoneNumber) : "sem telefone"} · {account.accountNumber}</small></div></div>
       <div className="account-admin-meta"><span>{account.role}</span><b>{money.format(account.balance)}</b><em>{account.deleted ? "REMOVIDA" : account.active ? "ATIVA" : "DESATIVADA"}</em></div>
       <div className="account-admin-actions">{account.id > 2 && !account.deleted && <><button disabled={busyId === account.id} onClick={() => changeStatus(account)}>{account.active ? "Desativar" : "Reativar"}</button><button className="danger" disabled={busyId === account.id} onClick={() => remove(account)}>Remover</button></>} {account.id <= 2 && <small>Conta protegida da apresentação</small>}</div>
     </article>)}</div>}

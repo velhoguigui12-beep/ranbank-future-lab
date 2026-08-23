@@ -28,14 +28,10 @@ class PixKeyManagementTests {
     void managesEmailCpfPhoneAndRandomKeys() throws Exception {
         Cookie session = createAccount();
         mockMvc.perform(get("/api/pix/keys").cookie(session))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
-
-        mockMvc.perform(post("/api/pix/keys").cookie(session).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"type\":\"CPF\",\"value\":\"44455566677\"}"))
-            .andExpect(status().isCreated()).andExpect(jsonPath("$.type").value("CPF"));
-        mockMvc.perform(post("/api/pix/keys").cookie(session).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"type\":\"PHONE\",\"value\":\"+55 11 99999-0000\"}"))
-            .andExpect(status().isCreated()).andExpect(jsonPath("$.type").value("PHONE"));
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(3))
+            .andExpect(jsonPath("$[?(@.type == 'EMAIL')].value").value("chaves@ranbank.demo"))
+            .andExpect(jsonPath("$[?(@.type == 'CPF')].value").value("444.555.666-77"))
+            .andExpect(jsonPath("$[?(@.type == 'PHONE')].value").value("(11) 99999-0000"));
         mockMvc.perform(post("/api/pix/keys").cookie(session).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"type\":\"RANDOM\"}"))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.type").value("RANDOM"));
@@ -51,7 +47,7 @@ class PixKeyManagementTests {
     private Cookie createAccount() throws Exception {
         String body = """
             {"customerName":"Chaves Teste","documentId":"44455566677","email":"chaves@ranbank.demo",
-             "accessPin":"2468","transactionPin":"1357"}
+             "phoneNumber":"(11) 99999-0000","accessPin":"2468","transactionPin":"1357"}
             """;
         MvcResult result = mockMvc.perform(post("/api/demo-accounts").contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isCreated()).andReturn();

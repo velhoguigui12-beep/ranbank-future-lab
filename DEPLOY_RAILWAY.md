@@ -62,7 +62,7 @@ APP_CORS_ALLOWED_ORIGIN_PATTERNS=https://ranbank.com.br,https://${{Frontend.RAIL
 
 ## 5. Dados existentes
 
-Para começar vazio, não é necessário importar nada: o Flyway executa as oito migrations no
+Para começar vazio, não é necessário importar nada: o Flyway executa as nove migrations no
 primeiro boot. Para preservar usuários e movimentações do Render, exporte o banco antigo com
 `pg_dump` e restaure no novo PostgreSQL antes de liberar o domínio. Não desligue o banco antigo
 até conferir login, saldo, extrato, Pix e painel administrativo no novo ambiente.

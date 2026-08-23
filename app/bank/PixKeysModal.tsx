@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch, responseMessage } from "./api";
+import { formatBrazilianPhone, formatCpf, normalizeEmailInput } from "./inputMasks";
 
 type PixKey = { id: number; type: "EMAIL" | "CPF" | "PHONE" | "RANDOM"; value: string; createdAt: string };
 type Props = { open: boolean; onClose: () => void };
@@ -15,6 +16,8 @@ export default function PixKeysModal({ open, onClose }: Props) {
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const formatValue = (nextValue: string) => type === "CPF" ? formatCpf(nextValue)
+    : type === "PHONE" ? formatBrazilianPhone(nextValue) : normalizeEmailInput(nextValue);
 
   const load = async () => {
     setLoading(true); setError("");
@@ -50,7 +53,7 @@ export default function PixKeysModal({ open, onClose }: Props) {
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="pix-keys-modal" role="dialog" aria-modal="true" aria-labelledby="pix-keys-title" onMouseDown={(event) => event.stopPropagation()}>
     <header><div><span>PIX · RECEBIMENTOS</span><h2 id="pix-keys-title">Minhas chaves Pix</h2></div><button onClick={onClose} aria-label="Fechar chaves">×</button></header>
     <div className="pix-key-list">{keys.map((key) => <article key={key.id}><span>{key.type === "EMAIL" ? "@" : key.type === "CPF" ? "ID" : key.type === "PHONE" ? "☎" : "◆"}</span><div><strong>{labels[key.type]}</strong><small>{key.value}</small></div><button onClick={() => remove(key)} disabled={keys.length <= 1} title={keys.length <= 1 ? "Mantenha pelo menos uma chave" : "Remover chave"}>×</button></article>)}</div>
-    <form className="new-pix-key" onSubmit={create}><label>Tipo<select value={type} onChange={(event) => { setType(event.target.value as PixKey["type"]); setValue(""); }}><option value="EMAIL">E-mail</option><option value="CPF">CPF</option><option value="PHONE">Telefone</option><option value="RANDOM">Aleatória</option></select></label>{type !== "RANDOM" && <label>Valor<input value={value} onChange={(event) => setValue(event.target.value)} required placeholder={type === "EMAIL" ? "voce@email.com" : type === "CPF" ? "000.000.000-00" : "+55 11 99999-0000"}/></label>}<button disabled={loading}>{loading ? "Salvando…" : type === "RANDOM" ? "Gerar chave aleatória" : "Adicionar chave"}</button></form>
+    <form className="new-pix-key" onSubmit={create}><label>Tipo<select value={type} onChange={(event) => { setType(event.target.value as PixKey["type"]); setValue(""); }}><option value="EMAIL">E-mail</option><option value="CPF">CPF</option><option value="PHONE">Telefone</option><option value="RANDOM">Aleatória</option></select></label>{type !== "RANDOM" && <label>Valor<input value={value} onChange={(event) => setValue(formatValue(event.target.value))} inputMode={type === "EMAIL" ? "email" : "numeric"} autoCapitalize="none" spellCheck={false} maxLength={type === "CPF" ? 14 : type === "PHONE" ? 15 : 255} required placeholder={type === "EMAIL" ? "voce@email.com" : type === "CPF" ? "000.000.000-00" : "(11) 99999-9999"}/></label>}<button disabled={loading}>{loading ? "Salvando…" : type === "RANDOM" ? "Gerar chave aleatória" : "Adicionar chave"}</button></form>
     {error && <p className="management-error" role="alert">{error}</p>}
   </section></div>;
 }

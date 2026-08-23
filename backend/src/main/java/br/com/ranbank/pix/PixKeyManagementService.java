@@ -47,10 +47,13 @@ public class PixKeyManagementService {
             }
             case "PHONE" -> {
                 normalized = digits(rawValue);
-                if (normalized.length() < 10 || normalized.length() > 13) {
-                    throw new PixKeyException("Informe um telefone com DDD e código do país quando necessário.");
+                if (normalized.length() < 10 || normalized.length() > 11) {
+                    throw new PixKeyException("Informe um telefone brasileiro com DDD.");
                 }
-                display = "+" + normalized;
+                if (account.getPhoneNumber() != null && !normalized.equals(account.getPhoneNumber())) {
+                    throw new PixKeyException("A chave telefone deve usar o número cadastrado no perfil.");
+                }
+                display = formatPhone(normalized);
             }
             case "RANDOM" -> {
                 normalized = UUID.randomUUID().toString();
@@ -59,6 +62,10 @@ public class PixKeyManagementService {
             default -> throw new PixKeyException("Tipo de chave inválido. Use EMAIL, CPF, PHONE ou RANDOM.");
         }
         if (keys.existsByNormalizedKey(normalized)) throw new PixKeyException("Esta chave Pix já está cadastrada.");
+        if ("PHONE".equals(type) && account.getPhoneNumber() == null) {
+            account.updatePhoneNumber(normalized);
+            accounts.save(account);
+        }
         return KeyView.from(keys.save(new PixKey(accountId, type, normalized, display)));
     }
 
@@ -73,6 +80,10 @@ public class PixKeyManagementService {
     }
 
     private static String digits(String value) { return value == null ? "" : value.replaceAll("\\D", ""); }
+    private static String formatPhone(String value) {
+        int prefix = value.length() == 11 ? 7 : 6;
+        return "(%s) %s-%s".formatted(value.substring(0, 2), value.substring(2, prefix), value.substring(prefix));
+    }
 
     public record KeyView(Long id, String type, String value, java.time.Instant createdAt) {
         static KeyView from(PixKey key) {

@@ -65,7 +65,8 @@ class AccountLifecycleTests {
 
     private MvcResult createAccount(String name, String document, String email, String accessPin,
                                     String transactionPin) throws Exception {
-        String body = objectMapper.writeValueAsString(new CreateAccount(name, document, email, accessPin, transactionPin));
+        String phone = "119" + document.substring(document.length() - 8);
+        String body = objectMapper.writeValueAsString(new CreateAccount(name, document, email, phone, accessPin, transactionPin));
         return mockMvc.perform(post("/api/demo-accounts").contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isCreated()).andReturn();
     }
@@ -80,6 +81,7 @@ class AccountLifecycleTests {
         return result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
     }
 
-    record CreateAccount(String customerName, String documentId, String email, String accessPin, String transactionPin) {}
+    record CreateAccount(String customerName, String documentId, String email, String phoneNumber,
+                         String accessPin, String transactionPin) {}
     record Login(String identification, String pin) {}
 }

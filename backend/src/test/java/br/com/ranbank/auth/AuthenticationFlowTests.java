@@ -49,7 +49,8 @@ class AuthenticationFlowTests {
     @Test
     void createsAndAuthenticatesAnIndependentDemoAccount() throws Exception {
         String body = "{\"customerName\":\"Joana Teste\",\"documentId\":\"11122233344\","
-            + "\"email\":\"joana.teste@ranbank.demo\",\"accessPin\":\"2468\",\"transactionPin\":\"1357\"}";
+            + "\"email\":\"joana.teste@ranbank.demo\",\"phoneNumber\":\"(11) 97777-3344\","
+            + "\"accessPin\":\"2468\",\"transactionPin\":\"1357\"}";
         MvcResult result = mockMvc.perform(post("/api/demo-accounts").contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.customerName").value("Joana Teste"))
@@ -60,6 +61,7 @@ class AuthenticationFlowTests {
         mockMvc.perform(get("/api/dashboard").cookie(session))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.customerName").value("Joana Teste"))
+            .andExpect(jsonPath("$.phoneNumber").value("(11) 97777-3344"))
             .andExpect(jsonPath("$.transactions").isEmpty());
     }
 

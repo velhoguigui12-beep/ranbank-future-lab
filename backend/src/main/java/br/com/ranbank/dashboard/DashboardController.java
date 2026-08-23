@@ -43,11 +43,18 @@ public class DashboardController {
         CardResponse card = new CardResponse(cardLastFour, account.isCardBlocked(), account.getCardLimit(),
             account.getCardSpent(), account.getCardLimit().subtract(account.getCardSpent()).max(BigDecimal.ZERO));
         return new DashboardResponse(account.getCustomerName(), account.getBalance(), account.getAccountNumber(),
-            account.getEmail(), maskedDocument, account.getRole(), account.getCreatedAt(), card, transactions);
+            account.getEmail(), formatPhone(account.getPhoneNumber()), maskedDocument, account.getRole(),
+            account.getCreatedAt(), card, transactions);
+    }
+
+    private static String formatPhone(String phone) {
+        if (phone == null || !(phone.length() == 10 || phone.length() == 11)) return null;
+        int prefix = phone.length() == 11 ? 7 : 6;
+        return "(%s) %s-%s".formatted(phone.substring(0, 2), phone.substring(2, prefix), phone.substring(prefix));
     }
 
     public record DashboardResponse(String customerName, BigDecimal balance, String account, String email,
-                                    String maskedDocument, String role, java.time.Instant createdAt,
+                                    String phoneNumber, String maskedDocument, String role, java.time.Instant createdAt,
                                     CardResponse card, List<TransactionResponse> transactions) {}
     public record CardResponse(String lastFour, boolean blocked, BigDecimal limit, BigDecimal spent, BigDecimal available) {}
 

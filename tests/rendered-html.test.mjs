@@ -5,17 +5,24 @@ import test from "node:test";
 const pageUrl = new URL("../app/page.tsx", import.meta.url);
 const authUrl = new URL("../app/bank/AuthScreen.tsx", import.meta.url);
 const apiUrl = new URL("../app/bank/api.ts", import.meta.url);
+const masksUrl = new URL("../app/bank/inputMasks.ts", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
   const auth = await readFile(authUrl, "utf8");
   const api = await readFile(apiUrl, "utf8");
+  const masks = await readFile(masksUrl, "utf8");
   assert.match(auth, /Entre na sua conta/);
   assert.match(auth, /Entrar com PIN/);
   assert.match(auth, /Biometria indisponível/);
   assert.match(auth, /Recupere seu PIN/);
   assert.match(auth, /Esqueci meu PIN/);
   assert.match(auth, /Voltar para entrar/);
+  assert.ok(auth.indexOf("login-submit") < auth.indexOf("Esqueci meu PIN"));
+  assert.ok(auth.indexOf("Esqueci meu PIN") < auth.indexOf("biometric-login"));
+  assert.match(auth, /Telefone com DDD/);
+  assert.match(masks, /formatCpf/);
+  assert.match(masks, /formatBrazilianPhone/);
   assert.match(api, /credentials: "include"/);
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);

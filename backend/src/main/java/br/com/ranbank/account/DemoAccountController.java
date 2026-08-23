@@ -46,19 +46,27 @@ public class DemoAccountController {
                                                           HttpServletRequest request) {
         String document = digits(body.documentId());
         String email = body.email().trim().toLowerCase(Locale.ROOT);
+        String phoneNumber = digits(body.phoneNumber());
         if (accounts.existsByDocumentId(document)) throw new AccountConflict("Já existe uma conta com este CPF.");
         if (accounts.existsByEmailIgnoreCase(email) || pixKeys.existsByNormalizedKey(email)) {
             throw new AccountConflict("Este e-mail já está vinculado a uma conta.");
         }
+        if (accounts.existsByPhoneNumber(phoneNumber) || pixKeys.existsByNormalizedKey(phoneNumber)) {
+            throw new AccountConflict("Este telefone já está vinculado a uma conta.");
+        }
+        if (pixKeys.existsByNormalizedKey(document)) throw new AccountConflict("Este CPF já está vinculado a uma chave Pix.");
 
         long accountId = newAccountId();
         String accountNumber = accountNumber(accountId);
         BankAccount account = new BankAccount(accountId, body.customerName().trim(), accountNumber,
             document, email, INITIAL_BALANCE);
+        account.updatePhoneNumber(phoneNumber);
         account.configureCredentials(authentication.hashPin(body.accessPin()),
             authentication.hashPin(body.transactionPin()));
         accounts.save(account);
         pixKeys.save(new PixKey(accountId, "EMAIL", email, email));
+        pixKeys.save(new PixKey(accountId, "CPF", document, formatCpf(document)));
+        pixKeys.save(new PixKey(accountId, "PHONE", phoneNumber, formatPhone(phoneNumber)));
 
         AuthenticationService.LoginResult session = authentication.login(document, body.accessPin());
         ResponseCookie cookie = sessionCookie(session.token(), authentication.sessionDuration(), request);
@@ -85,6 +93,14 @@ public class DemoAccountController {
     }
 
     private static String digits(String value) { return value == null ? "" : value.replaceAll("\\D", ""); }
+    private static String formatCpf(String value) {
+        return "%s.%s.%s-%s".formatted(value.substring(0, 3), value.substring(3, 6),
+            value.substring(6, 9), value.substring(9));
+    }
+    private static String formatPhone(String value) {
+        int prefix = value.length() == 11 ? 7 : 6;
+        return "(%s) %s-%s".formatted(value.substring(0, 2), value.substring(2, prefix), value.substring(prefix));
+    }
 
     @ExceptionHandler(AccountConflict.class)
     ResponseEntity<Map<String, String>> handleConflict(AccountConflict exception) {
@@ -96,6 +112,8 @@ public class DemoAccountController {
         @NotBlank(message = "Informe o CPF")
         @Pattern(regexp = "(?:\\D*\\d){11}\\D*", message = "O CPF deve ter onze dígitos") String documentId,
         @NotBlank(message = "Informe o e-mail") @Email(message = "Informe um e-mail válido") String email,
+        @NotBlank(message = "Informe o telefone")
+        @Pattern(regexp = "(?:\\D*\\d){10,11}\\D*", message = "Informe um telefone com DDD") String phoneNumber,
         @NotBlank(message = "Informe o PIN de acesso")
         @Pattern(regexp = "\\d{4}", message = "O PIN de acesso deve ter quatro dígitos") String accessPin,
         @NotBlank(message = "Informe o PIN transacional")
