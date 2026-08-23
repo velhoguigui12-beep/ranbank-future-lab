@@ -45,7 +45,7 @@ public class AdminInsightsController {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal transactionVolume = transactions.findAll().stream().map(BankTransaction::getAmount)
             .map(BigDecimal::abs).reduce(BigDecimal.ZERO, BigDecimal::add);
-        return new InsightsSummary(Instant.now(), accounts.count(), deposits, transactions.count(),
+        return new InsightsSummary(Instant.now(), accounts.count(), accounts.countByActiveTrue(), deposits, transactions.count(),
             transactionVolume, pixTransfers.count(), notifications.countByReadAtIsNull(), flows.count());
     }
 
@@ -59,7 +59,7 @@ public class AdminInsightsController {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     Map<String, String> handle(AdminException exception) { return Map.of("message", exception.getMessage()); }
 
-    public record InsightsSummary(Instant generatedAt, long totalAccounts, BigDecimal totalDeposits,
+    public record InsightsSummary(Instant generatedAt, long totalAccounts, long activeAccounts, BigDecimal totalDeposits,
                                   long totalTransactions, BigDecimal transactionVolume, long pixTransfers,
                                   long unreadNotifications, long flowExecutions) {}
 

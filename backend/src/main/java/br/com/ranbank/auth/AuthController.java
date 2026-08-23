@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Email;
 import java.time.Duration;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
@@ -46,6 +47,13 @@ public class AuthController {
             .body(Map.of("message", "Sessão encerrada."));
     }
 
+    @PostMapping("/recover-pin")
+    public Map<String, String> recoverPin(@Valid @RequestBody RecoverPinRequest request) {
+        authenticationService.recoverAccessPin(request.identification(), request.email(),
+            request.transactionPin(), request.newAccessPin());
+        return Map.of("message", "PIN de acesso redefinido. Entre novamente com o novo PIN.");
+    }
+
     private ResponseCookie sessionCookie(String value, Duration maxAge, HttpServletRequest request) {
         boolean secure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
         return ResponseCookie.from(AuthenticationService.SESSION_COOKIE, value).httpOnly(true).secure(secure)
@@ -62,5 +70,11 @@ public class AuthController {
         @NotBlank(message = "Informe seu PIN") @Pattern(regexp = "\\d{4}", message = "O PIN deve ter quatro dígitos") String pin
     ) {}
     public record LoginResponse(String customerName, String accountNumber, String expiresAt) {}
+    public record RecoverPinRequest(
+        @NotBlank String identification,
+        @NotBlank @Email String email,
+        @NotBlank @Pattern(regexp = "\\d{4}") String transactionPin,
+        @NotBlank @Pattern(regexp = "\\d{4}") String newAccessPin
+    ) {}
 }
 

@@ -68,6 +68,9 @@ public class AuthenticationService {
     public LoginResult login(String identification, String pin) {
         BankAccount account = findAccount(identification)
             .orElseThrow(() -> invalidCredentials(null));
+        if (!account.isActive()) {
+            throw new AuthException(HttpStatus.FORBIDDEN, "Esta conta está desativada. Procure o administrador.");
+        }
         assertNotLocked(loginAttempts, account.getId(), "Muitas tentativas. Aguarde antes de tentar novamente.");
         String normalized = digits(identification);
         boolean validIdentity = normalized.equals(digits(account.getDocumentId()))
@@ -95,6 +98,11 @@ public class AuthenticationService {
             sessionRepository.delete(session);
             return null;
         }
+        BankAccount account = accountRepository.findById(session.getAccountId()).orElse(null);
+        if (account == null || !account.isActive()) {
+            sessionRepository.delete(session);
+            return null;
+        }
         session.renew(Instant.now().plus(sessionDuration));
         sessionRepository.save(session);
         return session.getAccountId();
@@ -103,6 +111,7 @@ public class AuthenticationService {
     public SessionView sessionView(Long accountId) {
         BankAccount account = accountRepository.findById(accountId)
             .orElseThrow(() -> new AuthException(HttpStatus.UNAUTHORIZED, "Sessão inválida."));
+        if (!account.isActive()) throw new AuthException(HttpStatus.FORBIDDEN, "Esta conta está desativada.");
         return new SessionView(account.getCustomerName(), account.getAccountNumber());
     }
 
@@ -121,6 +130,7 @@ public class AuthenticationService {
             "Senha transacional bloqueada temporariamente após três tentativas.");
         BankAccount account = accountRepository.findById(accountId)
             .orElseThrow(() -> new AuthException(HttpStatus.UNAUTHORIZED, "Conta não encontrada."));
+        if (!account.isActive()) throw new AuthException(HttpStatus.FORBIDDEN, "Esta conta está desativada.");
         boolean valid = pin != null && account.getTransactionPinHash() != null
             && passwordEncoder.matches(pin, account.getTransactionPinHash());
         if (!valid) {
@@ -128,6 +138,21 @@ public class AuthenticationService {
             throw new AuthException(HttpStatus.UNAUTHORIZED, "Senha de quatro dígitos incorreta.");
         }
         transactionAttempts.remove(accountId);
+    }
+
+    @Transactional
+    public void recoverAccessPin(String identification, String email, String transactionPin, String newAccessPin) {
+        BankAccount account = findAccount(identification)
+            .orElseThrow(() -> new AuthException(HttpStatus.UNAUTHORIZED, "Não foi possível validar os dados da conta."));
+        if (!account.isActive() || account.getEmail() == null || email == null
+                || !account.getEmail().equalsIgnoreCase(email.trim())) {
+            throw new AuthException(HttpStatus.UNAUTHORIZED, "Não foi possível validar os dados da conta.");
+        }
+        verifyTransactionPin(account.getId(), transactionPin);
+        account.changeAccessPin(passwordEncoder.encode(newAccessPin));
+        accountRepository.save(account);
+        sessionRepository.deleteByAccountId(account.getId());
+        loginAttempts.remove(account.getId());
     }
 
     public Duration sessionDuration() { return sessionDuration; }

@@ -8,4 +8,7 @@ public interface PixKeyRepository extends JpaRepository<PixKey, Long> {
     Optional<PixKey> findByNormalizedKey(String normalizedKey);
     List<PixKey> findByAccountId(Long accountId);
     boolean existsByNormalizedKey(String normalizedKey);
+    Optional<PixKey> findByIdAndAccountId(Long id, Long accountId);
+    long countByAccountId(Long accountId);
+    void deleteByAccountId(Long accountId);
 }

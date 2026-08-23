@@ -48,6 +48,7 @@ public class PixTransferService {
         }
         BankAccount recipient = accounts.findById(key.getAccountId())
             .orElseThrow(() -> new PixException("A conta de destino não está disponível."));
+        if (!recipient.isActive()) throw new PixException("A conta de destino está desativada.");
         return new Recipient(recipient.getId(), recipient.getCustomerName(), recipient.getAccountNumber(),
             key.getKeyType(), mask(key.getDisplayKey()));
     }
@@ -73,6 +74,7 @@ public class PixTransferService {
         BankAccount second = lock(secondId);
         BankAccount sender = first.getId().equals(senderAccountId) ? first : second;
         BankAccount recipient = first.getId().equals(recipientAccountId) ? first : second;
+        if (!recipient.isActive()) throw new PixException("A conta de destino está desativada.");
 
         try {
             sender.debit(amount);

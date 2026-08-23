@@ -32,6 +32,8 @@ public class BankAccount {
     private boolean cardBlocked;
     private String role = "CUSTOMER";
     private Instant createdAt = Instant.now();
+    private boolean active = true;
+    private Instant deletedAt;
     @Version
     private long version;
 
@@ -66,6 +68,8 @@ public class BankAccount {
     public boolean isCardBlocked() { return cardBlocked; }
     public String getRole() { return role == null ? "CUSTOMER" : role; }
     public Instant getCreatedAt() { return createdAt; }
+    public boolean isActive() { return active; }
+    public Instant getDeletedAt() { return deletedAt; }
     public long getVersion() { return version; }
 
     public void configureDemoCredentials(String documentId, String accessPinHash, String transactionPinHash) {
@@ -77,6 +81,23 @@ public class BankAccount {
     public void configureCredentials(String accessPinHash, String transactionPinHash) {
         this.accessPinHash = accessPinHash;
         this.transactionPinHash = transactionPinHash;
+    }
+
+    public void changeAccessPin(String accessPinHash) { this.accessPinHash = accessPinHash; }
+    public void deactivate() { this.active = false; }
+    public void reactivate() {
+        if (deletedAt != null) throw new IllegalStateException("Uma conta removida não pode ser reativada.");
+        this.active = true;
+    }
+    public void anonymize() {
+        this.active = false;
+        this.deletedAt = Instant.now();
+        this.customerName = "Conta removida";
+        this.documentId = "deleted-" + id;
+        this.email = "deleted-" + id + "@ranbank.invalid";
+        this.accessPinHash = null;
+        this.transactionPinHash = null;
+        this.cardBlocked = true;
     }
 
     public void updateProfile(String email) { this.email = email; }

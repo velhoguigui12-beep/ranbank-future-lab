@@ -13,6 +13,7 @@ public interface BankAccountRepository extends JpaRepository<BankAccount, Long> 
     Optional<BankAccount> findByEmailIgnoreCase(String email);
     boolean existsByDocumentId(String documentId);
     boolean existsByEmailIgnoreCase(String email);
+    long countByActiveTrue();
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select account from BankAccount account where account.id = :id")
