@@ -7,7 +7,7 @@ services:
     dockerContext: .
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: "https://ranbank-api.onrender.com/api"
+        value: "/api"
       - key: RANBANK_BACKEND_URL
         value: "https://ranbank-api.onrender.com/api"
 
