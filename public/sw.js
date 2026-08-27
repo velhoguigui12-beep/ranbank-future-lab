@@ -1,4 +1,4 @@
-const CACHE = "ranbank-shell-v2";
+const CACHE = "ranbank-shell-v3";
 const SHELL = ["/", "/banco", "/instituto", "/offline.html", "/favicon.svg", "/ranbank-logo.jpeg"];
 
 self.addEventListener("install", (event) => {
