@@ -1,0 +1,10 @@
+.account-load-guard{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:rgba(5,18,38,.96);backdrop-filter:blur(10px)}
+.account-load-card{width:min(440px,100%);border-radius:24px;padding:32px;text-align:center;background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.35);color:#0b1f38}
+.account-load-card img{width:64px;height:64px;border-radius:16px;object-fit:cover;margin-bottom:18px}
+.account-load-card h2{margin:10px 0 8px;font-size:1.45rem}
+.account-load-card p{margin:0 0 10px;line-height:1.55;color:#40536b}
+.account-load-card small{display:block;line-height:1.45;color:#687a90}
+.account-load-spinner{display:block;width:34px;height:34px;margin:0 auto 14px;border:3px solid #dbe4ef;border-top-color:#1266e3;border-radius:50%;animation:ranbank-spin .8s linear infinite}
+.account-load-warning{display:grid;place-items:center;width:42px;height:42px;margin:0 auto 12px;border-radius:50%;background:#fff3d8;color:#9d6200;font-weight:800;font-size:1.2rem}
+.account-load-card button{margin-top:20px;border:0;border-radius:12px;padding:12px 18px;background:#1266e3;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+@keyframes ranbank-spin{to{transform:rotate(360deg)}}
