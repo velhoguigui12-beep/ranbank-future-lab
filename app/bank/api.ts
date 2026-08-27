@@ -9,7 +9,8 @@ let accountLoadState: AccountLoadState = { status: "idle", message: "" };
 let dashboardReadyOnce = false;
 const accountLoadListeners = new Set<() => void>();
 const transientStatuses = new Set([429, 502, 503, 504]);
-const retryDelays = [0, 300, 900];
+const retryDelays = [0, 250];
+const INITIAL_DASHBOARD_TIMEOUT_MS = 2200;
 
 export const subscribeAccountLoad = (listener: () => void) => {
   accountLoadListeners.add(listener);
@@ -26,8 +27,19 @@ const setAccountLoadState = (next: AccountLoadState) => {
 
 const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-const request = (path: string, init: RequestInit) =>
-  fetch(`${API_BASE}${path}`, { ...init, credentials: "include" });
+const request = async (path: string, init: RequestInit, timeoutMs?: number) => {
+  const controller = timeoutMs && !init.signal ? new AbortController() : null;
+  const timeout = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    return await fetch(`${API_BASE}${path}`, {
+      ...init,
+      signal: init.signal ?? controller?.signal,
+      credentials: "include",
+    });
+  } finally {
+    if (timeout !== null) window.clearTimeout(timeout);
+  }
+};
 
 export async function apiFetch(path: string, init: RequestInit = {}) {
   const method = (init.method ?? "GET").toUpperCase();
@@ -57,7 +69,7 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
     if (retryDelays[attempt] > 0) await sleep(retryDelays[attempt]);
     try {
-      const response = await request(path, init);
+      const response = await request(path, init, INITIAL_DASHBOARD_TIMEOUT_MS);
       lastResponse = response;
       if (response.ok) {
         dashboardReadyOnce = true;
