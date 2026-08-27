@@ -9,7 +9,8 @@ type InstallPrompt = Event & {
 
 const DISMISS_KEY = "ranbank-pwa-dismissed-until";
 const DISMISS_FOR_MS = 7 * 24 * 60 * 60 * 1000;
-const SHOW_DELAY_MS = 10000;
+const SHOW_DELAY_MS = 30000;
+const MOBILE_MAX_WIDTH = 820;
 
 export default function PwaInstaller() {
   const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
@@ -41,19 +42,23 @@ export default function PwaInstaller() {
       const dismissedUntil = Number(window.localStorage.getItem(DISMISS_KEY) || "0");
       const isDismissed = dismissedUntil > Date.now();
       const isBankRoute = window.location.pathname === "/banco";
-      const isAuthenticated = Boolean(document.querySelector(".bank-shell"));
-      const hasBlockingUi = Boolean(document.querySelector(".modal-backdrop, .account-load-guard"));
-      setEligible(Boolean(prompt) && isBankRoute && isAuthenticated && !isDismissed && !hasBlockingUi);
-      if (!isBankRoute || !isAuthenticated || isDismissed || hasBlockingUi) setShow(false);
+      const isAuthenticated = Boolean(document.querySelector("main.bank-shell"));
+      const isMobileViewport = window.innerWidth <= MOBILE_MAX_WIDTH;
+      const hasBlockingUi = Boolean(document.querySelector(".modal-backdrop, .account-load-guard, .login-shell"));
+      const canShow = Boolean(prompt) && isBankRoute && isAuthenticated && isMobileViewport && !isDismissed && !hasBlockingUi;
+      setEligible(canShow);
+      if (!canShow) setShow(false);
     };
 
     evaluate();
     const observer = new MutationObserver(evaluate);
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
     window.addEventListener("popstate", evaluate);
+    window.addEventListener("resize", evaluate);
     return () => {
       observer.disconnect();
       window.removeEventListener("popstate", evaluate);
+      window.removeEventListener("resize", evaluate);
     };
   }, [prompt]);
 
