@@ -27,12 +27,18 @@ const setAccountLoadState = (next: AccountLoadState) => {
 
 const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-const request = (path: string, init: RequestInit, timeoutMs?: number) => {
-  const timeoutSignal = timeoutMs && typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
-    ? AbortSignal.timeout(timeoutMs)
-    : undefined;
-  const signal = init.signal ?? timeoutSignal;
-  return fetch(`${API_BASE}${path}`, { ...init, signal, credentials: "include" });
+const request = async (path: string, init: RequestInit, timeoutMs?: number) => {
+  const controller = timeoutMs && !init.signal ? new AbortController() : null;
+  const timeout = controller ? window.setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    return await fetch(`${API_BASE}${path}`, {
+      ...init,
+      signal: init.signal ?? controller?.signal,
+      credentials: "include",
+    });
+  } finally {
+    if (timeout !== null) window.clearTimeout(timeout);
+  }
 };
 
 export async function apiFetch(path: string, init: RequestInit = {}) {
