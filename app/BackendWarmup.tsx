@@ -7,11 +7,11 @@ export default function BackendWarmup() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname !== "/banco") return;
+    if (pathname !== "/" && pathname !== "/banco") return;
 
-    // Fire-and-forget: starts waking the free Render backend while the user is
-    // still reading/filling the login form. Authentication is not changed here.
-    fetch("/api/auth/session", {
+    // Wake the free Render backend as early as possible. Starting on the public
+    // home means the API can already be warm when the visitor clicks "Acessar minha conta".
+    fetch("/api/health", {
       credentials: "include",
       cache: "no-store",
       headers: { "X-Ranbank-Warmup": "1" },
