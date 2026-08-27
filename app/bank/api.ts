@@ -1,4 +1,4 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
+export const API_BASE = "/api";
 
 export type AccountLoadState = {
   status: "idle" | "loading" | "ready" | "error";
@@ -17,8 +17,9 @@ let dashboardReadyOnce = false;
 let expectedSession: ExpectedSession | null = null;
 const accountLoadListeners = new Set<() => void>();
 const transientStatuses = new Set([429, 502, 503, 504]);
-const retryDelays = [0, 180];
-const INITIAL_DASHBOARD_TIMEOUT_MS = 1800;
+const retryDelays = [0, 400, 1200];
+const INITIAL_DASHBOARD_TIMEOUT_MS = 12000;
+const SESSION_CONFIRM_TIMEOUT_MS = 8000;
 
 export const subscribeAccountLoad = (listener: () => void) => {
   accountLoadListeners.add(listener);
@@ -79,9 +80,9 @@ const forceExpectedLogin = async () => {
         identification: expectedSession.identification,
         pin: expectedSession.pin,
       }),
-    }, 3500);
+    }, SESSION_CONFIRM_TIMEOUT_MS);
     if (!response.ok) return false;
-    const session = await request("/auth/session", {}, 1800);
+    const session = await request("/auth/session", {}, SESSION_CONFIRM_TIMEOUT_MS);
     if (!session.ok) return false;
     const data = await session.json().catch(() => null) as { accountNumber?: string } | null;
     return Boolean(data && sameAccount(data.accountNumber, expectedSession.accountNumber));
@@ -117,10 +118,6 @@ const rememberAuthenticatedAccount = async (path: string, init: RequestInit, res
       pin: typeof submitted.accessPin === "string" ? submitted.accessPin : undefined,
     };
 
-    // The creation endpoint also authenticates the new account, but browsers that
-    // already had the presentation account open have shown a stale session cookie
-    // in production. Re-login explicitly with the just-created credentials so the
-    // cookie replacement is deterministic before the dashboard is requested.
     const switched = await forceExpectedLogin();
     if (!switched) {
       setAccountLoadState({
