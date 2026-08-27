@@ -70,6 +70,29 @@ class AuthenticationFlowTests {
             .andExpect(jsonPath("$.transactions").isEmpty());
     }
 
+    @Test
+    void creatingAnAccountWhileAnaSessionExistsSwitchesToTheNewAccount() throws Exception {
+        Cookie anaSession = login();
+        String body = "{\"customerName\":\"Carlos Novo\",\"documentId\":\"55566677788\","
+            + "\"email\":\"carlos.novo@ranbank.demo\",\"phoneNumber\":\"(61) 98888-7788\","
+            + "\"accessPin\":\"8642\",\"transactionPin\":\"2468\"}";
+
+        MvcResult result = mockMvc.perform(post("/api/demo-accounts").cookie(anaSession)
+                .header("X-Forwarded-Proto", "https")
+                .contentType(MediaType.APPLICATION_JSON).content(body))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.customerName").value("Carlos Novo"))
+            .andReturn();
+
+        Cookie newSession = result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
+        mockMvc.perform(get("/api/dashboard").cookie(newSession))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.customerName").value("Carlos Novo"));
+
+        mockMvc.perform(get("/api/dashboard").cookie(anaSession))
+            .andExpect(status().isUnauthorized());
+    }
+
     private Cookie login() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/auth/login").header("X-Forwarded-Proto", "https").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"identification\":\"12345678909\",\"pin\":\"2580\"}"))
