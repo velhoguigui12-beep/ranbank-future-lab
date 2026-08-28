@@ -101,8 +101,13 @@ public class DemoAccountController {
 
     private ResponseCookie sessionCookie(String value, Duration maxAge, HttpServletRequest request) {
         boolean secure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
-        return ResponseCookie.from(AuthenticationService.SESSION_COOKIE, value).httpOnly(true).secure(secure)
-            .sameSite("Strict").path("/api").maxAge(maxAge).build();
+        return ResponseCookie.from(AuthenticationService.SESSION_COOKIE, value)
+            .httpOnly(true)
+            .secure(secure)
+            .sameSite(secure ? "None" : "Lax")
+            .path("/api")
+            .maxAge(maxAge)
+            .build();
     }
 
     private static String digits(String value) { return value == null ? "" : value.replaceAll("\\D", ""); }
