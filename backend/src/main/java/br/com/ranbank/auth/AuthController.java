@@ -1,5 +1,6 @@
 package br.com.ranbank.auth;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -28,6 +29,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
+        invalidateIncomingSessions(servletRequest);
         AuthenticationService.LoginResult result = authenticationService.login(request.identification(), request.pin());
         ResponseCookie cookie = sessionCookie(result.token(), authenticationService.sessionDuration(), servletRequest);
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
@@ -41,7 +43,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(HttpServletRequest request) {
-        authenticationService.logout(AuthenticationFilter.cookieValue(request));
+        invalidateIncomingSessions(request);
         ResponseCookie cookie = sessionCookie("", Duration.ZERO, request);
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(Map.of("message", "Sessão encerrada."));
@@ -52,6 +54,16 @@ public class AuthController {
         authenticationService.recoverAccessPin(request.identification(), request.email(),
             request.transactionPin(), request.newAccessPin());
         return Map.of("message", "PIN de acesso redefinido. Entre novamente com o novo PIN.");
+    }
+
+    private void invalidateIncomingSessions(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return;
+        for (Cookie cookie : cookies) {
+            if (AuthenticationService.SESSION_COOKIE.equals(cookie.getName())) {
+                authenticationService.logout(cookie.getValue());
+            }
+        }
     }
 
     private ResponseCookie sessionCookie(String value, Duration maxAge, HttpServletRequest request) {
@@ -77,4 +89,3 @@ public class AuthController {
         @NotBlank @Pattern(regexp = "\\d{4}") String newAccessPin
     ) {}
 }
-

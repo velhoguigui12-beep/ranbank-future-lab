@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthenticationService {
-    public static final String SESSION_COOKIE = "RANBANK_SESSION";
+    public static final String SESSION_COOKIE = "RANBANK_SESSION_V2";
     public static final String ACCOUNT_REQUEST_ATTRIBUTE = "ranbank.accountId";
     private static final int MAX_LOGIN_ATTEMPTS = 5;
     private static final int MAX_TRANSACTION_ATTEMPTS = 3;

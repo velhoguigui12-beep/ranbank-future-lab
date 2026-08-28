@@ -3,6 +3,7 @@ package br.com.ranbank.account;
 import br.com.ranbank.auth.AuthenticationService;
 import br.com.ranbank.pix.PixKey;
 import br.com.ranbank.pix.PixKeyRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -44,6 +45,8 @@ public class DemoAccountController {
     @Transactional
     public ResponseEntity<AccountCreatedResponse> create(@Valid @RequestBody CreateDemoAccountRequest body,
                                                           HttpServletRequest request) {
+        invalidateIncomingSession(request);
+
         String document = digits(body.documentId());
         String email = body.email().trim().toLowerCase(Locale.ROOT);
         String phoneNumber = digits(body.phoneNumber());
@@ -73,6 +76,16 @@ public class DemoAccountController {
         return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(new AccountCreatedResponse(accountId, account.getCustomerName(), accountNumber, email,
                 INITIAL_BALANCE, session.expiresAt().toString()));
+    }
+
+    private void invalidateIncomingSession(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) return;
+        for (Cookie cookie : cookies) {
+            if (AuthenticationService.SESSION_COOKIE.equals(cookie.getName())) {
+                authentication.logout(cookie.getValue());
+            }
+        }
     }
 
     private long newAccountId() {
