@@ -1,4 +1,8 @@
-export const API_BASE = "/api";
+const HOSTED_API_BASE = "https://ranbank-api.onrender.com/api";
+
+export const API_BASE = typeof window !== "undefined" && window.location.hostname.endsWith(".onrender.com")
+  ? HOSTED_API_BASE
+  : (process.env.NEXT_PUBLIC_API_URL ?? "/api");
 
 export type AccountLoadState = {
   status: "idle" | "loading" | "ready" | "error";
@@ -16,8 +20,8 @@ let accountLoadState: AccountLoadState = { status: "idle", message: "" };
 let dashboardReadyOnce = false;
 let expectedSession: ExpectedSession | null = null;
 const accountLoadListeners = new Set<() => void>();
-const transientStatuses = new Set([429, 502, 503, 504]);
-const retryDelays = [0, 400, 1200];
+const transientStatuses = new Set([502, 503, 504]);
+const retryDelays = [0, 700, 1800];
 const INITIAL_DASHBOARD_TIMEOUT_MS = 12000;
 const SESSION_CONFIRM_TIMEOUT_MS = 8000;
 
@@ -107,27 +111,13 @@ const rememberAuthenticatedAccount = async (path: string, init: RequestInit, res
       identification: typeof submitted.identification === "string" ? submitted.identification : undefined,
       pin: typeof submitted.pin === "string" ? submitted.pin : undefined,
     };
-    return response;
-  }
-
-  if (path === "/demo-accounts") {
+  } else if (path === "/demo-accounts") {
     expectedSession = {
       customerName: payload.customerName,
       accountNumber: payload.accountNumber,
       identification: typeof submitted.documentId === "string" ? submitted.documentId : undefined,
       pin: typeof submitted.accessPin === "string" ? submitted.accessPin : undefined,
     };
-
-    const switched = await forceExpectedLogin();
-    if (!switched) {
-      setAccountLoadState({
-        status: "error",
-        message: `A conta ${payload.customerName} foi criada, mas a sessão não mudou para ela. Entre novamente com o CPF criado.`,
-      });
-      return errorResponse(
-        `Conta criada para ${payload.customerName}, mas não foi possível confirmar a nova sessão. Entre com o CPF e o PIN cadastrados.`,
-      );
-    }
   }
 
   return response;
@@ -170,6 +160,14 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
     try {
       let response = await request(path, init, INITIAL_DASHBOARD_TIMEOUT_MS);
       lastResponse = response;
+
+      if (response.status === 429) {
+        setAccountLoadState({
+          status: "error",
+          message: "A API do RanBank atingiu um limite temporário de requisições. Aguarde alguns segundos e tente novamente.",
+        });
+        return response;
+      }
 
       if (response.ok && expectedSession) {
         const dashboard = await response.clone().json().catch(() => null) as { account?: string } | null;
