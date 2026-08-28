@@ -1,7 +1,5 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Vinext serves the local RanBank brand image directly. */
-/* eslint-disable jsx-a11y/media-has-caption -- The silent showcase clips contain no dialogue or instructional audio. */
-
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { AnchorHTMLAttributes } from "react";
@@ -19,9 +17,9 @@ const products = [
   },
   {
     icon: "▭",
-    title: "Cartão Future",
-    text: "Limite, fatura, bloqueio e cartão virtual em um só lugar.",
-    href: "/banco",
+    title: "Ecocard RanBank",
+    text: "Seu cartão sustentável, com controle físico e virtual em um só lugar.",
+    href: "#ecocard",
   },
   {
     icon: "◎",
@@ -58,27 +56,23 @@ const services = [
   ["⌾", "Segurança", "Central de proteção"],
 ];
 
-const showcaseVideos = [
-  [
-    "Segurança inteligente",
-    "Acesso, alertas e proteção no dia a dia.",
-    "/media/ranbank-demonstracao-01.mp4",
-  ],
-  [
-    "Proteção para seu veículo",
-    "Serviços conectados à conta em uma jornada simples.",
-    "/media/ranbank-demonstracao-02.mp4",
-  ],
-  [
-    "Seguro sempre por perto",
-    "Conveniência e proteção em uma experiência integrada.",
-    "/media/ranbank-demonstracao-03.mp4",
-  ],
-  [
-    "Agência do futuro",
-    "Um conceito imersivo para o atendimento RanBank.",
-    "/media/ranbank-demonstracao-04.mp4",
-  ],
+const motionStories = [
+  {
+    eyebrow: "RANBANK EM MOVIMENTO",
+    title: "Tecnologia que participa da vida real.",
+    text: "Uma experiência digital presente nos momentos que importam, com simplicidade para usar e segurança para seguir.",
+    source: "/media/ranbank-historia-2026.mp4",
+    href: "/banco?modo=criar-conta",
+    action: "Viver essa experiência",
+  },
+  {
+    eyebrow: "ATENDIMENTO DO FUTURO",
+    title: "Pessoas no centro. Inovação ao redor.",
+    text: "Um conceito de agência que combina acolhimento, inteligência e novos jeitos de cuidar da sua vida financeira.",
+    source: "/media/ranbank-demonstracao-04.mp4",
+    href: "/instituto",
+    action: "Conhecer o Instituto RanBank",
+  },
 ];
 
 const securityControls = [
@@ -348,6 +342,13 @@ export function PublicHome() {
       <PublicHeader />
       <main id="top">
         <section className="rb-hero">
+          <div className="rb-hero-photo" aria-hidden="true">
+            <img
+              src="/images/ranbank-hero-ecocard.png"
+              alt=""
+              fetchPriority="high"
+            />
+          </div>
           <aside className="rb-hero-menu" aria-label="Atalhos RanBank">
             <Link className="primary" href="/banco?modo=criar-conta">
               <b>Abra sua conta</b>
@@ -378,10 +379,10 @@ export function PublicHome() {
             <span className="rb-kicker">
               RANBANK · FEITO EM BRASÍLIA PARA O FUTURO
             </span>
-            <h1>O banco que entende o seu agora.</h1>
+            <h1>Seu banco faz parte da sua vida.</h1>
             <p>
-              Conta digital, proteção em várias camadas e tecnologia para
-              transformar planos em movimento.
+              Conta digital, Ecocard sustentável e proteção em várias camadas
+              para transformar escolhas em um futuro melhor.
             </p>
             <div className="rb-hero-actions">
               <Link
@@ -399,73 +400,11 @@ export function PublicHome() {
                 <b>30 min</b>Sessão protegida
               </span>
               <span>
-                <b>24h</b>Controle da conta
+                <b>24h</b>Banco com você
               </span>
               <span>
-                <b>Brasília</b>Referência local
+                <b>Ecocard</b>Escolha sustentável
               </span>
-            </div>
-          </div>
-          <div
-            className="rb-hero-scene"
-            aria-label="Experiência digital RanBank"
-          >
-            <div className="rb-orbit" aria-hidden="true">
-              <span>R</span>
-            </div>
-            <div className="rb-card-visual">
-              <div>
-                <b>R</b>
-                <span>
-                  RANBANK
-                  <br />
-                  <small>FUTURE</small>
-                </span>
-              </div>
-              <strong>•••• &nbsp;•••• &nbsp;•••• &nbsp;2048</strong>
-              <footer>
-                <span>ANA RIBEIRO</span>
-                <b>VIRTUAL</b>
-              </footer>
-            </div>
-            <div className="rb-phone">
-              <div className="rb-phone-top">
-                <b>Olá, Ana</b>
-                <span>AR</span>
-              </div>
-              <small>Saldo disponível</small>
-              <strong>R$ 8.540,75</strong>
-              <div className="rb-phone-actions">
-                <span>
-                  ◆<small>Pix</small>
-                </span>
-                <span>
-                  ◷<small>Agendar</small>
-                </span>
-                <span>
-                  ▭<small>Cartão</small>
-                </span>
-              </div>
-              <div className="rb-phone-line">
-                <i>↓</i>
-                <div>
-                  <b>Pix recebido</b>
-                  <small>Hoje, 09:41</small>
-                </div>
-                <em>+ R$ 250</em>
-              </div>
-            </div>
-            <div className="rb-security-badge">
-              <i>✓</i>
-              <div>
-                <b>Conta protegida</b>
-                <small>Sessão e operações monitoradas</small>
-              </div>
-            </div>
-            <div className="rb-hero-dots" aria-hidden="true">
-              <i className="active" />
-              <i />
-              <i />
             </div>
           </div>
         </section>
@@ -487,6 +426,32 @@ export function PublicHome() {
               <b>Conhecer →</b>
             </Link>
           ))}
+        </section>
+        <section className="rb-ecocard" id="ecocard">
+          <div className="rb-ecocard-copy">
+            <span>ECOCARD RANBANK</span>
+            <h2>Um cartão que pensa no presente e no futuro.</h2>
+            <p>
+              Feito com materiais de origem sustentável, o Ecocard reúne
+              praticidade, segurança e escolhas que reduzem o impacto no
+              planeta.
+            </p>
+            <div className="rb-ecocard-benefits">
+              <span><b>♧</b>Material de origem sustentável</span>
+              <span><b>↻</b>Cashback para você</span>
+              <span><b>⌾</b>O mesmo controle no físico e no virtual</span>
+            </div>
+            <Link className="rb-btn rb-btn-primary" href="/banco?modo=criar-conta">
+              Peça o seu Ecocard
+            </Link>
+          </div>
+          <figure className="rb-ecocard-visual">
+            <span>ESCOLHA CONSCIENTE</span>
+            <div className="ecocard-asset">
+              <img src="/images/ranbank-ecocard-reference.jpeg" alt="Ecocard RanBank sustentável" />
+            </div>
+            <figcaption>Menos impacto. Mais consciência.</figcaption>
+          </figure>
         </section>
         <section className="rb-section rb-solutions" id="solucoes">
           <div className="rb-section-heading">
@@ -515,30 +480,27 @@ export function PublicHome() {
             ))}
           </div>
         </section>
-        <section className="rb-section rb-showcase">
-          <div className="rb-section-heading">
-            <span>RANBANK EM MOVIMENTO</span>
-            <h2>Veja conceitos do banco ganhando vida.</h2>
-            <p>
-              Uma seleção visual sobre proteção, serviços conectados e a
-              experiência de atendimento que estamos construindo.
-            </p>
-          </div>
-          <div className="rb-video-grid">
-            {showcaseVideos.map(([title, description, source]) => (
-              <article className="rb-video-card" key={title}>
-                <video controls playsInline preload="metadata">
-                  <source src={source} type="video/mp4" />
-                </video>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{description}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+        <section className="rb-motion-stories" aria-label="RanBank em movimento">
+          {motionStories.map((story, index) => (
+            <article className="rb-motion-story" key={story.title}>
+              <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+                <source src={story.source} type="video/mp4" />
+              </video>
+              <div className="rb-motion-shade" aria-hidden="true" />
+              <div className="rb-motion-copy">
+                <span>{story.eyebrow}</span>
+                <h2>{story.title}</h2>
+                <p>{story.text}</p>
+                <Link href={story.href}>{story.action} <b>→</b></Link>
+              </div>
+              <small>0{index + 1} / 02</small>
+            </article>
+          ))}
         </section>
         <section className="rb-security" id="seguranca">
+          <video className="rb-security-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+            <source src="/media/ranbank-demonstracao-01.mp4" type="video/mp4" />
+          </video>
           <div className="rb-security-copy">
             <span>SEGURANÇA RANBANK</span>
             <h2>Confiança não é discurso. É arquitetura.</h2>

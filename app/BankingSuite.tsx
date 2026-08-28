@@ -232,7 +232,7 @@ export default function BankingSuite({
 
           {tab === "card" && overview && (
             <div className="card-center">
-              <div className={`suite-card ${overview.card.blocked ? "blocked" : ""}`}><header><img src="/ranbank-logo.jpeg" alt=""/><span>PLATINUM VIRTUAL</span></header><strong>•••• &nbsp;•••• &nbsp;•••• &nbsp;{overview.cardLastFour}</strong><footer><span>{overview.customerName.toUpperCase()}</span><b>08/31</b></footer>{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div>
+              <div className={`suite-card ecocard-suite ${overview.card.blocked ? "blocked" : ""}`}><div className="ecocard-asset"><img src="/images/ranbank-ecocard-reference.jpeg" alt="Ecocard RanBank sustentável"/></div>{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div>
               <div className="card-control-panel">
                 <div className="card-numbers"><article><span>Fatura atual</span><strong>{money.format(overview.card.spent)}</strong></article><article><span>Limite disponível</span><strong>{money.format(overview.card.available)}</strong></article></div>
                 <div className="limit-meter"><span><i style={{ width: `${Math.min(100, overview.card.spent / overview.card.limit * 100)}%` }}/></span><small>{money.format(overview.card.spent)} usados de {money.format(overview.card.limit)}</small></div>

@@ -6,6 +6,7 @@ const VIDEO_FILES = new Set([
   "ranbank-demonstracao-02.mp4",
   "ranbank-demonstracao-03.mp4",
   "ranbank-demonstracao-04.mp4",
+  "ranbank-historia-2026.mp4",
 ]);
 
 function videoPath(file: string) {
