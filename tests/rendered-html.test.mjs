@@ -7,6 +7,9 @@ const authUrl = new URL("../app/bank/AuthScreen.tsx", import.meta.url);
 const apiUrl = new URL("../app/bank/api.ts", import.meta.url);
 const masksUrl = new URL("../app/bank/inputMasks.ts", import.meta.url);
 const publicSiteUrl = new URL("../app/PublicSiteGate.tsx", import.meta.url);
+const projectsUrl = new URL("../app/ProjectsPublicPage.tsx", import.meta.url);
+const pwaInstallerUrl = new URL("../app/PwaInstaller.tsx", import.meta.url);
+const serviceWorkerUrl = new URL("../public/sw.js", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
@@ -54,6 +57,31 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   assert.match(publicSite, /ranbank-demonstracao-04\.mp4/);
   assert.match(publicSite, /\/banco\?modo=criar-conta/);
   assert.match(page, /requestedMode === "criar-conta"/);
+});
+
+test("presents a clearly identified educational impact portfolio", async () => {
+  const publicSite = await readFile(publicSiteUrl, "utf8");
+  const projects = await readFile(projectsUrl, "utf8");
+  assert.match(publicSite, /Impacto & Projetos/);
+  assert.match(projects, /Portal de Impacto/);
+  assert.match(projects, /carteira\s+<strong>demonstrativa<\/strong>/i);
+  assert.match(projects, /metas anuais simuladas/i);
+  assert.match(projects, /Estratégia Nacional de Educação Financeira/);
+  assert.match(projects, /Política Nacional de Educação Digital/);
+  assert.match(projects, /não significam\s+vínculo, certificação ou parceria oficial/i);
+});
+
+test("keeps local previews free from stale PWA styles", async () => {
+  const installer = await readFile(pwaInstallerUrl, "utf8");
+  const serviceWorker = await readFile(serviceWorkerUrl, "utf8");
+  assert.match(installer, /localhost/);
+  assert.match(installer, /getRegistrations/);
+  assert.match(installer, /registration\.unregister/);
+  assert.match(installer, /ranbank-shell-/);
+  assert.match(serviceWorker, /ranbank-shell-v4/);
+  assert.match(serviceWorker, /"\/projetos"/);
+  assert.match(serviceWorker, /css\|js\|woff/);
+  assert.match(serviceWorker, /cache\.put\(request, copy\)/);
 });
 
 test("keeps account controls inside the customer profile", async () => {
