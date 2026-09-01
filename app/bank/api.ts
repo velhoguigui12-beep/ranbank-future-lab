@@ -20,10 +20,10 @@ let accountLoadState: AccountLoadState = { status: "idle", message: "" };
 let dashboardReadyOnce = false;
 let expectedSession: ExpectedSession | null = null;
 const accountLoadListeners = new Set<() => void>();
-const transientStatuses = new Set([502, 503, 504]);
-const retryDelays = [0, 700, 1800];
-const INITIAL_DASHBOARD_TIMEOUT_MS = 12000;
-const SESSION_CONFIRM_TIMEOUT_MS = 8000;
+const transientStatuses = new Set([429, 502, 503, 504]);
+const retryDelays = [0, 1600, 4200];
+const INITIAL_DASHBOARD_TIMEOUT_MS = 15000;
+const SESSION_CONFIRM_TIMEOUT_MS = 10000;
 
 export const subscribeAccountLoad = (listener: () => void) => {
   accountLoadListeners.add(listener);
@@ -73,6 +73,18 @@ const errorResponse = (message: string, status = 409) => new Response(
 
 const sameAccount = (actual: unknown, expected: string) =>
   typeof actual === "string" && actual.trim() === expected.trim();
+
+const retryAfterMilliseconds = (response: Response, fallback: number) => {
+  const header = response.headers.get("Retry-After");
+  if (!header) return fallback;
+
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.min(Math.max(seconds * 1000, fallback), 10000);
+
+  const timestamp = Date.parse(header);
+  if (Number.isNaN(timestamp)) return fallback;
+  return Math.min(Math.max(timestamp - Date.now(), fallback), 10000);
+};
 
 const forceExpectedLogin = async () => {
   if (!expectedSession?.identification || !expectedSession.pin) return false;
@@ -162,9 +174,18 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
       lastResponse = response;
 
       if (response.status === 429) {
+        if (attempt < retryDelays.length - 1) {
+          setAccountLoadState({
+            status: "loading",
+            message: "A API está ocupada. Aguardando alguns segundos antes de tentar novamente…",
+          });
+          await sleep(retryAfterMilliseconds(response, retryDelays[attempt + 1]));
+          continue;
+        }
+
         setAccountLoadState({
           status: "error",
-          message: "A API do RanBank atingiu um limite temporário de requisições. Aguarde alguns segundos e tente novamente.",
+          message: "A API do RanBank ainda está limitada temporariamente. Aguarde alguns segundos e tente novamente.",
         });
         return response;
       }
