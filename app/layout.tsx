@@ -14,6 +14,7 @@ import "./palette-refresh.css";
 import "./public-site.css";
 import "./account-load-guard.css";
 import "./pwa-install.css";
+import "./projects-impact.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 

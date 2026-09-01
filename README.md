@@ -16,6 +16,7 @@ Aplicação acadêmica que combina uma interface bancária com módulos interati
 - Open Finance com consentimentos revogáveis e visão consolidada.
 - Ledger de auditoria com hashes encadeados e jornada antifraude integrada.
 - Aplicação web instalável (PWA), com atalho próprio e tela offline segura.
+- Portal de Impacto com projetos sociais simulados, critérios de seleção, metas e referências públicas oficiais.
 
 ## Arquitetura
 
@@ -41,6 +42,19 @@ npm run dev
 ```
 
 Abra `http://localhost:3000`.
+
+## Rotas públicas
+
+- `/`: site institucional do RanBank.
+- `/banco`: conta digital demonstrativa e Future Lab.
+- `/instituto`: tecnologias emergentes, pesquisa e educação.
+- `/projetos`: Portal de Impacto e carteira simulada de investimento social privado.
+- `/seguranca`: Central de Segurança RanBank.
+- `/privacidade`: política de privacidade e preferências de cookies.
+
+As iniciativas, metas e possíveis parcerias apresentadas em `/projetos` são
+educacionais e demonstrativas. A página referencia fontes públicas oficiais sem
+indicar vínculo, certificação ou parceria institucional.
 
 ## Acesso demonstrativo
 

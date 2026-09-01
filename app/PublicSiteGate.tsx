@@ -108,7 +108,7 @@ const securityControls = [
   ],
 ];
 
-function PublicHeader({ dark = false }: { dark?: boolean }) {
+export function PublicHeader({ dark = false }: { dark?: boolean }) {
   return (
     <>
       <div className="rb-access-strip">
@@ -139,6 +139,7 @@ function PublicHeader({ dark = false }: { dark?: boolean }) {
           <Link href="/seguranca">Segurança</Link>
           <Link href="/#brasilia">Atendimento</Link>
           <Link href="/instituto">Instituto RanBank</Link>
+          <Link href="/projetos">Impacto & Projetos</Link>
         </nav>
         <div className="rb-header-tools">
           <Link href="/privacidade">Privacidade</Link>
@@ -151,7 +152,7 @@ function PublicHeader({ dark = false }: { dark?: boolean }) {
   );
 }
 
-function PublicFooter() {
+export function PublicFooter() {
   return (
     <footer className="rb-public-footer">
       <div className="rb-footer-brand">
@@ -166,6 +167,7 @@ function PublicFooter() {
         <Link href="/banco">Acessar conta</Link>
         <Link href="/#produtos">Produtos</Link>
         <Link href="/instituto">Instituto</Link>
+        <Link href="/projetos">Impacto & Projetos</Link>
       </div>
       <div>
         <strong>Proteção</strong>
