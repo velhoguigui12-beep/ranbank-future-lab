@@ -123,6 +123,10 @@ RANBANK_DEMO_TRANSACTION_PIN=7314
 RANBANK_SESSION_MINUTES=30
 ```
 
+Configure `APP_CORS_ALLOWED_ORIGIN_PATTERNS` somente com as origens exatas dos
+frontends autorizados, separadas por vírgula. Não use curingas como
+`https://*.onrender.com` junto de cookies de sessão com credenciais.
+
 Para PostgreSQL, ative o perfil e informe uma URL JDBC:
 
 ```text

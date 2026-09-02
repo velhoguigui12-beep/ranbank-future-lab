@@ -215,6 +215,7 @@ export default function Home() {
   const [loginIdentification, setLoginIdentification] = useState("");
   const [loginPin, setLoginPin] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
+  const [loginProgress, setLoginProgress] = useState("");
   const [loginError, setLoginError] = useState("");
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [signup, setSignup] = useState({ customerName: "", documentId: "", email: "", phoneNumber: "", accessPin: "", transactionPin: "" });
@@ -287,6 +288,22 @@ export default function Home() {
   const [authenticationLoading, setAuthenticationLoading] = useState(false);
   const [resettingDemo, setResettingDemo] = useState(false);
 
+  useEffect(() => {
+    if (!loginLoading) return;
+    const wakeupTimer = window.setTimeout(
+      () => setLoginProgress("Iniciando o servidor seguro do RanBank…"),
+      1500,
+    );
+    const coldStartTimer = window.setTimeout(
+      () => setLoginProgress("O primeiro acesso no Render pode levar até 30 segundos."),
+      10000,
+    );
+    return () => {
+      window.clearTimeout(wakeupTimer);
+      window.clearTimeout(coldStartTimer);
+    };
+  }, [loginLoading]);
+
   const loadDashboard = async () => {
     try {
       const response = await apiFetch("/dashboard");
@@ -355,6 +372,7 @@ export default function Home() {
     event.preventDefault();
     if (loginPin.length !== 4) return;
     setLoginLoading(true);
+    setLoginProgress("Conectando ao ambiente seguro…");
     setLoginError("");
     try {
       const response = await apiFetch("/auth/login", {
@@ -375,12 +393,14 @@ export default function Home() {
       setLoginError(error instanceof Error ? error.message : "Não foi possível entrar.");
     } finally {
       setLoginLoading(false);
+      setLoginProgress("");
     }
   };
 
   const createDemoAccount = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginLoading(true);
+    setLoginProgress("Conectando ao ambiente seguro…");
     setLoginError("");
     try {
       const response = await apiFetch("/demo-accounts", {
@@ -397,12 +417,14 @@ export default function Home() {
       setLoginError(error instanceof Error ? error.message : "Não foi possível criar a conta.");
     } finally {
       setLoginLoading(false);
+      setLoginProgress("");
     }
   };
 
   const recoverPin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginLoading(true);
+    setLoginProgress("Conectando ao ambiente seguro…");
     setLoginError("");
     try {
       const response = await apiFetch("/auth/recover-pin", {
@@ -420,6 +442,7 @@ export default function Home() {
       setLoginError(error instanceof Error ? error.message : "Não foi possível redefinir o PIN.");
     } finally {
       setLoginLoading(false);
+      setLoginProgress("");
     }
   };
 
@@ -785,6 +808,7 @@ export default function Home() {
     return <AuthScreen mode={authMode} setMode={setAuthMode} identification={loginIdentification}
       setIdentification={setLoginIdentification} pin={loginPin} setPin={setLoginPin} signup={signup}
       setSignup={setSignup} recovery={recovery} setRecovery={setRecovery} loading={loginLoading}
+      progressMessage={loginProgress}
       error={loginError} clearError={() => setLoginError("")} onLogin={login} onCreate={createDemoAccount}
       onRecover={recoverPin} appendDigit={appendLoginDigit}/>;
   }

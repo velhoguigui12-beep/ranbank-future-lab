@@ -10,6 +10,8 @@ const publicSiteUrl = new URL("../app/PublicSiteGate.tsx", import.meta.url);
 const projectsUrl = new URL("../app/ProjectsPublicPage.tsx", import.meta.url);
 const pwaInstallerUrl = new URL("../app/PwaInstaller.tsx", import.meta.url);
 const serviceWorkerUrl = new URL("../public/sw.js", import.meta.url);
+const warmupUrl = new URL("../app/BackendWarmup.tsx", import.meta.url);
+const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
@@ -28,6 +30,10 @@ test("includes the protected access experience", async () => {
   assert.match(masks, /formatCpf/);
   assert.match(masks, /formatBrazilianPhone/);
   assert.match(api, /credentials: "include"/);
+  assert.match(api, /SESSION_START_TIMEOUT_MS = 45000/);
+  assert.match(api, /O servidor demorou para iniciar/);
+  assert.match(auth, /progressMessage/);
+  assert.match(page, /O primeiro acesso no Render pode levar até 30 segundos/);
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);
 });
@@ -48,7 +54,7 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   assert.match(publicSite, /Feito em Brasília para o futuro/i);
   assert.match(publicSite, /\(61\) 4004-2028/);
   assert.match(publicSite, /CENTRAL DE SEGURANÇA RANBANK/);
-  assert.match(publicSite, /HttpOnly, Secure e SameSite Strict/);
+  assert.match(publicSite, /HttpOnly e Secure no ambiente hospedado/);
   assert.match(publicSite, /Somente essenciais/);
   assert.match(publicSite, /Aceitar todos/);
   assert.match(publicSite, /SecurityPublicPage/);
@@ -82,6 +88,15 @@ test("keeps local previews free from stale PWA styles", async () => {
   assert.match(serviceWorker, /"\/projetos"/);
   assert.match(serviceWorker, /css\|js\|woff/);
   assert.match(serviceWorker, /cache\.put\(request, copy\)/);
+});
+
+test("warms the hosted API before the customer reaches login", async () => {
+  const warmup = await readFile(warmupUrl, "utf8");
+  const layout = await readFile(layoutUrl, "utf8");
+  assert.match(warmup, /backendWarmupStarted/);
+  assert.doesNotMatch(warmup, /pathname !== "\/"/);
+  assert.match(layout, /rel="preconnect"/);
+  assert.match(layout, /ranbank-api\.onrender\.com/);
 });
 
 test("keeps account controls inside the customer profile", async () => {

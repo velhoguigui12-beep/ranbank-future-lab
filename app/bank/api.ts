@@ -24,6 +24,7 @@ const transientStatuses = new Set([429, 502, 503, 504]);
 const retryDelays = [0, 1600, 4200];
 const INITIAL_DASHBOARD_TIMEOUT_MS = 15000;
 const SESSION_CONFIRM_TIMEOUT_MS = 10000;
+const SESSION_START_TIMEOUT_MS = 45000;
 
 export const subscribeAccountLoad = (listener: () => void) => {
   accountLoadListeners.add(listener);
@@ -143,8 +144,15 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   if (startsNewSession) {
     dashboardReadyOnce = false;
     setAccountLoadState({ status: "idle", message: "" });
-    const response = await request(path, init);
-    return rememberAuthenticatedAccount(path, init, response);
+    try {
+      const response = await request(path, init, SESSION_START_TIMEOUT_MS);
+      return rememberAuthenticatedAccount(path, init, response);
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error("O servidor demorou para iniciar. Aguarde alguns segundos e tente novamente.");
+      }
+      throw error;
+    }
   }
 
   if (logsOut) {
@@ -168,7 +176,6 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   let lastError: unknown = null;
 
   for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
-    if (retryDelays[attempt] > 0) await sleep(retryDelays[attempt]);
     try {
       let response = await request(path, init, INITIAL_DASHBOARD_TIMEOUT_MS);
       lastResponse = response;
@@ -227,8 +234,15 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
         });
         return response;
       }
+
+      if (attempt < retryDelays.length - 1) {
+        await sleep(retryDelays[attempt + 1]);
+      }
     } catch (error) {
       lastError = error;
+      if (attempt < retryDelays.length - 1) {
+        await sleep(retryDelays[attempt + 1]);
+      }
     }
   }
 

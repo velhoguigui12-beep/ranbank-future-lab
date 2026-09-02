@@ -79,7 +79,7 @@ const securityControls = [
   [
     "SESSÃO",
     "Cookie protegido",
-    "Sessão em cookie HttpOnly, Secure e SameSite Strict, sem exposição do token ao JavaScript.",
+    "Sessão em cookie HttpOnly e Secure no ambiente hospedado, com política SameSite adequada à integração entre site e API.",
   ],
   [
     "ACESSO",

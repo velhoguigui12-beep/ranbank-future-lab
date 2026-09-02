@@ -43,6 +43,17 @@ class AuthenticationFlowTests {
     }
 
     @Test
+    void usesLaxCookieForLocalHttpSessions() throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"identification\":\"12345678909\",\"pin\":\"2580\"}"))
+            .andExpect(status().isOk()).andReturn();
+
+        String setCookie = result.getResponse().getHeader("Set-Cookie");
+        assertTrue(setCookie != null && setCookie.contains("HttpOnly")
+            && !setCookie.contains("Secure") && setCookie.contains("SameSite=Lax"));
+    }
+
+    @Test
     void requiresTheSeparateTransactionPin() throws Exception {
         Cookie session = login();
         String wrongPin = "{\"pixKey\":\"ana@example.com\",\"amount\":10,\"transactionPin\":\"9999\"}";
@@ -84,6 +95,10 @@ class AuthenticationFlowTests {
             .andExpect(jsonPath("$.customerName").value("Carlos Novo"))
             .andReturn();
 
+        String setCookie = result.getResponse().getHeader("Set-Cookie");
+        assertTrue(setCookie != null && setCookie.contains("HttpOnly") && setCookie.contains("Secure")
+            && setCookie.contains("SameSite=None"));
+
         Cookie newSession = result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
         mockMvc.perform(get("/api/dashboard").cookie(newSession))
             .andExpect(status().isOk())
@@ -99,7 +114,7 @@ class AuthenticationFlowTests {
             .andExpect(status().isOk()).andReturn();
         String setCookie = result.getResponse().getHeader("Set-Cookie");
         assertTrue(setCookie != null && setCookie.contains("HttpOnly") && setCookie.contains("Secure")
-            && setCookie.contains("SameSite=Strict"));
+            && setCookie.contains("SameSite=None"));
         return result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
     }
 }

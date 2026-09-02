@@ -4,12 +4,14 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 const HOSTED_HEALTH_URL = "https://ranbank-api.onrender.com/api/health";
+let backendWarmupStarted = false;
 
 export default function BackendWarmup() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname !== "/" && pathname !== "/banco") return;
+    if (backendWarmupStarted) return;
+    backendWarmupStarted = true;
 
     const healthUrl = window.location.hostname.endsWith(".onrender.com")
       ? HOSTED_HEALTH_URL
@@ -18,7 +20,9 @@ export default function BackendWarmup() {
     fetch(healthUrl, {
       cache: "no-store",
       headers: { "X-Ranbank-Warmup": "1" },
-    }).catch(() => undefined);
+    }).catch(() => {
+      backendWarmupStarted = false;
+    });
   }, [pathname]);
 
   return null;

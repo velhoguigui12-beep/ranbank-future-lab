@@ -20,6 +20,7 @@ type Props = {
   recovery: RecoveryData;
   setRecovery: (value: RecoveryData) => void;
   loading: boolean;
+  progressMessage: string;
   error: string;
   clearError: () => void;
   onLogin: (event: FormEvent<HTMLFormElement>) => void;
@@ -82,6 +83,7 @@ export default function AuthScreen(props: Props) {
         </div>}
         {props.error && <p className="login-error" role="alert">{props.error}</p>}
         <button className="login-submit" disabled={props.loading || (props.mode === "login" && props.pin.length !== 4)}>{props.loading ? "Processando…" : props.mode === "login" ? "Entrar com PIN" : props.mode === "create" ? "Criar e acessar conta" : "Definir novo PIN"}</button>
+        {props.loading && props.progressMessage && <p className="login-progress" role="status">{props.progressMessage}</p>}
         {props.mode === "login" && <><div className="forgot-pin-row"><button type="button" onClick={() => changeMode("recover")}>Esqueci meu PIN</button></div><button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível neste dispositivo</small></div></button></>}
         <footer>Conexão protegida · sessão temporária</footer>
       </form>

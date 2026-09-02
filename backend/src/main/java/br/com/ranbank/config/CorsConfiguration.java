@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfiguration implements WebMvcConfigurer {
     private final List<String> allowedOriginPatterns;
 
-    public CorsConfiguration(@Value("${app.cors.allowed-origin-patterns:http://localhost:3000,http://localhost:5173,https://*.chatgpt.site}") String patterns) {
+    public CorsConfiguration(@Value("${app.cors.allowed-origin-patterns:http://localhost:3000,http://localhost:5173}") String patterns) {
         this.allowedOriginPatterns = Arrays.stream(patterns.split(",")).map(String::trim).filter(value -> !value.isBlank()).toList();
     }
 
