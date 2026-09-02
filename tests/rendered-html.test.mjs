@@ -14,6 +14,7 @@ const warmupUrl = new URL("../app/BackendWarmup.tsx", import.meta.url);
 const proxyUrl = new URL("../app/api/[...path]/route.ts", import.meta.url);
 const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
 const bankThemeUrl = new URL("../app/bank-theme.css", import.meta.url);
+const bankingSuiteUrl = new URL("../app/BankingSuite.tsx", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
@@ -150,4 +151,11 @@ test("keeps account controls inside the customer profile", async () => {
   assert.match(page, /Gerenciar chaves Pix/);
   assert.match(page, /Sair da conta/);
   assert.ok(page.indexOf("Robótica assistiva") < page.indexOf("Comparar tecnologias"));
+});
+
+test("shows the Ecocard artwork in the card control panel", async () => {
+  const bankingSuite = await readFile(bankingSuiteUrl, "utf8");
+  assert.match(bankingSuite, /ecocard-suite-face/);
+  assert.match(bankingSuite, /ranbank-ecocard-reference\.jpeg/);
+  assert.match(bankingSuite, /Cartão Eco RanBank sustentável/);
 });
