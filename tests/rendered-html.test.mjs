@@ -20,10 +20,10 @@ test("includes the protected access experience", async () => {
   const auth = await readFile(authUrl, "utf8");
   const api = await readFile(apiUrl, "utf8");
   const masks = await readFile(masksUrl, "utf8");
-  assert.match(auth, /Entre na sua conta/);
+  assert.match(auth, /Acesse sua conta/);
   assert.match(auth, /Entrar com PIN/);
   assert.match(auth, /Biometria indisponível/);
-  assert.match(auth, /Recupere seu PIN/);
+  assert.match(auth, /Recupere seu acesso/);
   assert.match(auth, /Esqueci meu PIN/);
   assert.match(auth, /Voltar para entrar/);
   assert.ok(auth.indexOf("login-submit") < auth.indexOf("Esqueci meu PIN"));
@@ -149,5 +149,5 @@ test("keeps account controls inside the customer profile", async () => {
   assert.match(page, /profile-actions/);
   assert.match(page, /Gerenciar chaves Pix/);
   assert.match(page, /Sair da conta/);
-  assert.ok(page.indexOf('title: "Robótica"') < page.indexOf('title: "Comparar"'));
+  assert.ok(page.indexOf("Robótica assistiva") < page.indexOf("Comparar tecnologias"));
 });

@@ -16,6 +16,7 @@ import "./account-load-guard.css";
 import "./pwa-install.css";
 import "./projects-impact.css";
 import "./bank-theme.css";
+import "./bank-v2.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 

@@ -31,9 +31,9 @@ type Props = {
 
 export default function AuthScreen(props: Props) {
   const submit = props.mode === "login" ? props.onLogin : props.mode === "create" ? props.onCreate : props.onRecover;
-  const title = props.mode === "login" ? "Entre na sua conta" : props.mode === "create" ? "Crie sua conta demo" : "Recupere seu PIN";
+  const title = props.mode === "login" ? "Acesse sua conta" : props.mode === "create" ? "Abra sua conta demonstrativa" : "Recupere seu acesso";
   const description = props.mode === "login"
-    ? "Use seu CPF ou número da conta e o PIN de acesso."
+    ? "Informe seu CPF ou número da conta para continuar."
     : props.mode === "create"
       ? "Seus dados ficam neste ambiente educacional, com e-mail, CPF e telefone disponíveis como chaves Pix."
       : "Confirme CPF, e-mail e PIN transacional para definir um novo PIN de acesso.";
@@ -45,12 +45,12 @@ export default function AuthScreen(props: Props) {
 
   return <main className="login-shell">
     <section className="login-visual">
-      <div className="login-brand"><img src="/ranbank-logo.jpeg" alt=""/><span>RANBANK<small>Future Lab · Banco Seguro</small></span></div>
-      <div className="login-message"><span>SEGURANÇA EM CAMADAS</span><h1>Seu banco começa com uma identidade protegida.</h1><p>Uma experiência educacional que combina conta digital, autenticação e tecnologias emergentes.</p></div>
+      <div className="login-brand"><img src="/ranbank-logo.jpeg" alt=""/><span>RANBANK<small>Banco digital</small></span></div>
+      <div className="login-message"><span>SEU BANCO, DO SEU JEITO</span><h1>Uma conta completa. Uma experiência simples.</h1><p>Pix, pagamentos, cartão e segurança inteligente em um só lugar.</p></div>
       <div className="login-visual-footer">
-        <div className="login-security-points" aria-hidden="true"><span><b>01</b>PIN protegido</span><span><b>02</b>Sessão temporária</span><span><b>03</b>Senha transacional</span></div>
+        <div className="login-security-points" aria-hidden="true"><span><b>✓</b>Conexão criptografada</span><span><b>✓</b>Autenticação em camadas</span><span><b>✓</b>Monitoramento antifraude</span></div>
         <aside className="demo-access-card" aria-label="Credenciais de acesso para apresentação">
-          <div><small>AMBIENTE DEMONSTRATIVO</small><strong>Acesso para apresentação</strong></div>
+          <div><small>APRESENTAÇÃO SENAC</small><strong>Acesso demonstrativo</strong></div>
           <span><small>CPF</small><b>123.456.789-09</b></span>
           <span><small>PIN</small><b>2580</b></span>
         </aside>
@@ -59,6 +59,7 @@ export default function AuthScreen(props: Props) {
     <section className="login-panel">
       <form className={`login-card ${props.mode !== "login" ? "signup-card" : ""}`} onSubmit={submit}>
         {props.mode === "recover" && <button className="recovery-back-link" type="button" onClick={() => changeMode("login")}>← Voltar para entrar</button>}
+        <div className="login-bank-context"><span>Internet Banking</span><b>Ambiente educacional · dados fictícios</b></div>
         <header><span>ACESSO SEGURO</span><h2>{title}</h2><p>{description}</p></header>
         {props.mode !== "recover" && <div className="auth-mode-tabs"><button type="button" className={props.mode === "login" ? "active" : ""} onClick={() => changeMode("login")}>Entrar</button><button type="button" className={props.mode === "create" ? "active" : ""} onClick={() => changeMode("create")}>Criar conta</button></div>}
         {props.mode === "login" && <>
@@ -85,7 +86,7 @@ export default function AuthScreen(props: Props) {
         <button className="login-submit" disabled={props.loading || (props.mode === "login" && props.pin.length !== 4)}>{props.loading ? "Processando…" : props.mode === "login" ? "Entrar com PIN" : props.mode === "create" ? "Criar e acessar conta" : "Definir novo PIN"}</button>
         {props.loading && props.progressMessage && <p className="login-progress" role="status">{props.progressMessage}</p>}
         {props.mode === "login" && <><div className="forgot-pin-row"><button type="button" onClick={() => changeMode("recover")}>Esqueci meu PIN</button></div><button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível neste dispositivo</small></div></button></>}
-        <footer>Conexão protegida · sessão temporária</footer>
+        <footer><span>🔒</span> Conexão protegida · nunca solicitamos sua senha por telefone</footer>
       </form>
     </section>
   </main>;
