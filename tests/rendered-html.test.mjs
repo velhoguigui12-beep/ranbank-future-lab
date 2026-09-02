@@ -11,6 +11,7 @@ const projectsUrl = new URL("../app/ProjectsPublicPage.tsx", import.meta.url);
 const pwaInstallerUrl = new URL("../app/PwaInstaller.tsx", import.meta.url);
 const serviceWorkerUrl = new URL("../public/sw.js", import.meta.url);
 const warmupUrl = new URL("../app/BackendWarmup.tsx", import.meta.url);
+const proxyUrl = new URL("../app/api/[...path]/route.ts", import.meta.url);
 const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
 const bankThemeUrl = new URL("../app/bank-theme.css", import.meta.url);
 
@@ -33,10 +34,13 @@ test("includes the protected access experience", async () => {
   assert.match(api, /credentials: "include"/);
   assert.match(api, /NEXT_PUBLIC_API_URL \?\? "\/api"/);
   assert.doesNotMatch(api, /HOSTED_API_BASE/);
-  assert.match(api, /SESSION_START_TIMEOUT_MS = 45000/);
-  assert.match(api, /O servidor demorou para iniciar/);
+  assert.match(api, /await warmBackend\(\)/);
+  assert.match(api, /sessionStartRetryDelays/);
+  assert.match(api, /response\.status !== 429/);
+  assert.match(api, /BACKEND_WARMUP_TIMEOUTS_MS = \[75000, 10000, 10000\]/);
+  assert.match(api, /O servidor demorou para responder/);
   assert.match(auth, /progressMessage/);
-  assert.match(page, /O primeiro acesso no Render pode levar até 30 segundos/);
+  assert.match(page, /O primeiro acesso no Render gratuito pode levar cerca de um minuto/);
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);
   assert.doesNotMatch(page, /new EventSource/);
@@ -120,10 +124,21 @@ test("keeps local previews free from stale PWA styles", async () => {
 test("warms the hosted API before the customer reaches login", async () => {
   const warmup = await readFile(warmupUrl, "utf8");
   const layout = await readFile(layoutUrl, "utf8");
-  assert.match(warmup, /backendWarmupStarted/);
-  assert.doesNotMatch(warmup, /pathname !== "\/"/);
-  assert.match(layout, /rel="preconnect"/);
-  assert.match(layout, /ranbank-api\.onrender\.com/);
+  const api = await readFile(apiUrl, "utf8");
+  assert.match(warmup, /warmBackend\(\)/);
+  assert.match(api, /backendWarmupPromise/);
+  assert.match(api, /X-Ranbank-Warmup/);
+  assert.doesNotMatch(layout, /rel="preconnect"/);
+  assert.doesNotMatch(warmup, /ranbank-api\.onrender\.com/);
+});
+
+test("bounds stalled proxy requests and preserves upstream retry guidance", async () => {
+  const proxy = await readFile(proxyUrl, "utf8");
+  assert.match(proxy, /UPSTREAM_TIMEOUT_MS = 70000/);
+  assert.match(proxy, /signal: upstreamController\.signal/);
+  assert.match(proxy, /request\.signal\.addEventListener\("abort"/);
+  assert.match(proxy, /"retry-after"/);
+  assert.match(proxy, /"ratelimit-reset"/);
 });
 
 test("keeps account controls inside the customer profile", async () => {

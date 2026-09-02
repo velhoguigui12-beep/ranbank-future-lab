@@ -18,9 +18,14 @@ let expectedSession: ExpectedSession | null = null;
 const accountLoadListeners = new Set<() => void>();
 const transientStatuses = new Set([429, 502, 503, 504]);
 const retryDelays = [0, 1600, 4200];
+const sessionStartRetryDelays = [0, 2200, 5200];
 const INITIAL_DASHBOARD_TIMEOUT_MS = 15000;
 const SESSION_CONFIRM_TIMEOUT_MS = 10000;
-const SESSION_START_TIMEOUT_MS = 45000;
+const SESSION_START_TIMEOUT_MS = 20000;
+const BACKEND_WARMUP_TIMEOUTS_MS = [75000, 10000, 10000];
+const BACKEND_READY_TTL_MS = 60000;
+let backendWarmupPromise: Promise<void> | null = null;
+let backendReadyAt = 0;
 
 export const subscribeAccountLoad = (listener: () => void) => {
   accountLoadListeners.add(listener);
@@ -83,6 +88,45 @@ const retryAfterMilliseconds = (response: Response, fallback: number) => {
   return Math.min(Math.max(timestamp - Date.now(), fallback), 10000);
 };
 
+export const warmBackend = () => {
+  if (Date.now() - backendReadyAt < BACKEND_READY_TTL_MS) return Promise.resolve();
+  if (backendWarmupPromise) return backendWarmupPromise;
+
+  backendWarmupPromise = (async () => {
+    let lastResponse: Response | null = null;
+    let lastError: unknown = null;
+
+    for (let attempt = 0; attempt < BACKEND_WARMUP_TIMEOUTS_MS.length; attempt += 1) {
+      try {
+        const response = await request("/health", {
+          headers: { "X-Ranbank-Warmup": "1" },
+        }, BACKEND_WARMUP_TIMEOUTS_MS[attempt]);
+        lastResponse = response;
+        if (response.ok) {
+          backendReadyAt = Date.now();
+          return;
+        }
+        if (!transientStatuses.has(response.status)) break;
+        if (attempt < BACKEND_WARMUP_TIMEOUTS_MS.length - 1) {
+          await sleep(retryAfterMilliseconds(response, retryDelays[attempt + 1]));
+        }
+      } catch (error) {
+        lastError = error;
+        if (attempt < BACKEND_WARMUP_TIMEOUTS_MS.length - 1) await sleep(retryDelays[attempt + 1]);
+      }
+    }
+
+    if (lastResponse) {
+      throw new Error(`A API do RanBank não ficou pronta (erro ${lastResponse.status}).`);
+    }
+    throw lastError instanceof Error ? lastError : new Error("A API do RanBank não ficou pronta.");
+  })().finally(() => {
+    backendWarmupPromise = null;
+  });
+
+  return backendWarmupPromise;
+};
+
 const forceExpectedLogin = async () => {
   if (!expectedSession?.identification || !expectedSession.pin) return false;
   try {
@@ -141,11 +185,20 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
     dashboardReadyOnce = false;
     setAccountLoadState({ status: "idle", message: "" });
     try {
-      const response = await request(path, init, SESSION_START_TIMEOUT_MS);
+      await warmBackend();
+
+      let response: Response | null = null;
+      for (let attempt = 0; attempt < sessionStartRetryDelays.length; attempt += 1) {
+        response = await request(path, init, SESSION_START_TIMEOUT_MS);
+        if (response.status !== 429 || attempt === sessionStartRetryDelays.length - 1) break;
+        await sleep(retryAfterMilliseconds(response, sessionStartRetryDelays[attempt + 1]));
+      }
+
+      if (!response) throw new Error("A API do RanBank não respondeu.");
       return rememberAuthenticatedAccount(path, init, response);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        throw new Error("O servidor demorou para iniciar. Aguarde alguns segundos e tente novamente.");
+        throw new Error("O servidor demorou para responder. Aguarde alguns segundos e tente novamente.");
       }
       throw error;
     }
