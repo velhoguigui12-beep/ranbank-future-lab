@@ -12,6 +12,7 @@ const pwaInstallerUrl = new URL("../app/PwaInstaller.tsx", import.meta.url);
 const serviceWorkerUrl = new URL("../public/sw.js", import.meta.url);
 const warmupUrl = new URL("../app/BackendWarmup.tsx", import.meta.url);
 const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
+const bankThemeUrl = new URL("../app/bank-theme.css", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
@@ -39,6 +40,19 @@ test("includes the protected access experience", async () => {
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);
   assert.doesNotMatch(page, /new EventSource/);
+});
+
+test("offers a persistent, accessible dark mode across the bank", async () => {
+  const page = await readFile(pageUrl, "utf8");
+  const layout = await readFile(layoutUrl, "utf8");
+  const theme = await readFile(bankThemeUrl, "utf8");
+  assert.match(page, /ranbank-theme/);
+  assert.match(page, /aria-pressed/);
+  assert.match(page, /Ativar modo escuro/);
+  assert.match(page, /ranbank-balance-logo\.jpeg/);
+  assert.match(layout, /bank-theme\.css/);
+  assert.match(theme, /data-bank-theme="dark"/);
+  assert.match(theme, /color-scheme:dark/);
 });
 
 test("requires a separate four-digit password before sending Pix", async () => {

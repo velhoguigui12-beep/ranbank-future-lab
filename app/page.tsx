@@ -76,6 +76,7 @@ type BankNotification = { id: number; type: string; title: string; message: stri
 type PixReceipt = { transferId: string; transactionId: number; status: string; amount: number; timestamp: string; recipientName: string; recipientAccount: string; maskedPixKey: string; idempotencyKey: string };
 type FlowExecution = { id: string; flowType: string; triggerType: string; referenceId?: string; status: string; startedAt: string; completedAt?: string; steps: AutomationRun["steps"] };
 type AdminInsights = { generatedAt: string; totalAccounts: number; activeAccounts: number; totalDeposits: number; totalTransactions: number; transactionVolume: number; pixTransfers: number; unreadNotifications: number; flowExecutions: number };
+type BankTheme = "light" | "dark";
 
 type SustainabilityStatus = {
   optimized: boolean;
@@ -287,6 +288,25 @@ export default function Home() {
   const [authenticationOpen, setAuthenticationOpen] = useState(false);
   const [authenticationLoading, setAuthenticationLoading] = useState(false);
   const [resettingDemo, setResettingDemo] = useState(false);
+  const [bankTheme, setBankTheme] = useState<BankTheme>("light");
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("ranbank-theme");
+    const initialTheme: BankTheme = savedTheme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.bankTheme = initialTheme;
+    const syncTheme = window.setTimeout(() => setBankTheme(initialTheme), 0);
+    return () => {
+      window.clearTimeout(syncTheme);
+      delete document.documentElement.dataset.bankTheme;
+    };
+  }, []);
+
+  const toggleBankTheme = () => {
+    const nextTheme: BankTheme = bankTheme === "dark" ? "light" : "dark";
+    setBankTheme(nextTheme);
+    window.localStorage.setItem("ranbank-theme", nextTheme);
+    document.documentElement.dataset.bankTheme = nextTheme;
+  };
 
   useEffect(() => {
     if (!loginLoading) return;
@@ -831,7 +851,7 @@ export default function Home() {
             <p>{screen === "dashboard" ? "Visão geral" : "Laboratório de inovação"}</p>
             <h1>{screen === "dashboard" ? `Olá, ${data.customerName.split(" ")[0]}` : "Future Lab"}</h1>
           </div>
-          <div className="top-actions"><button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações">♧{notifications.some((item) => !item.read) && <i/>}</button><button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Perfil de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button></div>
+          <div className="top-actions"><button className="theme-toggle" type="button" onClick={toggleBankTheme} aria-label={bankTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={bankTheme === "dark"} title={bankTheme === "dark" ? "Modo claro" : "Modo escuro"}><span aria-hidden="true">{bankTheme === "dark" ? "☀" : "☾"}</span></button><button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações">♧{notifications.some((item) => !item.read) && <i/>}</button><button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Perfil de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button></div>
         </header>
 
         {screen === "dashboard" ? (
@@ -839,7 +859,7 @@ export default function Home() {
             <div className="dashboard-main">
               <article className="balance-card">
                 <div className="balance-copy"><small>Saldo em conta</small><strong>{money.format(data.balance)}</strong><span>Conta •••• {data.account}</span></div>
-                <div className="balance-r" aria-hidden="true">R</div>
+                <div className="balance-brand" aria-hidden="true"><img src="/images/ranbank-balance-logo.jpeg" alt="" /></div>
               </article>
 
               <div className="quick-actions" aria-label="Ações rápidas">
