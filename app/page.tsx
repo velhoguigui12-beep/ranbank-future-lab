@@ -315,7 +315,7 @@ export default function Home() {
       1500,
     );
     const coldStartTimer = window.setTimeout(
-      () => setLoginProgress("O primeiro acesso no Render pode levar até 30 segundos."),
+      () => setLoginProgress("O primeiro acesso no Render gratuito pode levar cerca de um minuto."),
       10000,
     );
     return () => {
