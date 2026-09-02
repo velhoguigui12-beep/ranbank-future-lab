@@ -16,6 +16,7 @@ import "./account-load-guard.css";
 import "./pwa-install.css";
 import "./projects-impact.css";
 import "./bank-theme.css";
+import "./bank-v2.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
@@ -27,5 +28,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><head><meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="theme-color" content="#061a33"/><link rel="preconnect" href="https://ranbank-api.onrender.com" crossOrigin="anonymous"/></head><body className={geist.variable}><InstitutionalExperience /><PublicSiteGate /><BackendWarmup />{children}<AccountLoadGuard /><PwaInstaller /></body></html>;
+  return <html lang="pt-BR"><head><meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="theme-color" content="#061a33"/></head><body className={geist.variable}><InstitutionalExperience /><PublicSiteGate /><BackendWarmup />{children}<AccountLoadGuard /><PwaInstaller /></body></html>;
 }
