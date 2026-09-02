@@ -30,12 +30,15 @@ test("includes the protected access experience", async () => {
   assert.match(masks, /formatCpf/);
   assert.match(masks, /formatBrazilianPhone/);
   assert.match(api, /credentials: "include"/);
+  assert.match(api, /NEXT_PUBLIC_API_URL \?\? "\/api"/);
+  assert.doesNotMatch(api, /HOSTED_API_BASE/);
   assert.match(api, /SESSION_START_TIMEOUT_MS = 45000/);
   assert.match(api, /O servidor demorou para iniciar/);
   assert.match(auth, /progressMessage/);
   assert.match(page, /O primeiro acesso no Render pode levar até 30 segundos/);
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);
+  assert.doesNotMatch(page, /new EventSource/);
 });
 
 test("requires a separate four-digit password before sending Pix", async () => {

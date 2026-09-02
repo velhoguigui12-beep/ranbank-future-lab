@@ -8,7 +8,7 @@ import InnovationHub, { type InnovationTab } from "./InnovationHub";
 import AuthScreen, { type AuthMode } from "./bank/AuthScreen";
 import AccountManagementModal from "./bank/AccountManagementModal";
 import PixKeysModal from "./bank/PixKeysModal";
-import { API_BASE, apiFetch } from "./bank/api";
+import { apiFetch } from "./bank/api";
 
 type DashboardData = {
   customerName: string;
@@ -360,12 +360,7 @@ export default function Home() {
     apiFetch("/notifications").then(async (response) => {
       if (active && response.ok) setNotifications(await response.json());
     }).catch(() => undefined);
-    const source = new EventSource(`${API_BASE}/notifications/stream`, { withCredentials: true });
-    source.addEventListener("notification", (event) => {
-      const incoming = JSON.parse((event as MessageEvent).data) as BankNotification;
-      setNotifications((current) => [incoming, ...current.filter((item) => item.id !== incoming.id)]);
-    });
-    return () => { active = false; source.close(); };
+    return () => { active = false; };
   }, [authStatus]);
 
   const login = async (event: React.FormEvent<HTMLFormElement>) => {

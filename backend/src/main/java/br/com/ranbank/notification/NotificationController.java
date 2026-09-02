@@ -35,10 +35,9 @@ public class NotificationController {
     }
 
     /**
-     * O frontend ainda abre um EventSource para este endpoint, mas no Render Free
-     * conexões SSE podem reconectar repetidamente durante cold starts/instabilidade e
-     * gerar rajadas de requisições. HTTP 204 instrui o EventSource a encerrar sem
-     * tentar reconectar. As notificações continuam disponíveis pelo GET /api/notifications.
+     * O frontend consulta as notificações pelo GET /api/notifications. Mantemos este
+     * endpoint em 204 para clientes antigos encerrarem o EventSource sem reconexões
+     * repetidas durante cold starts ou instabilidades do Render Free.
      */
     @GetMapping("/stream")
     public ResponseEntity<Void> stream() {

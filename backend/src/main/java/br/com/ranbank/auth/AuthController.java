@@ -71,7 +71,7 @@ public class AuthController {
         return ResponseCookie.from(AuthenticationService.SESSION_COOKIE, value)
             .httpOnly(true)
             .secure(secure)
-            .sameSite(secure ? "None" : "Lax")
+            .sameSite(secure ? "Strict" : "Lax")
             .path("/api")
             .maxAge(maxAge)
             .build();

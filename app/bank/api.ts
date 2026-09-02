@@ -1,8 +1,4 @@
-const HOSTED_API_BASE = "https://ranbank-api.onrender.com/api";
-
-export const API_BASE = typeof window !== "undefined" && window.location.hostname.endsWith(".onrender.com")
-  ? HOSTED_API_BASE
-  : (process.env.NEXT_PUBLIC_API_URL ?? "/api");
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 export type AccountLoadState = {
   status: "idle" | "loading" | "ready" | "error";

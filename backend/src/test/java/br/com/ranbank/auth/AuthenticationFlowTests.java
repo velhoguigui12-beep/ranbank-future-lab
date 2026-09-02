@@ -97,7 +97,7 @@ class AuthenticationFlowTests {
 
         String setCookie = result.getResponse().getHeader("Set-Cookie");
         assertTrue(setCookie != null && setCookie.contains("HttpOnly") && setCookie.contains("Secure")
-            && setCookie.contains("SameSite=None"));
+            && setCookie.contains("SameSite=Strict"));
 
         Cookie newSession = result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
         mockMvc.perform(get("/api/dashboard").cookie(newSession))
@@ -114,7 +114,7 @@ class AuthenticationFlowTests {
             .andExpect(status().isOk()).andReturn();
         String setCookie = result.getResponse().getHeader("Set-Cookie");
         assertTrue(setCookie != null && setCookie.contains("HttpOnly") && setCookie.contains("Secure")
-            && setCookie.contains("SameSite=None"));
+            && setCookie.contains("SameSite=Strict"));
         return result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);
     }
 }
