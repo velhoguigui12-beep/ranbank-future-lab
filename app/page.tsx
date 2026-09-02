@@ -859,7 +859,6 @@ export default function Home() {
             <div className="dashboard-main">
               <article className="balance-card">
                 <div className="balance-copy"><small>Saldo em conta</small><strong>{money.format(data.balance)}</strong><span>Conta •••• {data.account}</span></div>
-                <div className="balance-brand" aria-hidden="true"><img src="/images/ranbank-balance-logo.jpeg" alt="" /></div>
               </article>
 
               <div className="quick-actions" aria-label="Ações rápidas">

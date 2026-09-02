@@ -49,10 +49,12 @@ test("offers a persistent, accessible dark mode across the bank", async () => {
   assert.match(page, /ranbank-theme/);
   assert.match(page, /aria-pressed/);
   assert.match(page, /Ativar modo escuro/);
-  assert.match(page, /ranbank-balance-logo\.jpeg/);
+  assert.doesNotMatch(page, /balance-brand/);
   assert.match(layout, /bank-theme\.css/);
   assert.match(theme, /data-bank-theme="dark"/);
   assert.match(theme, /color-scheme:dark/);
+  assert.match(theme, /ranbank-balance-logo-flat\.jpeg/);
+  assert.match(theme, /background-blend-mode:screen,normal/);
 });
 
 test("requires a separate four-digit password before sending Pix", async () => {
