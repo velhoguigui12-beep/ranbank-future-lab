@@ -108,7 +108,26 @@ const securityControls = [
   ],
 ];
 
+type PublicTheme = "light" | "dark";
+
 export function PublicHeader({ dark = false }: { dark?: boolean }) {
+  const [theme, setTheme] = useState<PublicTheme>("light");
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("ranbank-theme");
+    const initialTheme: PublicTheme = savedTheme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.bankTheme = initialTheme;
+    const syncTheme = window.setTimeout(() => setTheme(initialTheme), 0);
+    return () => window.clearTimeout(syncTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme: PublicTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    window.localStorage.setItem("ranbank-theme", nextTheme);
+    document.documentElement.dataset.bankTheme = nextTheme;
+  };
+
   return (
     <>
       <div className="rb-access-strip">
@@ -142,6 +161,7 @@ export function PublicHeader({ dark = false }: { dark?: boolean }) {
           <Link href="/projetos">Impacto & Projetos</Link>
         </nav>
         <div className="rb-header-tools">
+          <button className="rb-public-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={theme === "dark"} title={theme === "dark" ? "Modo claro" : "Modo escuro"}><span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span></button>
           <Link href="/privacidade">Privacidade</Link>
           <Link className="rb-open-account" href="/banco?modo=criar-conta">
             Abra sua conta

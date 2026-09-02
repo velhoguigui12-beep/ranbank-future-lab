@@ -70,6 +70,7 @@ test("requires a separate four-digit password before sending Pix", async () => {
 
 test("provides a Brasília-first public bank and privacy center", async () => {
   const publicSite = await readFile(publicSiteUrl, "utf8");
+  const theme = await readFile(bankThemeUrl, "utf8");
   const page = await readFile(pageUrl, "utf8");
   assert.match(publicSite, /Feito em Brasília para o futuro/i);
   assert.match(publicSite, /\(61\) 4004-2028/);
@@ -82,6 +83,12 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   assert.match(publicSite, /RANBANK EM MOVIMENTO/);
   assert.match(publicSite, /ranbank-demonstracao-04\.mp4/);
   assert.match(publicSite, /\/banco\?modo=criar-conta/);
+  assert.match(publicSite, /rb-public-theme-toggle/);
+  assert.match(publicSite, /aria-pressed/);
+  assert.match(publicSite, /ranbank-theme/);
+  assert.match(theme, /rb-impact-shell/);
+  assert.match(theme, /rb-info-page/);
+  assert.match(theme, /rb-institute-page/);
   assert.match(page, /requestedMode === "criar-conta"/);
 });
 

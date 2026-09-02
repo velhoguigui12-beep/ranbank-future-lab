@@ -75,3 +75,49 @@ html[data-bank-theme="dark"] .presentation-content>article>p,html[data-bank-them
 html[data-bank-theme="dark"] .presentation-visual,html[data-bank-theme="dark"] .presentation-application,html[data-bank-theme="dark"] .institution-note{background:#0c213c!important;border-color:#2c496b!important}
 
 @media(max-width:650px){.balance-card,html[data-bank-theme="dark"] .balance-card{background-size:158px 158px,cover!important;background-position:right -18px center,center!important}html[data-bank-theme="dark"] .sidebar{border-color:#1d3556!important;background:#041126!important}}
+
+/* Public website theme: shared by home, security, privacy, institute and projects. */
+.rb-public-theme-toggle{width:40px;height:40px;flex:none;display:grid;place-items:center;border:1px solid #cbd7e5;border-radius:50%;color:#38506c;background:#fff;cursor:pointer;transition:.2s}
+.rb-public-theme-toggle:hover{color:#0d63e6;border-color:#80afe8;background:#edf4ff}.rb-public-theme-toggle span{font-size:18px;line-height:1}
+html[data-bank-theme="dark"] .rb-public-shell{--pub-paper:#030a16;--pub-ink:#f3f7ff;--pub-muted:#afbed1;--impact-ink:#f3f7ff;min-height:100vh;color:#f3f7ff!important;background:#030a16!important}
+html[data-bank-theme="dark"] body:has(> .rb-public-shell){background:#030a16!important;color:#f3f7ff!important}
+html[data-bank-theme="dark"] .rb-access-strip{color:#dbe7f5!important;background:#020814!important;border-color:#1f3550!important}
+html[data-bank-theme="dark"] .rb-access-strip a{color:#bdd0e5!important}
+html[data-bank-theme="dark"] .rb-public-header,html[data-bank-theme="dark"] .rb-public-header.is-dark{color:#f3f7ff!important;background:#071426f2!important;border-color:#263d5b!important}
+html[data-bank-theme="dark"] .rb-public-nav a,html[data-bank-theme="dark"] .rb-header-tools>a:not(.rb-open-account){color:#d8e4f2!important}
+html[data-bank-theme="dark"] .rb-public-nav a:hover,html[data-bank-theme="dark"] .rb-header-tools>a:hover{color:#70b4ff!important}
+html[data-bank-theme="dark"] .rb-public-theme-toggle{color:#e6f0fb;background:#0d2039;border-color:#35506f}
+html[data-bank-theme="dark"] .rb-public-theme-toggle:hover{color:#fff;background:#16375d;border-color:#5791ca}
+html[data-bank-theme="dark"] .rb-hero .rb-hero-menu{color:#eff5ff!important;background:#08182ce8!important;border-color:#2a4564!important}
+html[data-bank-theme="dark"] .rb-hero-menu>a{color:#dce7f4!important;border-color:#213a58!important}
+html[data-bank-theme="dark"] .rb-hero-menu>a:not(.primary):not(.secondary):hover{background:#102844!important}
+html[data-bank-theme="dark"] .rb-hero-menu>a>i{color:#7ab8ff!important;background:#132d4d!important}
+html[data-bank-theme="dark"] .rb-product-rail,html[data-bank-theme="dark"] .rb-solutions,html[data-bank-theme="dark"] .rb-brasilia,html[data-bank-theme="dark"] .rb-institute-teaser,html[data-bank-theme="dark"] .rb-info-page,html[data-bank-theme="dark"] .rb-institute-page{color:#f3f7ff!important;background:#050d1a!important}
+html[data-bank-theme="dark"] .rb-product-rail>a,html[data-bank-theme="dark"] .rb-service-grid>a,html[data-bank-theme="dark"] .rb-control-grid article,html[data-bank-theme="dark"] .rb-data-grid article,html[data-bank-theme="dark"] .rb-initiative-grid article{color:#f2f6fc!important;background:#0b1b31!important;border-color:#29425f!important;box-shadow:0 14px 34px #00040d52!important}
+html[data-bank-theme="dark"] .rb-product-rail span,html[data-bank-theme="dark"] .rb-service-grid span,html[data-bank-theme="dark"] .rb-control-grid p,html[data-bank-theme="dark"] .rb-data-grid p,html[data-bank-theme="dark"] .rb-initiative-grid p,html[data-bank-theme="dark"] .rb-section-heading>p{color:#acbcd0!important}
+html[data-bank-theme="dark"] .rb-product-rail i,html[data-bank-theme="dark"] .rb-service-grid i{color:#7dbaff!important;background:#132e50!important}
+html[data-bank-theme="dark"] .rb-brasilia>div>p,html[data-bank-theme="dark"] .rb-institute-teaser>div>p,html[data-bank-theme="dark"] .rb-rights p,html[data-bank-theme="dark"] .rb-robotics-callout>div>p{color:#afbed1!important}
+html[data-bank-theme="dark"] .rb-brasilia-map{color:#eaf3ff!important;background:radial-gradient(circle at 55% 45%,#17375b 0 12%,transparent 13%),linear-gradient(145deg,#10233e,#173c65)!important;box-shadow:inset 0 0 0 25px #06122666,0 28px 60px #00061166!important}
+html[data-bank-theme="dark"] .rb-contact-cards a{color:#eaf3ff!important;background:#0b1c31!important;border-color:#2b4563!important}
+html[data-bank-theme="dark"] .rb-contact-cards span{color:#a9b9cd!important}
+html[data-bank-theme="dark"] .rb-institute-numbers span,html[data-bank-theme="dark"] .rb-robotics-points span{color:#dbe8f6!important;background:#0d2039!important;border-color:#2d4a69!important}
+html[data-bank-theme="dark"] .rb-rights,html[data-bank-theme="dark"] .rb-robotics-callout{color:#f3f7ff!important;background:#08172a!important}
+html[data-bank-theme="dark"] .rb-btn-ghost{color:#dce9f7!important;border-color:#6684a5!important}
+html[data-bank-theme="dark"] .rb-phone,html[data-bank-theme="dark"] .rb-security-badge{color:#edf5ff!important;background:#0a1a2ff2!important;border-color:#314d6d!important}
+html[data-bank-theme="dark"] .rb-phone small,html[data-bank-theme="dark"] .rb-security-badge small{color:#9fb1c7!important}
+html[data-bank-theme="dark"] .rb-phone-actions>span,html[data-bank-theme="dark"] .rb-phone-line>i{color:#79b6ff!important;background:#132d4d!important}
+html[data-bank-theme="dark"] .rb-phone-actions small{color:#c2d0df!important}
+html[data-bank-theme="dark"] .rb-cookie-settings{color:#eef4ff!important;background:#08182c!important;border-color:#2b4665!important}
+html[data-bank-theme="dark"] .rb-cookie-settings>p,html[data-bank-theme="dark"] .rb-cookie-settings label small,html[data-bank-theme="dark"] .rb-cookie-option small{color:#aebed1!important}
+html[data-bank-theme="dark"] .rb-cookie-settings>label,html[data-bank-theme="dark"] .rb-cookie-option{border-color:#29415e!important}
+
+html[data-bank-theme="dark"] .rb-impact-shell{color:#f3f7ff!important;background:#040b17!important}
+html[data-bank-theme="dark"] .impact-intro,html[data-bank-theme="dark"] .impact-projects,html[data-bank-theme="dark"] .impact-frameworks,html[data-bank-theme="dark"] .impact-cta{color:#f3f7ff!important;background:#06101f!important}
+html[data-bank-theme="dark"] .impact-intro-copy p,html[data-bank-theme="dark"] .impact-section-heading p,html[data-bank-theme="dark"] .impact-project-copy p,html[data-bank-theme="dark"] .impact-reference-grid p,html[data-bank-theme="dark"] .impact-cta p{color:#afbed1!important}
+html[data-bank-theme="dark"] .impact-project-grid>article,html[data-bank-theme="dark"] .impact-reference-grid>a{color:#eef5ff!important;background:#0b1b31!important;border-color:#29425f!important;box-shadow:0 16px 38px #00040d59!important}
+html[data-bank-theme="dark"] .impact-project-copy dl>div{border-color:#2b435f!important}
+html[data-bank-theme="dark"] .impact-project-copy dt{color:#91a5bd!important}
+html[data-bank-theme="dark"] .impact-ods{background:#0a2432!important}
+html[data-bank-theme="dark"] .impact-button.is-outline{color:#dceafa!important;border-color:#6a86a4!important}
+
+@media(max-width:760px){.rb-public-theme-toggle{width:38px;height:38px}.rb-header-tools{gap:8px}.rb-header-tools .rb-open-account{white-space:nowrap}}
