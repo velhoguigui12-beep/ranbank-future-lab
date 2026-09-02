@@ -1,6 +1,6 @@
 /* Theme layer loaded last so the bank remains legible across every feature and modal. */
 .theme-toggle span{display:block;font-size:19px;line-height:1;transform:translateY(-1px)}
-.balance-card{background-image:url('/images/ranbank-balance-logo-flat.jpeg'),linear-gradient(135deg,#174fae,#2268df 72%,#2a7ae4)!important;background-size:245px 245px,cover!important;background-position:right -16px center,center!important;background-repeat:no-repeat,no-repeat!important;background-blend-mode:screen,normal!important}
+.balance-card{background-image:url('/images/ranbank-balance-logo-flat.jpeg'),linear-gradient(135deg,#174fae,#2268df 72%,#2a7ae4)!important;background-size:245px 245px,cover!important;background-position:right -16px center,center!important;background-repeat:no-repeat,no-repeat!important;background-blend-mode:lighten,normal!important}
 
 html[data-bank-theme="dark"]{color-scheme:dark;--rb-bg:#020817;--rb-bg-2:#071327;--rb-surface:#0a1930;--rb-surface-2:#102440;--rb-panel:#0c1d36;--rb-border:#263d5d;--rb-ink:#f3f7ff;--rb-muted:#a9b8cc;--rb-soft:#132b4c;--paper:#020817;--ink:#f3f7ff;--muted:#a9b8cc;--line:#263d5d;--white:#0a1930}
 html[data-bank-theme="dark"],html[data-bank-theme="dark"] body{background:#020817!important;color:#f3f7ff!important}
@@ -15,10 +15,11 @@ html[data-bank-theme="dark"] .topbar h1{color:#f7faff!important}
 html[data-bank-theme="dark"] .top-actions button{color:#dbe8f8!important;background:#0b1d36!important;border-color:#2a4365!important}
 html[data-bank-theme="dark"] .top-actions button:hover{background:#132c4e!important;border-color:#4776a9!important}
 html[data-bank-theme="dark"] .top-actions .avatar{color:#fff!important;background:#1769e0!important}
-html[data-bank-theme="dark"] .balance-card{border:1px solid #3789ec66!important;background-image:url('/images/ranbank-balance-logo-flat.jpeg'),linear-gradient(135deg,#061d4f,#0751bd 63%,#087bd5)!important;background-size:245px 245px,cover!important;background-position:right -16px center,center!important;background-repeat:no-repeat,no-repeat!important;background-blend-mode:screen,normal!important;box-shadow:0 20px 50px #00071888!important}
+html[data-bank-theme="dark"] .balance-card{border:1px solid #3789ec66!important;background-image:url('/images/ranbank-balance-logo-flat.jpeg'),linear-gradient(135deg,#061d4f,#0751bd 63%,#087bd5)!important;background-size:245px 245px,cover!important;background-position:right -16px center,center!important;background-repeat:no-repeat,no-repeat!important;background-blend-mode:lighten,normal!important;box-shadow:0 20px 50px #00071888!important}
 html[data-bank-theme="dark"] .quick-actions button,html[data-bank-theme="dark"] .transactions-panel,html[data-bank-theme="dark"] .future-card,html[data-bank-theme="dark"] .technology-card,html[data-bank-theme="dark"] .risk-panel,html[data-bank-theme="dark"] .lab-intro{color:#f3f7ff!important;background:#0a1930!important;border-color:#263d5d!important;box-shadow:0 12px 30px #00040f4d!important}
 html[data-bank-theme="dark"] .quick-actions button:hover,html[data-bank-theme="dark"] .technology-card:hover{background:#102440!important;border-color:#3e6798!important}
-html[data-bank-theme="dark"] .quick-actions span,html[data-bank-theme="dark"] .technology-card>span,html[data-bank-theme="dark"] .transaction-icon{color:#79b8ff!important;background:#112b50!important}
+html[data-bank-theme="dark"] .quick-actions span{color:#79b8ff!important;background:transparent!important}
+html[data-bank-theme="dark"] .technology-card>span,html[data-bank-theme="dark"] .transaction-icon{color:#79b8ff!important;background:#112b50!important}
 html[data-bank-theme="dark"] .panel-title,html[data-bank-theme="dark"] .transaction{border-color:#213753!important}
 html[data-bank-theme="dark"] .panel-title h2,html[data-bank-theme="dark"] .transaction strong,html[data-bank-theme="dark"] .future-card h2,html[data-bank-theme="dark"] .technology-card h3,html[data-bank-theme="dark"] .lab-intro h2{color:#f5f8ff!important}
 html[data-bank-theme="dark"] .transaction small,html[data-bank-theme="dark"] .future-card>p,html[data-bank-theme="dark"] .technology-card p,html[data-bank-theme="dark"] .lab-intro p,html[data-bank-theme="dark"] .lab-institute-copy{color:#a9b8cc!important}

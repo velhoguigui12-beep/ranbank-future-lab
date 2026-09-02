@@ -54,7 +54,8 @@ test("offers a persistent, accessible dark mode across the bank", async () => {
   assert.match(theme, /data-bank-theme="dark"/);
   assert.match(theme, /color-scheme:dark/);
   assert.match(theme, /ranbank-balance-logo-flat\.jpeg/);
-  assert.match(theme, /background-blend-mode:screen,normal/);
+  assert.match(theme, /background-blend-mode:lighten,normal/);
+  assert.match(theme, /quick-actions span\{color:#79b8ff!important;background:transparent!important\}/);
 });
 
 test("requires a separate four-digit password before sending Pix", async () => {
