@@ -17,8 +17,13 @@ const accountLoadListeners = new Set<() => void>();
 
 const SESSION_START_TIMEOUT_MS = 155000;
 const DASHBOARD_TIMEOUT_MS = 90000;
+const WARMUP_TIMEOUT_MS = 150000;
+const WARMUP_READY_TTL_MS = 5 * 60 * 1000;
 const TRANSIENT_RETRY_DELAY_MS = 12000;
 const transientStatuses = new Set([429, 502, 503, 504]);
+
+let backendWarmupPromise: Promise<void> | null = null;
+let backendReadyAt = 0;
 
 export const subscribeAccountLoad = (listener: () => void) => {
   accountLoadListeners.add(listener);
@@ -49,7 +54,7 @@ const request = async (path: string, init: RequestInit = {}, timeoutMs?: number)
       credentials: "include",
       headers: {
         ...init.headers,
-        "X-Ranbank-Client": "web-v3",
+        "X-Ranbank-Client": "web-v4",
       },
     });
   } finally {
@@ -91,11 +96,61 @@ const rememberAuthenticatedAccount = async (response: Response) => {
 };
 
 /**
- * Kept for compatibility with existing imports. The banking client now uses
- * the same-origin /api proxy, so it does not issue an extra browser request to
- * the Render backend just to wake it up.
+ * Render Free can take a long time to wake the Java service. Only one browser
+ * request is allowed to wake/verify the backend at a time. Session restore,
+ * login and the dashboard all await this same promise instead of creating a
+ * request burst that can trigger 429 responses while the instance is cold.
  */
-export const warmBackend = async () => undefined;
+export const warmBackend = () => {
+  if (Date.now() - backendReadyAt < WARMUP_READY_TTL_MS) return Promise.resolve();
+  if (backendWarmupPromise) return backendWarmupPromise;
+
+  backendWarmupPromise = (async () => {
+    let lastResponse: Response | null = null;
+    let lastError: unknown = null;
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const response = await request("/health", {
+          headers: { "X-Ranbank-Warmup": "1" },
+        }, WARMUP_TIMEOUT_MS);
+        lastResponse = response;
+
+        if (response.ok) {
+          backendReadyAt = Date.now();
+          return;
+        }
+
+        if (!transientStatuses.has(response.status)) {
+          throw new Error(`A API do RanBank respondeu com erro ${response.status}.`);
+        }
+
+        if (attempt < 2) {
+          await sleep(retryAfterMilliseconds(response, 15000 + attempt * 5000));
+        }
+      } catch (error) {
+        lastError = error;
+        if (attempt < 2) await sleep(15000 + attempt * 5000);
+      }
+    }
+
+    if (lastResponse?.status === 429) {
+      throw new Error("O Render ainda está limitando temporariamente a API do RanBank. Aguarde cerca de 30 segundos e tente novamente.");
+    }
+
+    if (lastResponse) {
+      throw new Error(`A API do RanBank não ficou pronta (erro ${lastResponse.status}).`);
+    }
+
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("A API do RanBank não ficou pronta.");
+  })().finally(() => {
+    backendWarmupPromise = null;
+  });
+
+  return backendWarmupPromise;
+};
 
 const requestSessionStart = async (path: string, init: RequestInit) => {
   let response = await request(path, init, SESSION_START_TIMEOUT_MS);
@@ -112,6 +167,10 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   const method = (init.method ?? "GET").toUpperCase();
   const startsNewSession = method === "POST" && (path === "/auth/login" || path === "/demo-accounts");
   const logsOut = method === "POST" && path === "/auth/logout";
+
+  if (path !== "/health") {
+    await warmBackend();
+  }
 
   if (startsNewSession) {
     dashboardReadyOnce = false;
