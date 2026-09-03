@@ -36,16 +36,6 @@ const projects = [
     alt: "Apresentação do Ecocard sustentável do RanBank",
   },
   {
-    eyebrow: "TRABALHO E RENDA",
-    title: "Elas do Futuro",
-    text: "Mentoria financeira e digital para mulheres que lideram pequenos negócios, da organização do caixa à presença segura nos canais digitais.",
-    audience: "Mulheres empreendedoras",
-    format: "Mentoria em ciclos",
-    media: "video",
-    source: "/media/ranbank-demonstracao-03.mp4",
-    alt: "",
-  },
-  {
     eyebrow: "TECNOLOGIA ASSISTIVA",
     title: "TechAcesso",
     text: "Projetos de acessibilidade aplicados ao atendimento bancário, com interfaces inclusivas, protótipos de robótica e testes conduzidos com participação humana.",

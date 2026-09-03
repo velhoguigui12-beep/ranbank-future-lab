@@ -709,7 +709,7 @@ export function SecurityPublicPage() {
           <div>
             <span>ACESSO PROTEGIDO</span>
             <h2>Entre pelo ambiente seguro.</h2>
-            <p>Use seu CPF ou conta e o PIN de quatro dígitos.</p>
+            <p>Use seu CPF, conta ou e-mail e o PIN de quatro dígitos.</p>
           </div>
           <Link className="rb-btn rb-btn-light" href="/banco">
             Acessar RanBank →

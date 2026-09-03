@@ -39,7 +39,18 @@ class AuthenticationFlowTests {
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"identification\":\"12345678909\",\"pin\":\"9999\"}"))
             .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.message").value("CPF, conta ou PIN inválido."));
+            .andExpect(jsonPath("$.message").value("CPF, conta, e-mail ou PIN inválido."));
+    }
+
+    @Test
+    void authenticatesWithCpfAccountNumberOrEmail() throws Exception {
+        for (String identification : new String[] {"12345678909", "1234-5", "ana@ranbank.demo"}) {
+            mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"identification\":\"" + identification + "\",\"pin\":\"2580\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.customerName").value("Ana Ribeiro"))
+                .andExpect(jsonPath("$.accountNumber").value("1234-5"));
+        }
     }
 
     @Test

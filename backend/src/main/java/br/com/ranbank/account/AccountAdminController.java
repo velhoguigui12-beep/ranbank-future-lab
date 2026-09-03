@@ -77,7 +77,7 @@ public class AccountAdminController {
     }
 
     private void protectDemoAccount(Long id) {
-        if (id != null && id <= 2L) throw new AdminAccountException("As contas fixas da apresentação são protegidas.");
+        if (Long.valueOf(1L).equals(id)) throw new AdminAccountException("A conta principal da apresentação é protegida.");
     }
 
     public record StatusRequest(boolean active) {}

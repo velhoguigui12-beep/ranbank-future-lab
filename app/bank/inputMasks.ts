@@ -13,6 +13,13 @@ export function formatCpfOrAccount(value: string) {
   return digits.length > 7 ? formatCpf(digits) : digits;
 }
 
+export function formatLoginIdentification(value: string) {
+  const compact = value.replace(/\s/g, "");
+  return /[a-z@]/i.test(compact)
+    ? compact.toLowerCase().slice(0, 254)
+    : formatCpfOrAccount(compact);
+}
+
 export function formatBrazilianPhone(value: string) {
   const digits = digitsOnly(value, 11);
   if (!digits) return "";

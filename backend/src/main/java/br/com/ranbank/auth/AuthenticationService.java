@@ -72,9 +72,11 @@ public class AuthenticationService {
             throw new AuthException(HttpStatus.FORBIDDEN, "Esta conta está desativada. Procure o administrador.");
         }
         assertNotLocked(loginAttempts, account.getId(), "Muitas tentativas. Aguarde antes de tentar novamente.");
-        String normalized = digits(identification);
+        String rawIdentification = identification == null ? "" : identification.trim();
+        String normalized = digits(rawIdentification);
         boolean validIdentity = normalized.equals(digits(account.getDocumentId()))
-            || normalized.equals(digits(account.getAccountNumber()));
+            || normalized.equals(digits(account.getAccountNumber()))
+            || account.getEmail() != null && account.getEmail().equalsIgnoreCase(rawIdentification);
         boolean validPin = pin != null && account.getAccessPinHash() != null
             && passwordEncoder.matches(pin, account.getAccessPinHash());
         if (!validIdentity || !validPin) {
@@ -162,7 +164,7 @@ public class AuthenticationService {
         if (state != null && state.lockedUntil() != null && state.lockedUntil().isAfter(Instant.now())) {
             return new AuthException(HttpStatus.LOCKED, "Acesso bloqueado por 30 segundos após cinco tentativas.");
         }
-        return new AuthException(HttpStatus.UNAUTHORIZED, "CPF, conta ou PIN inválido.");
+        return new AuthException(HttpStatus.UNAUTHORIZED, "CPF, conta, e-mail ou PIN inválido.");
     }
 
     private void assertNotLocked(Map<Long, AttemptState> attempts, Long accountId, String message) {
@@ -189,6 +191,7 @@ public class AuthenticationService {
 
     private Optional<BankAccount> findAccount(String identification) {
         String raw = identification == null ? "" : identification.trim();
+        if (raw.contains("@")) return accountRepository.findByEmailIgnoreCase(raw);
         String normalized = digits(raw);
         return accountRepository.findByDocumentId(normalized)
             .or(() -> accountRepository.findByAccountNumber(raw))

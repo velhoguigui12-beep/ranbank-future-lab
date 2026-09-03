@@ -25,6 +25,7 @@ test("includes the protected access experience", async () => {
   const api = await readFile(apiUrl, "utf8");
   const masks = await readFile(masksUrl, "utf8");
   assert.match(auth, /Acesse sua conta/);
+  assert.match(auth, /CPF, conta ou e-mail/);
   assert.match(auth, /Entrar com PIN/);
   assert.match(auth, /Biometria indisponível/);
   assert.match(auth, /Recupere seu acesso/);
@@ -34,6 +35,7 @@ test("includes the protected access experience", async () => {
   assert.ok(auth.indexOf("Esqueci meu PIN") < auth.indexOf("biometric-login"));
   assert.match(auth, /Telefone com DDD/);
   assert.match(masks, /formatCpf/);
+  assert.match(masks, /formatLoginIdentification/);
   assert.match(masks, /formatBrazilianPhone/);
   assert.match(api, /credentials: "include"/);
   assert.match(api, /NEXT_PUBLIC_API_URL \?\? "\/api"/);
@@ -135,6 +137,8 @@ test("presents a clearly identified educational impact portfolio", async () => {
   assert.match(projects, /Estratégia Nacional de Educação Financeira/);
   assert.match(projects, /Política Nacional de Educação Digital/);
   assert.match(projects, /não significam\s+vínculo, certificação ou parceria oficial/i);
+  assert.doesNotMatch(projects, /Elas do Futuro/);
+  assert.doesNotMatch(projects, /ranbank-demonstracao-03\.mp4/);
 });
 
 test("keeps local previews free from stale PWA styles", async () => {
