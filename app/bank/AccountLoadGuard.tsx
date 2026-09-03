@@ -26,7 +26,7 @@ export default function AccountLoadGuard() {
             <span className="account-load-warning">!</span>
             <h2>Não foi possível abrir sua conta</h2>
             <p>{state.message}</p>
-            <small>Se o Render estiver iniciando o backend, aguarde alguns segundos e tente novamente.</small>
+            <small>Se o servidor gratuito estiver iniciando, aguarde um pouco e tente novamente.</small>
             <button type="button" onClick={() => window.location.reload()}>Tentar novamente</button>
           </>
         )}

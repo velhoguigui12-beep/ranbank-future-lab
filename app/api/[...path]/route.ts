@@ -54,7 +54,7 @@ async function proxy(request: Request, context: RouteContext) {
       console.error("[Ranbank proxy] upstream non-JSON error", {
         status: upstream.status,
         statusText: upstream.statusText,
-        target: targetUrl.toString(),
+        target: `${targetUrl.origin}${targetUrl.pathname}`,
         preview: responseText.slice(0, 500),
       });
 
@@ -97,14 +97,13 @@ async function proxy(request: Request, context: RouteContext) {
     });
   } catch (error) {
     console.error("[Ranbank proxy] failed to reach backend", {
-      target: targetUrl.toString(),
+      target: `${targetUrl.origin}${targetUrl.pathname}`,
       error: error instanceof Error ? error.message : String(error),
     });
 
     return Response.json(
       {
         message: "A API do Ranbank está indisponível ou iniciando. Aguarde alguns segundos e tente novamente.",
-        upstream: BACKEND_URL,
       },
       {
         status: 503,

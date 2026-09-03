@@ -33,10 +33,11 @@ test("includes the protected access experience", async () => {
   assert.match(api, /credentials: "include"/);
   assert.match(api, /NEXT_PUBLIC_API_URL \?\? "\/api"/);
   assert.doesNotMatch(api, /HOSTED_API_BASE/);
-  assert.match(api, /SESSION_START_TIMEOUT_MS = 45000/);
+  assert.match(api, /LOGIN_SESSION_TIMEOUT_MS = 45000/);
+  assert.match(api, /SIGNUP_SESSION_TIMEOUT_MS = 130000/);
   assert.match(api, /O servidor demorou para iniciar/);
   assert.match(auth, /progressMessage/);
-  assert.match(page, /O primeiro acesso no Render pode levar até 30 segundos/);
+  assert.match(page, /O primeiro acesso pode levar cerca de dois minutos/);
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);
   assert.doesNotMatch(page, /new EventSource/);

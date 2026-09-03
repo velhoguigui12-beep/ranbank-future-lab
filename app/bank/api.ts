@@ -21,7 +21,8 @@ const retryDelays = [0, 1600, 4200];
 const loginRetryDelays = [0, 1200, 2800, 5200];
 const INITIAL_DASHBOARD_TIMEOUT_MS = 15000;
 const SESSION_CONFIRM_TIMEOUT_MS = 10000;
-const SESSION_START_TIMEOUT_MS = 45000;
+const LOGIN_SESSION_TIMEOUT_MS = 45000;
+const SIGNUP_SESSION_TIMEOUT_MS = 130000;
 
 export const subscribeAccountLoad = (listener: () => void) => {
   accountLoadListeners.add(listener);
@@ -149,7 +150,11 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
 
     for (let attempt = 0; attempt < loginRetryDelays.length; attempt += 1) {
       try {
-        const response = await request(path, init, SESSION_START_TIMEOUT_MS);
+        const response = await request(
+          path,
+          init,
+          path === "/demo-accounts" ? SIGNUP_SESSION_TIMEOUT_MS : LOGIN_SESSION_TIMEOUT_MS,
+        );
         if (!mayRetry || !transientStatuses.has(response.status)
             || attempt === loginRetryDelays.length - 1) {
           return rememberAuthenticatedAccount(path, init, response);

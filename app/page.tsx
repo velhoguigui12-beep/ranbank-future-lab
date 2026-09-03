@@ -207,7 +207,7 @@ const parseMoneyInput = (value: string) => {
   if (/^\d{1,3}(\.\d{3})+$/.test(compact)) return Number(compact.replace(/\./g, ""));
   return Number(compact);
 };
-const SESSION_RESTORE_TIMEOUT_MS = 1800;
+const SESSION_RESTORE_TIMEOUT_MS = 8000;
 export default function Home() {
   const pathname = usePathname();
   const [data, setData] = useState(demoData);
@@ -315,7 +315,7 @@ export default function Home() {
       1500,
     );
     const coldStartTimer = window.setTimeout(
-      () => setLoginProgress("O primeiro acesso no Render pode levar até 30 segundos."),
+      () => setLoginProgress("O servidor gratuito está iniciando. O primeiro acesso pode levar cerca de dois minutos."),
       10000,
     );
     return () => {
@@ -816,7 +816,7 @@ export default function Home() {
   if (pathname === "/") return null;
 
   if (authStatus === "checking") {
-    return <main className="login-shell"><section className="login-loading" aria-live="polite"><img src="/ranbank-logo.jpeg" alt="Ranbank"/><i/><p>Verificando seu acesso…</p><small>Isso deve levar menos de dois segundos.</small></section></main>;
+    return <main className="login-shell"><section className="login-loading" aria-live="polite"><img src="/ranbank-logo.jpeg" alt="Ranbank"/><i/><p>Verificando seu acesso…</p><small>No primeiro acesso, o servidor pode precisar de alguns segundos para iniciar.</small></section></main>;
   }
 
   if (authStatus === "unauthenticated") {
