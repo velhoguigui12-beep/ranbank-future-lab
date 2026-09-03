@@ -1,4 +1,8 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
+const HOSTED_API_BASE = "https://ranbank-api.onrender.com/api";
+
+export const API_BASE = typeof window !== "undefined" && window.location.hostname.endsWith(".onrender.com")
+  ? HOSTED_API_BASE
+  : (process.env.NEXT_PUBLIC_API_URL ?? "/api");
 
 export type AccountLoadState = {
   status: "idle" | "loading" | "ready" | "error";
@@ -17,12 +21,12 @@ let dashboardReadyOnce = false;
 let expectedSession: ExpectedSession | null = null;
 const accountLoadListeners = new Set<() => void>();
 const transientStatuses = new Set([429, 502, 503, 504]);
-const retryDelays = [0, 1600, 4200];
-const sessionStartRetryDelays = [0, 2200, 5200];
-const INITIAL_DASHBOARD_TIMEOUT_MS = 15000;
-const SESSION_CONFIRM_TIMEOUT_MS = 10000;
-const SESSION_START_TIMEOUT_MS = 20000;
-const BACKEND_WARMUP_TIMEOUTS_MS = [75000, 10000, 10000];
+const retryDelays = [0, 1800, 4500];
+const sessionStartRetryDelays = [0, 2500, 6000];
+const INITIAL_DASHBOARD_TIMEOUT_MS = 20000;
+const SESSION_CONFIRM_TIMEOUT_MS = 12000;
+const SESSION_START_TIMEOUT_MS = 25000;
+const BACKEND_WARMUP_TIMEOUT_MS = 90000;
 const BACKEND_READY_TTL_MS = 60000;
 let backendWarmupPromise: Promise<void> | null = null;
 let backendReadyAt = 0;
@@ -47,6 +51,7 @@ const request = async (path: string, init: RequestInit = {}, timeoutMs?: number)
   const timeout = controller && typeof window !== "undefined"
     ? window.setTimeout(() => controller.abort(), timeoutMs)
     : null;
+
   try {
     return await fetch(`${API_BASE}${path}`, {
       ...init,
@@ -81,11 +86,11 @@ const retryAfterMilliseconds = (response: Response, fallback: number) => {
   if (!header) return fallback;
 
   const seconds = Number(header);
-  if (Number.isFinite(seconds)) return Math.min(Math.max(seconds * 1000, fallback), 10000);
+  if (Number.isFinite(seconds)) return Math.min(Math.max(seconds * 1000, fallback), 12000);
 
   const timestamp = Date.parse(header);
   if (Number.isNaN(timestamp)) return fallback;
-  return Math.min(Math.max(timestamp - Date.now(), fallback), 10000);
+  return Math.min(Math.max(timestamp - Date.now(), fallback), 12000);
 };
 
 export const warmBackend = () => {
@@ -93,33 +98,29 @@ export const warmBackend = () => {
   if (backendWarmupPromise) return backendWarmupPromise;
 
   backendWarmupPromise = (async () => {
-    let lastResponse: Response | null = null;
-    let lastError: unknown = null;
+    try {
+      const response = await request("/health", {
+        headers: { "X-Ranbank-Warmup": "1" },
+      }, BACKEND_WARMUP_TIMEOUT_MS);
 
-    for (let attempt = 0; attempt < BACKEND_WARMUP_TIMEOUTS_MS.length; attempt += 1) {
-      try {
-        const response = await request("/health", {
-          headers: { "X-Ranbank-Warmup": "1" },
-        }, BACKEND_WARMUP_TIMEOUTS_MS[attempt]);
-        lastResponse = response;
-        if (response.ok) {
-          backendReadyAt = Date.now();
-          return;
-        }
-        if (!transientStatuses.has(response.status)) break;
-        if (attempt < BACKEND_WARMUP_TIMEOUTS_MS.length - 1) {
-          await sleep(retryAfterMilliseconds(response, retryDelays[attempt + 1]));
-        }
-      } catch (error) {
-        lastError = error;
-        if (attempt < BACKEND_WARMUP_TIMEOUTS_MS.length - 1) await sleep(retryDelays[attempt + 1]);
+      // 429 proves the Render service is already reachable. Do not block login
+      // because the warm-up endpoint itself was rate-limited.
+      if (response.ok || response.status === 429) {
+        backendReadyAt = Date.now();
+        return;
       }
-    }
 
-    if (lastResponse) {
-      throw new Error(`A API do RanBank não ficou pronta (erro ${lastResponse.status}).`);
+      if (!transientStatuses.has(response.status)) {
+        throw new Error(`A API do RanBank respondeu com erro ${response.status}.`);
+      }
+
+      // For transient gateway errors, let the real login request decide whether
+      // the backend is ready instead of failing before the user can authenticate.
+      return;
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      return;
     }
-    throw lastError instanceof Error ? lastError : new Error("A API do RanBank não ficou pronta.");
   })().finally(() => {
     backendWarmupPromise = null;
   });
@@ -139,8 +140,10 @@ const forceExpectedLogin = async () => {
       }),
     }, SESSION_CONFIRM_TIMEOUT_MS);
     if (!response.ok) return false;
+
     const session = await request("/auth/session", {}, SESSION_CONFIRM_TIMEOUT_MS);
     if (!session.ok) return false;
+
     const data = await session.json().catch(() => null) as { accountNumber?: string } | null;
     return Boolean(data && sameAccount(data.accountNumber, expectedSession.accountNumber));
   } catch {
@@ -150,6 +153,7 @@ const forceExpectedLogin = async () => {
 
 const rememberAuthenticatedAccount = async (path: string, init: RequestInit, response: Response) => {
   if (!response.ok) return response;
+
   const payload = await response.clone().json().catch(() => null) as {
     customerName?: string;
     accountNumber?: string;
@@ -184,24 +188,30 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
   if (startsNewSession) {
     dashboardReadyOnce = false;
     setAccountLoadState({ status: "idle", message: "" });
-    try {
-      await warmBackend();
 
-      let response: Response | null = null;
-      for (let attempt = 0; attempt < sessionStartRetryDelays.length; attempt += 1) {
+    await warmBackend();
+
+    let response: Response | null = null;
+    for (let attempt = 0; attempt < sessionStartRetryDelays.length; attempt += 1) {
+      try {
         response = await request(path, init, SESSION_START_TIMEOUT_MS);
-        if (response.status !== 429 || attempt === sessionStartRetryDelays.length - 1) break;
-        await sleep(retryAfterMilliseconds(response, sessionStartRetryDelays[attempt + 1]));
+      } catch (error) {
+        if (attempt === sessionStartRetryDelays.length - 1) {
+          if (error instanceof Error && error.name === "AbortError") {
+            throw new Error("O servidor demorou para responder. Aguarde alguns segundos e tente novamente.");
+          }
+          throw error;
+        }
+        await sleep(sessionStartRetryDelays[attempt + 1]);
+        continue;
       }
 
-      if (!response) throw new Error("A API do RanBank não respondeu.");
-      return rememberAuthenticatedAccount(path, init, response);
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        throw new Error("O servidor demorou para responder. Aguarde alguns segundos e tente novamente.");
-      }
-      throw error;
+      if (response.status !== 429 || attempt === sessionStartRetryDelays.length - 1) break;
+      await sleep(retryAfterMilliseconds(response, sessionStartRetryDelays[attempt + 1]));
     }
+
+    if (!response) throw new Error("A API do RanBank não respondeu.");
+    return rememberAuthenticatedAccount(path, init, response);
   }
 
   if (logsOut) {
@@ -284,14 +294,10 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
         return response;
       }
 
-      if (attempt < retryDelays.length - 1) {
-        await sleep(retryDelays[attempt + 1]);
-      }
+      if (attempt < retryDelays.length - 1) await sleep(retryDelays[attempt + 1]);
     } catch (error) {
       lastError = error;
-      if (attempt < retryDelays.length - 1) {
-        await sleep(retryDelays[attempt + 1]);
-      }
+      if (attempt < retryDelays.length - 1) await sleep(retryDelays[attempt + 1]);
     }
   }
 
