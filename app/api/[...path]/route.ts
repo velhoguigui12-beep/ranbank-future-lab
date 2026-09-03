@@ -1,5 +1,5 @@
 const BACKEND_URL = (process.env.RANBANK_BACKEND_URL ?? "https://ranbank-api.onrender.com/api").replace(/\/$/, "");
-const UPSTREAM_TIMEOUT_MS = 70000;
+const UPSTREAM_TIMEOUT_MS = 145000;
 
 type RouteContext = { params: Promise<{ path: string[] }> | { path: string[] } };
 
@@ -10,9 +10,32 @@ async function proxy(request: Request, context: RouteContext) {
   targetUrl.search = incomingUrl.search;
 
   const headers = new Headers(request.headers);
-  headers.delete("host");
-  headers.delete("content-length");
+
+  // Only the API payload/session headers are useful upstream. Do not forward
+  // browser/edge forwarding metadata from the frontend service to the backend;
+  // this keeps the second Render hop independent from the visitor's edge hop.
+  for (const name of [
+    "host",
+    "content-length",
+    "connection",
+    "origin",
+    "referer",
+    "forwarded",
+    "x-forwarded-for",
+    "x-forwarded-host",
+    "x-forwarded-port",
+    "x-real-ip",
+    "cf-connecting-ip",
+    "accept-encoding",
+    "sec-fetch-site",
+    "sec-fetch-mode",
+    "sec-fetch-dest",
+    "sec-fetch-user",
+  ]) {
+    headers.delete(name);
+  }
   headers.set("x-forwarded-proto", "https");
+  headers.set("x-ranbank-proxy", "same-origin-v3");
 
   const body = request.method === "GET" || request.method === "HEAD"
     ? undefined
@@ -35,9 +58,6 @@ async function proxy(request: Request, context: RouteContext) {
 
     const contentType = upstream.headers.get("content-type") ?? "";
 
-    // If Render (or another intermediary) returns an HTML/text error page,
-    // convert it to JSON so the frontend can show a useful diagnostic instead
-    // of falling back to the generic "Não foi possível entrar." message.
     if (!upstream.ok && !contentType.toLowerCase().includes("application/json")) {
       const responseText = await upstream.text();
       console.error("[Ranbank proxy] upstream non-JSON error", {
@@ -50,18 +70,21 @@ async function proxy(request: Request, context: RouteContext) {
       const status = upstream.status >= 400 && upstream.status <= 599 ? upstream.status : 502;
       return Response.json(
         {
-          message: `A API do Ranbank respondeu com erro ${status}. Tente novamente em alguns segundos.`,
+          message: status === 429
+            ? "O serviço do RanBank foi limitado temporariamente pela infraestrutura. Aguarde alguns segundos e tente novamente."
+            : `A API do RanBank respondeu com erro ${status}. Tente novamente em alguns segundos.`,
           upstreamStatus: upstream.status,
           upstreamStatusText: upstream.statusText,
+          via: "same-origin-v3",
         },
         {
           status,
           headers: {
             "cache-control": "no-store",
+            "x-ranbank-proxy": "same-origin-v3",
             ...(upstream.headers.get("retry-after")
               ? { "retry-after": upstream.headers.get("retry-after")! }
               : {}),
-            "x-ranbank-upstream-status": String(upstream.status),
           },
         },
       );
@@ -69,14 +92,26 @@ async function proxy(request: Request, context: RouteContext) {
 
     const responseHeaders = new Headers();
     for (const name of [
-      "content-type", "cache-control", "set-cookie", "location", "content-security-policy",
-      "permissions-policy", "referrer-policy", "strict-transport-security", "x-content-type-options",
-      "x-frame-options", "retry-after", "ratelimit-limit", "ratelimit-remaining", "ratelimit-reset",
+      "content-type",
+      "cache-control",
+      "set-cookie",
+      "location",
+      "content-security-policy",
+      "permissions-policy",
+      "referrer-policy",
+      "strict-transport-security",
+      "x-content-type-options",
+      "x-frame-options",
+      "retry-after",
+      "ratelimit-limit",
+      "ratelimit-remaining",
+      "ratelimit-reset",
     ]) {
       const value = upstream.headers.get(name);
       if (value) responseHeaders.set(name, value);
     }
     responseHeaders.set("x-ranbank-upstream-status", String(upstream.status));
+    responseHeaders.set("x-ranbank-proxy", "same-origin-v3");
 
     return new Response(upstream.body, {
       status: upstream.status,
@@ -91,12 +126,17 @@ async function proxy(request: Request, context: RouteContext) {
 
     return Response.json(
       {
-        message: "A API do Ranbank está indisponível ou iniciando. Aguarde alguns segundos e tente novamente.",
+        message: "A API do RanBank está indisponível ou iniciando. Aguarde alguns segundos e tente novamente.",
         upstream: BACKEND_URL,
+        via: "same-origin-v3",
       },
       {
         status: 503,
-        headers: { "cache-control": "no-store", "retry-after": "3" },
+        headers: {
+          "cache-control": "no-store",
+          "retry-after": "5",
+          "x-ranbank-proxy": "same-origin-v3",
+        },
       },
     );
   } finally {
