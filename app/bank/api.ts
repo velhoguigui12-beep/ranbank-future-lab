@@ -21,7 +21,7 @@ const retryDelays = [0, 1600, 4200];
 const sessionStartRetryDelays = [0, 2200, 5200];
 const INITIAL_DASHBOARD_TIMEOUT_MS = 15000;
 const SESSION_CONFIRM_TIMEOUT_MS = 10000;
-const SESSION_START_TIMEOUT_MS = 30000;
+const SESSION_START_TIMEOUT_MS = 60000;
 const BACKEND_WARMUP_TIMEOUTS_MS = [70000, 45000, 15000];
 const BACKEND_READY_TTL_MS = 60000;
 let backendWarmupPromise: Promise<void> | null = null;
@@ -194,7 +194,7 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
       const attempts = path === "/auth/login" ? sessionStartRetryDelays.length : 1;
       for (let attempt = 0; attempt < attempts; attempt += 1) {
         response = await request(path, init, SESSION_START_TIMEOUT_MS);
-        if (response.status !== 429 || attempt === attempts - 1) break;
+        if (!transientStatuses.has(response.status) || attempt === attempts - 1) break;
         await sleep(withJitter(retryAfterMilliseconds(response, sessionStartRetryDelays[attempt + 1])));
       }
 

@@ -43,6 +43,8 @@ test("includes the protected access experience", async () => {
   assert.match(api, /await warmBackend\(\)/);
   assert.match(api, /sessionStartRetryDelays/);
   assert.match(api, /const attempts = path === "\/auth\/login"/);
+  assert.match(api, /SESSION_START_TIMEOUT_MS = 60000/);
+  assert.match(api, /!transientStatuses\.has\(response\.status\)/);
   assert.match(api, /BACKEND_WARMUP_TIMEOUTS_MS = \[70000, 45000, 15000\]/);
   assert.match(api, /O servidor demorou para responder/);
   assert.match(auth, /progressMessage/);
