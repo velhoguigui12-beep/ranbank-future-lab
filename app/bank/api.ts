@@ -1,8 +1,4 @@
-const HOSTED_API_BASE = "https://ranbank-api.onrender.com/api";
-
-export const API_BASE = typeof window !== "undefined" && window.location.hostname.endsWith(".onrender.com")
-  ? HOSTED_API_BASE
-  : (process.env.NEXT_PUBLIC_API_URL ?? "/api");
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
 
 export type AccountLoadState = {
   status: "idle" | "loading" | "ready" | "error";
@@ -19,9 +15,9 @@ let dashboardReadyOnce = false;
 let expectedSession: ExpectedSession | null = null;
 const accountLoadListeners = new Set<() => void>();
 
-const SESSION_START_TIMEOUT_MS = 130000;
-const DASHBOARD_TIMEOUT_MS = 30000;
-const TRANSIENT_RETRY_DELAY_MS = 8000;
+const SESSION_START_TIMEOUT_MS = 155000;
+const DASHBOARD_TIMEOUT_MS = 90000;
+const TRANSIENT_RETRY_DELAY_MS = 12000;
 const transientStatuses = new Set([429, 502, 503, 504]);
 
 export const subscribeAccountLoad = (listener: () => void) => {
@@ -51,6 +47,10 @@ const request = async (path: string, init: RequestInit = {}, timeoutMs?: number)
       cache: init.cache ?? "no-store",
       signal: init.signal ?? controller?.signal,
       credentials: "include",
+      headers: {
+        ...init.headers,
+        "X-Ranbank-Client": "web-v3",
+      },
     });
   } finally {
     if (timeout !== null && typeof window !== "undefined") window.clearTimeout(timeout);
@@ -62,11 +62,11 @@ const retryAfterMilliseconds = (response: Response, fallback = TRANSIENT_RETRY_D
   if (!header) return fallback;
 
   const seconds = Number(header);
-  if (Number.isFinite(seconds)) return Math.min(Math.max(seconds * 1000, fallback), 15000);
+  if (Number.isFinite(seconds)) return Math.min(Math.max(seconds * 1000, fallback), 30000);
 
   const timestamp = Date.parse(header);
   if (Number.isNaN(timestamp)) return fallback;
-  return Math.min(Math.max(timestamp - Date.now(), fallback), 15000);
+  return Math.min(Math.max(timestamp - Date.now(), fallback), 30000);
 };
 
 const sameAccount = (actual: unknown, expected: string) =>
@@ -91,10 +91,9 @@ const rememberAuthenticatedAccount = async (response: Response) => {
 };
 
 /**
- * Kept for callers that already import it. We deliberately do not issue a
- * separate /health request anymore: on Render Free, the first real banking
- * request is allowed to wake the backend itself. This avoids a health/login
- * burst while the instance is cold.
+ * Kept for compatibility with existing imports. The banking client now uses
+ * the same-origin /api proxy, so it does not issue an extra browser request to
+ * the Render backend just to wake it up.
  */
 export const warmBackend = async () => undefined;
 
@@ -154,7 +153,9 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
     if (transientStatuses.has(response.status)) {
       setAccountLoadState({
         status: "loading",
-        message: "O servidor está concluindo a inicialização. Tentando mais uma vez…",
+        message: response.status === 429
+          ? "O acesso ao servidor foi limitado temporariamente. Aguardando para tentar novamente…"
+          : "O servidor está concluindo a inicialização. Tentando mais uma vez…",
       });
       await sleep(retryAfterMilliseconds(response));
       response = await request(path, init, DASHBOARD_TIMEOUT_MS);
@@ -173,7 +174,7 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
       message: response.status === 401 || response.status === 403
         ? "Sua sessão não foi reconhecida. Entre novamente."
         : response.status === 429
-          ? "O servidor está temporariamente ocupado. Aguarde alguns segundos e tente novamente."
+          ? "O acesso ao servidor continua limitado temporariamente. Aguarde um pouco e tente novamente."
           : `Não foi possível carregar sua conta (erro ${response.status}).`,
     });
     return response;
