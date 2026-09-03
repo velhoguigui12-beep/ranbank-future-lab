@@ -1,10 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
+import { warmBackend } from "./bank/api";
+
 /**
- * Stability mode: do not generate background keep-alive traffic from every
- * browser tab. The first real banking request wakes the backend through the
- * same-origin proxy, which also makes recurrent 429s easier to isolate.
+ * Start exactly one shared backend wake-up when the site opens. Other banking
+ * requests await the same warmBackend promise, so session restore and login do
+ * not race the cold Java service and create a burst of requests.
  */
 export default function BackendWarmup() {
+  useEffect(() => {
+    void warmBackend().catch(() => undefined);
+  }, []);
+
   return null;
 }
