@@ -1,5 +1,6 @@
 const BACKEND_URL = process.env.RANBANK_BACKEND_URL?.trim().replace(/\/$/, "") ?? "";
 const PROXY_SECRET = process.env.RANBANK_PROXY_SECRET?.trim() ?? "";
+const UPSTREAM_TIMEOUT_MS = 70000;
 
 type RouteContext = { params: Promise<{ path: string[] }> | { path: string[] } };
 
@@ -35,6 +36,11 @@ async function proxy(request: Request, context: RouteContext) {
     ? undefined
     : await request.arrayBuffer();
 
+  const upstreamController = new AbortController();
+  const abortUpstream = () => upstreamController.abort(request.signal.reason);
+  const upstreamTimeout = setTimeout(() => upstreamController.abort(), UPSTREAM_TIMEOUT_MS);
+  request.signal.addEventListener("abort", abortUpstream, { once: true });
+
   try {
     const upstream = await fetch(targetUrl, {
       method: request.method,
@@ -42,6 +48,7 @@ async function proxy(request: Request, context: RouteContext) {
       body,
       redirect: "manual",
       cache: "no-store",
+      signal: upstreamController.signal,
     });
 
     const contentType = upstream.headers.get("content-type") ?? "";
@@ -83,7 +90,7 @@ async function proxy(request: Request, context: RouteContext) {
     for (const name of [
       "content-type", "cache-control", "set-cookie", "location", "content-security-policy",
       "permissions-policy", "referrer-policy", "strict-transport-security", "x-content-type-options",
-      "x-frame-options", "retry-after",
+      "x-frame-options", "retry-after", "ratelimit-limit", "ratelimit-remaining", "ratelimit-reset",
     ]) {
       const value = upstream.headers.get(name);
       if (value) responseHeaders.set(name, value);
@@ -107,9 +114,12 @@ async function proxy(request: Request, context: RouteContext) {
       },
       {
         status: 503,
-        headers: { "cache-control": "no-store" },
+        headers: { "cache-control": "no-store", "retry-after": "3" },
       },
     );
+  } finally {
+    clearTimeout(upstreamTimeout);
+    request.signal.removeEventListener("abort", abortUpstream);
   }
 }
 

@@ -1,24 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { usePathname } from "next/navigation";
-
-let backendWarmupStarted = false;
+import { warmBackend } from "./bank/api";
 
 export default function BackendWarmup() {
-  const pathname = usePathname();
-
   useEffect(() => {
-    if (backendWarmupStarted) return;
-    backendWarmupStarted = true;
-
-    fetch("/api/health", {
-      cache: "no-store",
-      headers: { "X-Ranbank-Warmup": "1" },
-    }).catch(() => {
-      backendWarmupStarted = false;
-    });
-  }, [pathname]);
+    void warmBackend().catch(() => undefined);
+  }, []);
 
   return null;
 }

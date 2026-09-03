@@ -11,18 +11,20 @@ const projectsUrl = new URL("../app/ProjectsPublicPage.tsx", import.meta.url);
 const pwaInstallerUrl = new URL("../app/PwaInstaller.tsx", import.meta.url);
 const serviceWorkerUrl = new URL("../public/sw.js", import.meta.url);
 const warmupUrl = new URL("../app/BackendWarmup.tsx", import.meta.url);
+const proxyUrl = new URL("../app/api/[...path]/route.ts", import.meta.url);
 const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
 const bankThemeUrl = new URL("../app/bank-theme.css", import.meta.url);
+const bankingSuiteUrl = new URL("../app/BankingSuite.tsx", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
   const auth = await readFile(authUrl, "utf8");
   const api = await readFile(apiUrl, "utf8");
   const masks = await readFile(masksUrl, "utf8");
-  assert.match(auth, /Entre na sua conta/);
+  assert.match(auth, /Acesse sua conta/);
   assert.match(auth, /Entrar com PIN/);
   assert.match(auth, /Biometria indisponível/);
-  assert.match(auth, /Recupere seu PIN/);
+  assert.match(auth, /Recupere seu acesso/);
   assert.match(auth, /Esqueci meu PIN/);
   assert.match(auth, /Voltar para entrar/);
   assert.ok(auth.indexOf("login-submit") < auth.indexOf("Esqueci meu PIN"));
@@ -33,9 +35,11 @@ test("includes the protected access experience", async () => {
   assert.match(api, /credentials: "include"/);
   assert.match(api, /NEXT_PUBLIC_API_URL \?\? "\/api"/);
   assert.doesNotMatch(api, /HOSTED_API_BASE/);
-  assert.match(api, /LOGIN_SESSION_TIMEOUT_MS = 45000/);
-  assert.match(api, /SIGNUP_SESSION_TIMEOUT_MS = 130000/);
-  assert.match(api, /O servidor demorou para iniciar/);
+  assert.match(api, /await warmBackend\(\)/);
+  assert.match(api, /sessionStartRetryDelays/);
+  assert.match(api, /const attempts = path === "\/auth\/login"/);
+  assert.match(api, /BACKEND_WARMUP_TIMEOUTS_MS = \[70000, 45000, 15000\]/);
+  assert.match(api, /O servidor demorou para responder/);
   assert.match(auth, /progressMessage/);
   assert.match(page, /O primeiro acesso pode levar cerca de dois minutos/);
   assert.match(page, /\/auth\/session/);
@@ -121,10 +125,22 @@ test("keeps local previews free from stale PWA styles", async () => {
 test("warms the API through the same-origin proxy before login", async () => {
   const warmup = await readFile(warmupUrl, "utf8");
   const layout = await readFile(layoutUrl, "utf8");
-  assert.match(warmup, /backendWarmupStarted/);
-  assert.doesNotMatch(warmup, /pathname !== "\/"/);
-  assert.match(warmup, /fetch\("\/api\/health"/);
+  const api = await readFile(apiUrl, "utf8");
+  assert.match(warmup, /warmBackend\(\)/);
+  assert.match(api, /backendWarmupPromise/);
+  assert.match(api, /X-Ranbank-Warmup/);
+  assert.doesNotMatch(layout, /rel="preconnect"/);
   assert.doesNotMatch(layout, /onrender\.com/);
+  assert.doesNotMatch(warmup, /ranbank-api\.onrender\.com/);
+});
+
+test("bounds stalled proxy requests and preserves upstream retry guidance", async () => {
+  const proxy = await readFile(proxyUrl, "utf8");
+  assert.match(proxy, /UPSTREAM_TIMEOUT_MS = 70000/);
+  assert.match(proxy, /signal: upstreamController\.signal/);
+  assert.match(proxy, /request\.signal\.addEventListener\("abort"/);
+  assert.match(proxy, /"retry-after"/);
+  assert.match(proxy, /"ratelimit-reset"/);
 });
 
 test("keeps account controls inside the customer profile", async () => {
@@ -135,5 +151,12 @@ test("keeps account controls inside the customer profile", async () => {
   assert.match(page, /profile-actions/);
   assert.match(page, /Gerenciar chaves Pix/);
   assert.match(page, /Sair da conta/);
-  assert.ok(page.indexOf('title: "Robótica"') < page.indexOf('title: "Comparar"'));
+  assert.ok(page.indexOf("Robótica assistiva") < page.indexOf("Comparar tecnologias"));
+});
+
+test("shows the Ecocard artwork in the card control panel", async () => {
+  const bankingSuite = await readFile(bankingSuiteUrl, "utf8");
+  assert.match(bankingSuite, /ecocard-suite-face/);
+  assert.match(bankingSuite, /ranbank-ecocard-reference\.jpeg/);
+  assert.match(bankingSuite, /Cartão Eco RanBank sustentável/);
 });
