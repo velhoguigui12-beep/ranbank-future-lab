@@ -2,29 +2,31 @@ package br.com.ranbank.demo;
 
 import br.com.ranbank.account.BankAccount;
 import br.com.ranbank.account.BankAccountRepository;
+import br.com.ranbank.audit.AuditEventRepository;
 import br.com.ranbank.auth.AuthenticationService;
+import br.com.ranbank.automation.FlowExecutionRepository;
 import br.com.ranbank.banking.ScheduledOperationRepository;
 import br.com.ranbank.device.ConnectedDevice;
 import br.com.ranbank.device.ConnectedDeviceRepository;
-import br.com.ranbank.transaction.BankTransaction;
-import br.com.ranbank.transaction.BankTransactionRepository;
+import br.com.ranbank.notification.NotificationRepository;
 import br.com.ranbank.pix.PixKey;
 import br.com.ranbank.pix.PixKeyRepository;
 import br.com.ranbank.pix.PixTransfer;
 import br.com.ranbank.pix.PixTransferRepository;
-import br.com.ranbank.notification.NotificationRepository;
-import br.com.ranbank.automation.FlowExecutionRepository;
-import br.com.ranbank.audit.AuditEventRepository;
+import br.com.ranbank.transaction.BankTransaction;
+import br.com.ranbank.transaction.BankTransactionRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -105,11 +107,16 @@ public class DemoResetController {
         if (!pixKeyRepository.existsByNormalizedKey("61999990101")) {
             pixKeyRepository.save(new PixKey(1L, "PHONE", "61999990101", "(61) 99999-0101"));
         }
+        Instant now = Instant.now();
         transactionRepository.saveAll(List.of(
-            new BankTransaction(1L, "Pix recebido", "Maria Silva · hoje, 09:41", new BigDecimal("250.00"), "credit"),
-            new BankTransaction(1L, "Transferência enviada", "João Pereira · hoje, 08:15", new BigDecimal("-120.00"), "debit"),
-            new BankTransaction(1L, "Pagamento", "Supermercado Bom Preço · ontem, 19:32", new BigDecimal("-89.90"), "debit"),
-            new BankTransaction(1L, "Compra no cartão", "Livraria Cultura · ontem, 16:20", new BigDecimal("-45.60"), "debit")
+            new BankTransaction(1L, "Pix recebido", "Maria Silva", new BigDecimal("250.00"), "credit",
+                now.minus(Duration.ofMinutes(18))),
+            new BankTransaction(1L, "Transferência enviada", "João Pereira", new BigDecimal("-120.00"), "debit",
+                now.minus(Duration.ofHours(2).plusMinutes(7))),
+            new BankTransaction(1L, "Pagamento", "Supermercado Bom Preço", new BigDecimal("-89.90"), "debit",
+                now.minus(Duration.ofDays(1).plusHours(3))),
+            new BankTransaction(1L, "Compra no cartão", "Livraria Cultura", new BigDecimal("-45.60"), "debit",
+                now.minus(Duration.ofDays(1).plusHours(6).plusMinutes(12)))
         ));
         deviceRepository.saveAll(List.of(
             new ConnectedDevice(1L, "iPhone de Ana", "Celular", "Brasília, DF", "Agora", true),

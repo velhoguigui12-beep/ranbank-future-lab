@@ -45,6 +45,12 @@ public class BankTransaction {
         this.idempotencyKey = idempotencyKey;
     }
 
+    public BankTransaction(Long accountId, String title, String detail, BigDecimal amount, String type,
+                           Instant occurredAt) {
+        this(accountId, title, detail, amount, type);
+        this.occurredAt = occurredAt;
+    }
+
     public Long getId() { return id; }
     public Long getAccountId() { return accountId; }
     public String getTitle() { return title; }

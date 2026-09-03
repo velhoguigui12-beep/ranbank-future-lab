@@ -6,6 +6,7 @@ import java.util.Optional;
 
 public interface BankTransactionRepository extends JpaRepository<BankTransaction, Long> {
     List<BankTransaction> findByAccountIdOrderByIdAsc(Long accountId);
+    List<BankTransaction> findByAccountIdOrderByOccurredAtDescIdDesc(Long accountId);
     Optional<BankTransaction> findFirstByAccountIdAndTransferId(Long accountId, String transferId);
     void deleteByTransferId(String transferId);
     void deleteByAccountId(Long accountId);

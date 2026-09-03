@@ -56,7 +56,8 @@ public class BankingController {
             account.getCustomerName(), cardLastFour(account), account.getBalance(), account.getSavingsBalance(), account.getSavingsGoal(),
             new CardSummary(account.isCardBlocked(), account.getCardLimit(), account.getCardSpent(),
                 account.getCardLimit().subtract(account.getCardSpent()).max(BigDecimal.ZERO)),
-            transactions.findByAccountIdOrderByIdAsc(account.getId()).stream().map(StatementItem::from).toList(),
+            transactions.findByAccountIdOrderByOccurredAtDescIdDesc(account.getId()).stream()
+                .map(StatementItem::from).toList(),
             schedules.findByAccountIdOrderByScheduledDateAsc(account.getId()).stream().map(ScheduleItem::from).toList()
         );
     }
@@ -183,9 +184,11 @@ public class BankingController {
     public record BankingOverview(String customerName, String cardLastFour, BigDecimal balance, BigDecimal savingsBalance, BigDecimal savingsGoal,
                                   CardSummary card, List<StatementItem> statement, List<ScheduleItem> schedules) {}
     public record CardSummary(boolean blocked, BigDecimal limit, BigDecimal spent, BigDecimal available) {}
-    public record StatementItem(Long id, String title, String detail, BigDecimal amount, String type) {
+    public record StatementItem(Long id, String title, String detail, BigDecimal amount, String type,
+                                java.time.Instant occurredAt) {
         static StatementItem from(BankTransaction item) {
-            return new StatementItem(item.getId(), item.getTitle(), item.getDetail(), item.getAmount(), item.getType());
+            return new StatementItem(item.getId(), item.getTitle(), item.getDetail(), item.getAmount(),
+                item.getType(), item.getOccurredAt());
         }
     }
     public record ScheduleItem(Long id, String kind, String recipient, BigDecimal amount, LocalDate scheduledDate, String status) {

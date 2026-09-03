@@ -35,8 +35,8 @@ class PostgreSqlIntegrationTests {
     @Autowired BankAccountRepository accounts;
 
     @Test
-    void appliesFlywayMigrationsAndLoadsDemoAccountsOnPostgreSql() {
+    void appliesFlywayMigrationsAndLoadsOnlyThePrimaryDemoAccountOnPostgreSql() {
         assertThat(accounts.findById(1L)).isPresent();
-        assertThat(accounts.findById(2L)).isPresent();
+        assertThat(accounts.findAll()).hasSize(1);
     }
 }

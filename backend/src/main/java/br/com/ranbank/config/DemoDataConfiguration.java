@@ -10,6 +10,8 @@ import br.com.ranbank.transaction.BankTransactionRepository;
 import br.com.ranbank.pix.PixKey;
 import br.com.ranbank.pix.PixKeyRepository;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.boot.CommandLineRunner;
@@ -36,35 +38,14 @@ public class DemoDataConfiguration {
                     demoAccount.getPhoneNumber() == null ? "61999990101" : demoAccount.getPhoneNumber());
             }
             accountRepository.save(demoAccount);
-            if (!accountRepository.existsById(2L)) {
-                BankAccount maria = new BankAccount(2L, "Maria Silva", "4321-0", "98765432100",
-                    "maria@ranbank.demo", new BigDecimal("3200.00"));
-                maria.updatePhoneNumber("61988880202");
-                accountRepository.save(maria);
-            } else {
-                BankAccount maria = accountRepository.findById(2L).orElseThrow();
-                if (maria.getPhoneNumber() == null) {
-                    maria.updatePhoneNumber("61988880202");
-                    accountRepository.save(maria);
-                }
-            }
             if (!pixKeyRepository.existsByNormalizedKey("ana@ranbank.demo")) {
                 pixKeyRepository.save(new PixKey(1L, "EMAIL", "ana@ranbank.demo", "ana@ranbank.demo"));
-            }
-            if (!pixKeyRepository.existsByNormalizedKey("maria@ranbank.demo")) {
-                pixKeyRepository.save(new PixKey(2L, "EMAIL", "maria@ranbank.demo", "maria@ranbank.demo"));
             }
             if (!pixKeyRepository.existsByNormalizedKey("12345678909")) {
                 pixKeyRepository.save(new PixKey(1L, "CPF", "12345678909", "123.456.789-09"));
             }
             if (!pixKeyRepository.existsByNormalizedKey("61999990101")) {
                 pixKeyRepository.save(new PixKey(1L, "PHONE", "61999990101", "(61) 99999-0101"));
-            }
-            if (!pixKeyRepository.existsByNormalizedKey("98765432100")) {
-                pixKeyRepository.save(new PixKey(2L, "CPF", "98765432100", "987.654.321-00"));
-            }
-            if (!pixKeyRepository.existsByNormalizedKey("61988880202")) {
-                pixKeyRepository.save(new PixKey(2L, "PHONE", "61988880202", "(61) 98888-0202"));
             }
             for (BankAccount account : accountRepository.findAll()) {
                 if (!account.isActive()) continue;
@@ -85,11 +66,16 @@ public class DemoDataConfiguration {
                 }
             }
             if (repository.count() == 0) {
+                Instant now = Instant.now();
                 repository.saveAll(List.of(
-                    new BankTransaction(1L, "Pix recebido", "Maria Silva · hoje, 09:41", new BigDecimal("250.00"), "credit"),
-                    new BankTransaction(1L, "Transferência enviada", "João Pereira · hoje, 08:15", new BigDecimal("-120.00"), "debit"),
-                    new BankTransaction(1L, "Pagamento", "Supermercado Bom Preço · ontem, 19:32", new BigDecimal("-89.90"), "debit"),
-                    new BankTransaction(1L, "Compra no cartão", "Livraria Cultura · ontem, 16:20", new BigDecimal("-45.60"), "debit")
+                    new BankTransaction(1L, "Pix recebido", "Maria Silva", new BigDecimal("250.00"), "credit",
+                        now.minus(Duration.ofMinutes(18))),
+                    new BankTransaction(1L, "Transferência enviada", "João Pereira", new BigDecimal("-120.00"), "debit",
+                        now.minus(Duration.ofHours(2).plusMinutes(7))),
+                    new BankTransaction(1L, "Pagamento", "Supermercado Bom Preço", new BigDecimal("-89.90"), "debit",
+                        now.minus(Duration.ofDays(1).plusHours(3))),
+                    new BankTransaction(1L, "Compra no cartão", "Livraria Cultura", new BigDecimal("-45.60"), "debit",
+                        now.minus(Duration.ofDays(1).plusHours(6).plusMinutes(12)))
                 ));
             }
             if (deviceRepository.count() == 0) {

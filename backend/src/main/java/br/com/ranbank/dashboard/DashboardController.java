@@ -28,7 +28,8 @@ public class DashboardController {
     @GetMapping
     public DashboardResponse dashboard(HttpServletRequest request) {
         Long accountId = (Long) request.getAttribute(AuthenticationService.ACCOUNT_REQUEST_ATTRIBUTE);
-        List<TransactionResponse> transactions = transactionRepository.findByAccountIdOrderByIdAsc(accountId).stream()
+        List<TransactionResponse> transactions = transactionRepository
+            .findByAccountIdOrderByOccurredAtDescIdDesc(accountId).stream()
             .map(TransactionResponse::from)
             .toList();
 
@@ -58,11 +59,12 @@ public class DashboardController {
                                     CardResponse card, List<TransactionResponse> transactions) {}
     public record CardResponse(String lastFour, boolean blocked, BigDecimal limit, BigDecimal spent, BigDecimal available) {}
 
-    public record TransactionResponse(Long id, String title, String detail, BigDecimal amount, String type) {
+    public record TransactionResponse(Long id, String title, String detail, BigDecimal amount, String type,
+                                      java.time.Instant occurredAt) {
         static TransactionResponse from(BankTransaction transaction) {
             return new TransactionResponse(
                 transaction.getId(), transaction.getTitle(), transaction.getDetail(),
-                transaction.getAmount(), transaction.getType()
+                transaction.getAmount(), transaction.getType(), transaction.getOccurredAt()
             );
         }
     }

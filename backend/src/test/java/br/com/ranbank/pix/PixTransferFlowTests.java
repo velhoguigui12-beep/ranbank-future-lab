@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,16 +29,17 @@ class PixTransferFlowTests {
 
     @Test
     void transfersBetweenAccountsExactlyOnceAndCreatesReceipt() throws Exception {
+        Long recipientId = createRecipient();
         Cookie session = login();
         BigDecimal senderBefore = accounts.findById(1L).orElseThrow().getBalance();
-        BigDecimal recipientBefore = accounts.findById(2L).orElseThrow().getBalance();
-        String body = "{\"pixKey\":\"maria@ranbank.demo\",\"amount\":15.50,\"transactionPin\":\"7314\"}";
+        BigDecimal recipientBefore = accounts.findById(recipientId).orElseThrow().getBalance();
+        String body = "{\"pixKey\":\"pix.recipient@ranbank.demo\",\"amount\":15.50,\"transactionPin\":\"7314\"}";
 
         MvcResult first = mockMvc.perform(post("/api/pix/transfers").cookie(session)
                 .header("Idempotency-Key", "pix-test-001")
                 .contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.recipientName").value("Maria Silva"))
+            .andExpect(jsonPath("$.recipientName").value("Destinatária Pix"))
             .andReturn();
         String transferId = new com.fasterxml.jackson.databind.ObjectMapper()
             .readTree(first.getResponse().getContentAsString()).get("transferId").asText();
@@ -50,7 +52,7 @@ class PixTransferFlowTests {
 
         assertThat(accounts.findById(1L).orElseThrow().getBalance())
             .isEqualByComparingTo(senderBefore.subtract(new BigDecimal("15.50")));
-        assertThat(accounts.findById(2L).orElseThrow().getBalance())
+        assertThat(accounts.findById(recipientId).orElseThrow().getBalance())
             .isEqualByComparingTo(recipientBefore.add(new BigDecimal("15.50")));
 
         mockMvc.perform(get("/api/pix/transfers/{id}/receipt", transferId).cookie(session))
@@ -59,6 +61,16 @@ class PixTransferFlowTests {
         mockMvc.perform(get("/api/notifications").cookie(session))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$[0].referenceId").value(transferId));
+    }
+
+    private Long createRecipient() throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/demo-accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"customerName\":\"Destinatária Pix\",\"documentId\":\"52998224725\","
+                    + "\"email\":\"pix.recipient@ranbank.demo\",\"phoneNumber\":\"61988884455\","
+                    + "\"accessPin\":\"2468\",\"transactionPin\":\"1357\"}"))
+            .andExpect(status().isCreated()).andReturn();
+        return new ObjectMapper().readTree(result.getResponse().getContentAsString()).get("accountId").asLong();
     }
 
     private Cookie login() throws Exception {

@@ -7,6 +7,8 @@ import type { BankingTab } from "./BankingSuite";
 import type { InnovationTab } from "./InnovationHub";
 import AuthScreen, { type AuthMode } from "./bank/AuthScreen";
 import { apiFetch } from "./bank/api";
+import { AccountSectionPage, CardsSectionPage, SecuritySectionPage } from "./bank/BankSectionPages";
+import { transactionDescription, type TransactionView } from "./bank/transactionFormatting";
 
 const BankingSuite = lazy(() => import("./BankingSuite"));
 const InnovationHub = lazy(() => import("./InnovationHub"));
@@ -23,7 +25,7 @@ type DashboardData = {
   role: string;
   createdAt: string;
   card: { lastFour: string; blocked: boolean; limit: number; spent: number; available: number };
-  transactions: Array<{ id: number; title: string; detail: string; amount: number; type: "credit" | "debit" }>;
+  transactions: TransactionView[];
 };
 
 type FraudAnalysis = {
@@ -153,10 +155,10 @@ const demoData: DashboardData = {
   createdAt: new Date().toISOString(),
   card: { lastFour: "1234", blocked: false, limit: 6000, spent: 1248.9, available: 4751.1 },
   transactions: [
-    { id: 1, title: "Pix recebido", detail: "Maria Silva · hoje, 09:41", amount: 250, type: "credit" },
-    { id: 2, title: "Transferência enviada", detail: "João Pereira · hoje, 08:15", amount: -120, type: "debit" },
-    { id: 3, title: "Pagamento", detail: "Supermercado Bom Preço · ontem, 19:32", amount: -89.9, type: "debit" },
-    { id: 4, title: "Compra no cartão", detail: "Livraria Cultura · ontem, 16:20", amount: -45.6, type: "debit" },
+    { id: 4, title: "Pix recebido", detail: "Maria Silva", amount: 250, type: "credit", occurredAt: new Date(Date.now() - 18 * 60_000).toISOString() },
+    { id: 3, title: "Transferência enviada", detail: "João Pereira", amount: -120, type: "debit", occurredAt: new Date(Date.now() - 127 * 60_000).toISOString() },
+    { id: 2, title: "Pagamento", detail: "Supermercado Bom Preço", amount: -89.9, type: "debit", occurredAt: new Date(Date.now() - 27 * 60 * 60_000).toISOString() },
+    { id: 1, title: "Compra no cartão", detail: "Livraria Cultura", amount: -45.6, type: "debit", occurredAt: new Date(Date.now() - 30 * 60 * 60_000).toISOString() },
   ],
 };
 
@@ -195,6 +197,12 @@ const parseMoneyInput = (value: string) => {
   if (compact.includes(",")) return Number(compact.replace(/\./g, "").replace(",", "."));
   if (/^\d{1,3}(\.\d{3})+$/.test(compact)) return Number(compact.replace(/\./g, ""));
   return Number(compact);
+};
+const formatMoneyFromDigits = (value: string) => {
+  const digits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 11);
+  const cents = Number(digits || "0");
+  return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .format(cents / 100);
 };
 type BankIconName = "home" | "pix" | "statement" | "card" | "shield" | "spark" | "bell" | "sun" | "moon" | "eye" | "eyeOff" | "pay" | "transfer" | "schedule" | "chevron" | "help" | "logout" | "chart" | "device" | "cloud" | "leaf" | "brain" | "automation" | "lock" | "user";
 
@@ -243,7 +251,7 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [signup, setSignup] = useState({ customerName: "", documentId: "", email: "", phoneNumber: "", accessPin: "", transactionPin: "" });
   const [recovery, setRecovery] = useState({ identification: "", email: "", transactionPin: "", newAccessPin: "" });
-  const [screen, setScreen] = useState<"dashboard" | "lab">("dashboard");
+  const [screen, setScreen] = useState<"dashboard" | "account" | "cards" | "security" | "lab">("dashboard");
   const [utilityPanel, setUtilityPanel] = useState<"account" | "cards" | "security" | "notifications" | "profile" | null>(null);
   const [bankingOpen, setBankingOpen] = useState(false);
   const [bankingTab, setBankingTab] = useState<BankingTab>("statement");
@@ -782,7 +790,7 @@ export default function Home() {
   };
 
   const resetDemo = async () => {
-    if (!window.confirm("Restaurar saldo, movimentações e dispositivos da demonstração?")) return;
+    if (!window.confirm("Restaurar saldo, movimentações e dispositivos da demonstração da Ana?")) return;
     setResettingDemo(true);
     try {
       const response = await apiFetch("/demo/reset", { method: "POST" });
@@ -860,12 +868,12 @@ export default function Home() {
         </button>
 
         <nav aria-label="Navegação principal">
-          <button className={screen === "dashboard" ? "active" : ""} onClick={() => setScreen("dashboard")}><span><BankIcon name="home" /></span> Início</button>
+          <button className={screen === "account" ? "active" : ""} onClick={() => setScreen("account")}><span><BankIcon name="home" /></span> Conta</button>
           <button onClick={() => { setPixStep("details"); setPixOpen(true); }}><span><BankIcon name="pix" /></span> Área Pix</button>
           <button onClick={() => openBanking("statement")}><span><BankIcon name="statement" /></span> Extrato</button>
-          <button onClick={() => openBanking("card")}><span><BankIcon name="card" /></span> Cartões</button>
-          <button className={utilityPanel === "security" ? "active" : ""} onClick={() => setUtilityPanel("security")}><span><BankIcon name="shield" /></span> Segurança</button>
-          <button className={screen === "lab" ? "active" : ""} onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span> Tecnologia</button>
+          <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><span><BankIcon name="card" /></span> Cartões</button>
+          <button className={screen === "security" ? "active" : ""} onClick={() => setScreen("security")}><span><BankIcon name="shield" /></span> Segurança</button>
+          <button className={screen === "lab" ? "active" : ""} onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span> Future Lab</button>
         </nav>
 
         <div className="bank-sidebar-footer">
@@ -886,7 +894,7 @@ export default function Home() {
           <div className="top-actions">
             <button className="theme-toggle" type="button" onClick={toggleBankTheme} aria-label={bankTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={bankTheme === "dark"} title={bankTheme === "dark" ? "Modo claro" : "Modo escuro"}><BankIcon name={bankTheme === "dark" ? "sun" : "moon"} /></button>
             <button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações"><BankIcon name="bell" />{notifications.some((item) => !item.read) && <i/>}</button>
-            <button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Perfil de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button>
+            <button className="avatar" onClick={() => setScreen("account")} aria-label={`Abrir conta de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button>
           </div>
         </header>
 
@@ -894,7 +902,7 @@ export default function Home() {
           <div className="bank-dashboard-v2">
             <div className="bank-page-heading">
               <div><p>{new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date())}</p><h1>Olá, {data.customerName.split(" ")[0]}. <span>Como podemos ajudar?</span></h1></div>
-              <button onClick={() => setUtilityPanel("account")}><BankIcon name="user" size={17}/> Dados da conta</button>
+              <button onClick={() => setScreen("account")}><BankIcon name="user" size={17}/> Dados da conta</button>
             </div>
 
             <div className="bank-overview-v2">
@@ -908,7 +916,7 @@ export default function Home() {
               </article>
 
               <article className="bank-card-summary-v2">
-                <header><div><span>Cartão de crédito</span><small>Final {data.card.lastFour}</small></div><button onClick={() => openBanking("card")}>Gerenciar</button></header>
+                <header><div><span>Cartão Eco</span><small>Final {data.card.lastFour}</small></div><button onClick={() => setScreen("cards")}>Ver cartão</button></header>
                 <div className="bank-card-summary-values"><div><small>Fatura atual</small><strong>{balanceVisible ? money.format(data.card.spent) : "R$ ••••"}</strong></div><span className={data.card.blocked ? "is-blocked" : ""}>{data.card.blocked ? "Bloqueado" : "Ativo"}</span></div>
                 <div className="bank-limit-track"><i style={{width:`${Math.min(100, (data.card.spent / Math.max(data.card.limit, 1)) * 100)}%`}}/></div>
                 <footer><span>Limite disponível</span><strong>{money.format(data.card.available)}</strong></footer>
@@ -933,7 +941,7 @@ export default function Home() {
                   {data.transactions.slice(0, 5).map((transaction) => (
                     <button className="transaction" key={transaction.id} onClick={() => openBanking("statement")}>
                       <span className={`transaction-icon ${transaction.type}`}>{transaction.type === "credit" ? "↓" : "↑"}</span>
-                      <div><strong>{transaction.title}</strong><small>{transaction.detail}</small></div>
+                      <div><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></div>
                       <b className={transaction.type}>{transaction.amount > 0 ? "+ " : "- "}{money.format(Math.abs(transaction.amount))}</b>
                       <BankIcon name="chevron" size={15}/>
                     </button>
@@ -945,7 +953,7 @@ export default function Home() {
                 <article className="bank-security-card-v2">
                   <header><span><BankIcon name="shield"/></span><div><small>RANGUARD</small><strong>Conta protegida</strong></div><b>92<em>/100</em></b></header>
                   <p>Dispositivo reconhecido e nenhuma atividade suspeita identificada.</p>
-                  <button onClick={() => setUtilityPanel("security")}>Abrir central de segurança <BankIcon name="chevron" size={14}/></button>
+                  <button onClick={() => setScreen("security")}>Abrir central de segurança <BankIcon name="chevron" size={14}/></button>
                 </article>
                 <article className="bank-insight-card-v2">
                   <div><span><BankIcon name="brain" size={18}/></span><small>INSIGHT POR IA</small></div>
@@ -961,6 +969,16 @@ export default function Home() {
               <div className="bank-tech-signals-v2"><article><BankIcon name="brain"/><span><small>IA antifraude</small><strong>Proteção ativa</strong></span><i/></article><article><BankIcon name="cloud"/><span><small>Nuvem</small><strong>99,98% disponível</strong></span><i/></article><article><BankIcon name="device"/><span><small>Dispositivos</small><strong>Acesso confiável</strong></span><i/></article></div>
             </section>
           </div>
+        ) : screen === "account" ? (
+          <AccountSectionPage data={data} onStatement={() => openBanking("statement")} />
+        ) : screen === "cards" ? (
+          <CardsSectionPage />
+        ) : screen === "security" ? (
+          <SecuritySectionPage
+            onAuthentication={() => { setScreen("lab"); void simulateAuthentication(); }}
+            onThreat={() => { setScreen("lab"); void simulateThreat(); }}
+            onDevices={() => { setScreen("lab"); void loadDevices(); }}
+          />
         ) : (
           <div className="bank-technology-v2">
             <header className="bank-technology-hero-v2">
@@ -995,7 +1013,18 @@ export default function Home() {
 
       <button className="assistant-button" onClick={() => setAssistantOpen(!assistantOpen)}><span>✦</span> Assistente</button>
       {assistantOpen && <aside className="assistant-panel" aria-label="Assistente educacional Ranbank"><div className="assistant-header"><span className="assistant-icon">R</span><div><strong>Assistente Ranbank</strong><small className={`assistant-mode mode-${chatMode.toLowerCase()}`}>{chatMode === "OPENAI" ? "IA conectada · OpenAI API" : chatMode === "LOCAL_FALLBACK" ? "API indisponível · modo local" : "Modo local · conteúdo educacional"}</small></div><button onClick={() => setAssistantOpen(false)} aria-label="Fechar assistente">×</button></div><div className="chat-messages" aria-live="polite">{chatMessages.map((message,index) => <article key={index} className={`chat-${message.role}`}>{message.topic && <span>{message.topic}</span>}<p>{message.text}</p></article>)}{chatLoading && <article className="chat-assistant chat-typing" aria-label="Assistente digitando"><i/><i/><i/></article>}</div><div className="chat-suggestions"><button onClick={() => sendChatMessage("Oi")}>Dizer oi</button><button onClick={() => sendChatMessage("O que é phishing?")}>Phishing</button><button onClick={() => sendChatMessage("O que posso perguntar?")}>Ver assuntos</button></div><form className="chat-form" onSubmit={(event) => { event.preventDefault(); sendChatMessage(); }}><input value={chatInput} maxLength={300} onChange={(event) => setChatInput(event.target.value)} placeholder="Digite sua pergunta…" aria-label="Pergunta para o assistente"/><button type="submit" disabled={chatLoading || !chatInput.trim()} aria-label="Enviar pergunta">→</button></form><footer>Conteúdo educacional · não fornece orientação financeira</footer></aside>}
-      {pixOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setPixOpen(false)}><section className="pix-modal" role="dialog" aria-modal="true" aria-labelledby="pix-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>PIX RANBANK</span><h2 id="pix-title">Enviar um Pix</h2></div><button onClick={() => setPixOpen(false)} aria-label="Fechar">×</button></header><div className="education-note"><b>i</b><p><strong>Transferência entre contas</strong><br/>O destinatário será localizado antes da autorização, e débito e crédito ocorrerão juntos.</p></div><form onSubmit={sendPix}><label>Chave Pix<input value={pixKey} onChange={(event) => setPixKey(event.target.value)} placeholder="E-mail, CPF, telefone ou chave aleatória" required /><small className="field-help">Para testar com a conta demo, use maria@ranbank.demo</small></label><label>Valor disponível: {money.format(data.balance)}<input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0,00" inputMode="decimal" required /></label>{pixStatus === "error" && <p className="form-error">{pixError}</p>}<button className="confirm-pix" disabled={pixStatus === "sending"}>{pixStatus === "sending" ? "Localizando destinatário…" : pixStatus === "success" ? "Pix concluído ✓" : "Revisar Pix"}</button></form></section></div>}
+      {pixOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setPixOpen(false)}>
+        <section className="pix-modal" role="dialog" aria-modal="true" aria-labelledby="pix-title" onMouseDown={(event) => event.stopPropagation()}>
+          <header><div><span>PIX RANBANK</span><h2 id="pix-title">Enviar um Pix</h2></div><button onClick={() => setPixOpen(false)} aria-label="Fechar">×</button></header>
+          <div className="education-note"><b>i</b><p><strong>Transferência entre contas</strong><br/>O destinatário será localizado antes da autorização, e débito e crédito ocorrerão juntos.</p></div>
+          <form onSubmit={sendPix}>
+            <label>Chave Pix<input value={pixKey} onChange={(event) => setPixKey(event.target.value)} placeholder="E-mail, CPF, telefone ou chave aleatória" required /><small className="field-help">Use a chave de outra conta cadastrada no RanBank.</small></label>
+            <label>Valor disponível: {money.format(data.balance)}<input className="pix-cent-amount" value={amount} onChange={(event) => setAmount(formatMoneyFromDigits(event.target.value))} onFocus={(event) => event.currentTarget.select()} placeholder="0,00" inputMode="numeric" aria-label="Valor do Pix em reais e centavos" required /></label>
+            {pixStatus === "error" && <p className="form-error">{pixError}</p>}
+            <button className="confirm-pix" disabled={pixStatus === "sending"}>{pixStatus === "sending" ? "Localizando destinatário…" : pixStatus === "success" ? "Pix concluído ✓" : "Revisar Pix"}</button>
+          </form>
+        </section>
+      </div>}
       {analysisOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalysisOpen(false)}><section className="analysis-modal" role="dialog" aria-modal="true" aria-labelledby="analysis-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>SEGURANÇA EXPLICÁVEL</span><h2 id="analysis-title">Resultado da análise</h2></div><button onClick={() => setAnalysisOpen(false)} aria-label="Fechar">×</button></header>{analysisLoading ? <div className="analysis-loading"><i/><p>Analisando sinais da transação…</p></div> : analysis ? <><div className={`analysis-summary level-${analysis.level.toLowerCase()}`}><div><strong>{analysis.score}</strong><small>/100</small></div><span>Risco {analysis.level}</span></div><div className="method-label">{analysis.method} · resultado demonstrativo</div><div className="signal-list">{analysis.signals.map((signal) => <article key={signal.name}><b>{signal.weight}</b><div><strong>{signal.name}</strong><p>{signal.explanation}</p></div></article>)}</div><div className="recommendation"><span>Recomendação do sistema</span><strong>{analysis.recommendation}</strong></div></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar o simulador.</p></div>}</section></div>}
       {analyticsOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalyticsOpen(false)}><section className="analytics-modal" role="dialog" aria-modal="true" aria-labelledby="analytics-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>BIG DATA · DADOS DO H2</span><h2 id="analytics-title">Inteligência de movimentações</h2></div><button onClick={() => setAnalyticsOpen(false)} aria-label="Fechar">×</button></header>{analyticsLoading ? <div className="analysis-loading"><i/><p>Agregando movimentações…</p></div> : analytics ? <><div className="metric-grid"><article><span>Eventos analisados</span><strong>{analytics.totalTransactions}</strong><small>{analytics.creditCount} entradas · {analytics.debitCount} saídas</small></article><article><span>Total de entradas</span><strong className="metric-positive">{money.format(analytics.totalIn)}</strong><small>Valores creditados</small></article><article><span>Total de saídas</span><strong>{money.format(analytics.totalOut)}</strong><small>Valores debitados</small></article><article><span>Média por saída</span><strong>{money.format(analytics.averageOut)}</strong><small>Maior: {money.format(analytics.largestOut)}</small></article></div><div className="data-chart"><div><span>VOLUME RELATIVO</span><small>Cada barra representa uma movimentação armazenada</small></div><div className="data-bars">{analytics.series.map((value,index) => { const max = Math.max(...analytics.series.map(Math.abs),1); return <i key={index} className={value >= 0 ? "bar-credit" : "bar-debit"} style={{height:`${Math.max(12, Math.abs(value)/max*100)}%`}} title={money.format(value)}/>; })}</div><div className="chart-legend"><span><i className="legend-credit"/>Entrada</span><span><i className="legend-debit"/>Saída</span></div></div><div className="data-pipeline"><div><b>1</b><span><strong>Coleta</strong><small>Pix e movimentações</small></span></div><i>→</i><div><b>2</b><span><strong>Armazenamento</strong><small>Banco H2</small></span></div><i>→</i><div><b>3</b><span><strong>Agregação</strong><small>API Java</small></span></div><i>→</i><div><b>4</b><span><strong>Visualização</strong><small>Painel React</small></span></div></div><p className="analytics-caption">Em um banco real, esse fluxo processaria volumes muito maiores e exigiria infraestrutura distribuída. Aqui ele foi reduzido para fins didáticos.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar as estatísticas.</p></div>}</section></div>}
       {devicesOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setDevicesOpen(false)}><section className="devices-modal" role="dialog" aria-modal="true" aria-labelledby="devices-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>IOT · TELEMETRIA DEMONSTRATIVA</span><h2 id="devices-title">Dispositivos conectados</h2></div><button onClick={() => setDevicesOpen(false)} aria-label="Fechar">×</button></header><div className="iot-summary"><div><strong>{devices.filter((device) => !device.blocked).length}</strong><small>ativos</small></div><div><strong>{devices.filter((device) => device.trusted).length}</strong><small>confiáveis</small></div><div><strong>{devices.filter((device) => device.blocked).length}</strong><small>bloqueados</small></div><p>O banco recebe sinais dos aparelhos e reage quando encontra comportamento fora do padrão.</p></div>{devicesLoading ? <div className="analysis-loading"><i/><p>Consultando dispositivos…</p></div> : devices.length ? <div className="device-list">{devices.map((device) => <article key={device.id} className={!device.trusted ? "device-alert" : ""}><span className="device-icon">{device.type === "Celular" ? "▯" : device.type === "Computador" ? "▱" : "IoT"}</span><div><div className="device-name"><strong>{device.name}</strong>{device.blocked ? <b className="blocked-pill">Bloqueado</b> : device.trusted ? <b className="trusted-pill">Confiável</b> : <b className="alert-pill">Revisar</b>}</div><p>{device.type} · {device.location}</p><small>Último sinal: {device.lastAccess}</small></div><button className={device.blocked ? "unblock-button" : "block-button"} onClick={() => toggleDevice(device.id)}>{device.blocked ? "Reativar" : "Bloquear"}</button></article>)}</div> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar os dispositivos.</p></div>}<div className="iot-flow"><span>Dispositivo</span><i>envia telemetria →</i><span>API Java</span><i>avalia confiança →</i><span>Resposta</span></div><p className="analytics-caption">Acompanhe telemetria, confiança e respostas de segurança dos dispositivos conectados.</p></section></div>}

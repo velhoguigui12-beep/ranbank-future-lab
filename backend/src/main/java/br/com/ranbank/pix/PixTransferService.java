@@ -87,10 +87,10 @@ public class PixTransferService {
         PixTransfer transfer = transfers.save(new PixTransfer(transferId, senderAccountId,
             recipientAccountId, destinationKey.getNormalizedKey(), amount, idempotencyKey));
         BankTransaction debitTransaction = transactions.save(new BankTransaction(senderAccountId, "Pix enviado",
-            recipient.getCustomerName() + " · agora", amount.negate(), "debit", transferId,
+            recipient.getCustomerName(), amount.negate(), "debit", transferId,
             recipientAccountId, idempotencyKey));
         transactions.save(new BankTransaction(recipientAccountId, "Pix recebido",
-            sender.getCustomerName() + " · agora", amount, "credit", transferId,
+            sender.getCustomerName(), amount, "credit", transferId,
             senderAccountId, null));
         accounts.save(sender);
         accounts.save(recipient);

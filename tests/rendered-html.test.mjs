@@ -15,6 +15,9 @@ const proxyUrl = new URL("../app/api/[...path]/route.ts", import.meta.url);
 const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
 const bankThemeUrl = new URL("../app/bank-theme.css", import.meta.url);
 const bankingSuiteUrl = new URL("../app/BankingSuite.tsx", import.meta.url);
+const bankSectionPagesUrl = new URL("../app/bank/BankSectionPages.tsx", import.meta.url);
+const bankSectionStylesUrl = new URL("../app/bank-section-pages.css", import.meta.url);
+const transactionFormattingUrl = new URL("../app/bank/transactionFormatting.ts", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
@@ -65,12 +68,37 @@ test("offers a persistent, accessible dark mode across the bank", async () => {
 
 test("requires a separate four-digit password before sending Pix", async () => {
   const page = await readFile(pageUrl, "utf8");
+  const sectionStyles = await readFile(bankSectionStylesUrl, "utf8");
   assert.match(page, /Revise sua transferência/);
   assert.match(page, /Senha de quatro dígitos do cartão/);
   assert.match(page, /transactionPin/);
   assert.match(page, /Teclado da senha do cart/);
   assert.match(page, /appendTransactionDigit/);
   assert.match(page, /Autorizar transferência/);
+  assert.match(page, /formatMoneyFromDigits/);
+  assert.match(page, /inputMode="numeric"/);
+  assert.match(sectionStyles, /pix-cent-amount/);
+  assert.match(sectionStyles, /data-bank-theme="dark".*pin-confirmation-modal/);
+});
+
+test("uses full pages for account, cards and security", async () => {
+  const page = await readFile(pageUrl, "utf8");
+  const sections = await readFile(bankSectionPagesUrl, "utf8");
+  assert.match(page, /setScreen\("account"\)/);
+  assert.match(page, /setScreen\("cards"\)/);
+  assert.match(page, /setScreen\("security"\)/);
+  assert.match(sections, /AccountSectionPage/);
+  assert.match(sections, /CardsSectionPage/);
+  assert.match(sections, /SecuritySectionPage/);
+});
+
+test("shows precise transactions from newest to oldest", async () => {
+  const formatting = await readFile(transactionFormattingUrl, "utf8");
+  const bankingSuite = await readFile(bankingSuiteUrl, "utf8");
+  assert.match(formatting, /second: "2-digit"/);
+  assert.match(formatting, /new Date\(right\.occurredAt\).*new Date\(left\.occurredAt\)/);
+  assert.match(bankingSuite, /sortTransactionsNewestFirst/);
+  assert.match(bankingSuite, /transactionDescription/);
 });
 
 test("provides a Brasília-first public bank and privacy center", async () => {
@@ -156,7 +184,9 @@ test("keeps account controls inside the customer profile", async () => {
 
 test("shows the Ecocard artwork in the card control panel", async () => {
   const bankingSuite = await readFile(bankingSuiteUrl, "utf8");
+  const sections = await readFile(bankSectionPagesUrl, "utf8");
   assert.match(bankingSuite, /ecocard-suite-face/);
   assert.match(bankingSuite, /ranbank-ecocard-reference\.jpeg/);
   assert.match(bankingSuite, /Cartão Eco RanBank sustentável/);
+  assert.match(sections, /ranbank-ecocard-reference\.jpeg/);
 });

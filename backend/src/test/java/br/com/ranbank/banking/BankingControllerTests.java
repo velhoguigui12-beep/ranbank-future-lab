@@ -78,6 +78,17 @@ class BankingControllerTests {
             .andExpect(jsonPath("$.blocked").value(true));
     }
 
+    @Test
+    void returnsPreciseTransactionsFromNewestToOldest() throws Exception {
+        mockMvc.perform(get("/api/banking/overview").cookie(session))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.statement[0].title").value("Pix recebido"))
+            .andExpect(jsonPath("$.statement[0].occurredAt").isNotEmpty())
+            .andExpect(jsonPath("$.statement[1].title").value("Transferência enviada"))
+            .andExpect(jsonPath("$.statement[2].title").value("Pagamento"))
+            .andExpect(jsonPath("$.statement[3].title").value("Compra no cartão"));
+    }
+
     private Cookie login() throws Exception {
         MvcResult result = mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"identification\":\"12345678909\",\"pin\":\"2580\"}"))

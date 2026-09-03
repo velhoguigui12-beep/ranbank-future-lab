@@ -2,10 +2,11 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-static-element-interactions, @next/next/no-img-element -- Modal backdrops intentionally handle pointer dismissal; Vinext serves these local decorative images directly. */
 
 import { useEffect, useMemo, useState } from "react";
+import { sortTransactionsNewestFirst, transactionDescription, type TransactionView } from "./bank/transactionFormatting";
 
 export type BankingTab = "statement" | "bill" | "schedule" | "card" | "savings";
 
-type StatementItem = { id: number; title: string; detail: string; amount: number; type: "credit" | "debit" };
+type StatementItem = TransactionView;
 type ScheduleItem = { id: number; kind: string; recipient: string; amount: number; scheduledDate: string; status: string };
 type BankingOverview = {
   customerName: string;
@@ -101,7 +102,7 @@ export default function BankingSuite({
 
   const statement = useMemo(() => {
     const term = search.trim().toLocaleLowerCase("pt-BR");
-    return (overview?.statement ?? []).filter((item) => {
+    return sortTransactionsNewestFirst(overview?.statement ?? []).filter((item) => {
       const matchesType = statementType === "all" || item.type === statementType;
       const matchesTerm = !term || `${item.title} ${item.detail}`.toLocaleLowerCase("pt-BR").includes(term);
       return matchesType && matchesTerm;
@@ -196,7 +197,7 @@ export default function BankingSuite({
                 <article><span>Saldo atual</span><strong>{money.format(overview.balance)}</strong></article>
               </div>
               <div className="statement-list">
-                {statement.map((item) => <button key={item.id} onClick={() => setReceipt(item)}><i className={item.type}>{item.type === "credit" ? "↓" : "↑"}</i><div><strong>{item.title}</strong><small>{item.detail}</small></div><b className={item.type}>{item.type === "credit" ? "+ " : "- "}{money.format(Math.abs(item.amount))}</b><span>›</span></button>)}
+                {statement.map((item) => <button key={item.id} onClick={() => setReceipt(item)}><i className={item.type}>{item.type === "credit" ? "↓" : "↑"}</i><div><strong>{item.title}</strong><small>{transactionDescription(item)}</small></div><b className={item.type}>{item.type === "credit" ? "+ " : "- "}{money.format(Math.abs(item.amount))}</b><span>›</span></button>)}
                 {!statement.length && <p className="empty-banking">Nenhuma movimentação corresponde aos filtros.</p>}
               </div>
             </div>
