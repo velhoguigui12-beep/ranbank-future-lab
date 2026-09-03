@@ -10,5 +10,6 @@ WORKDIR /app
 COPY --from=build /app/target/ranbank-api-0.0.1-SNAPSHOT.jar app.jar
 ENV PORT=8080
 ENV H2_CONSOLE_ENABLED=false
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=70.0 -XX:InitialRAMPercentage=20.0 -XX:+UseSerialGC"
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

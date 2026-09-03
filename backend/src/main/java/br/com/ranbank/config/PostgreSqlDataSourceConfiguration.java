@@ -23,7 +23,7 @@ public class PostgreSqlDataSourceConfiguration {
     DataSource dataSource(Environment environment) {
         String databaseUrl = environment.getProperty("DATABASE_URL");
         if (StringUtils.hasText(databaseUrl)) {
-            DatabaseConnection connection = parseRenderDatabaseUrl(databaseUrl);
+            DatabaseConnection connection = parseDatabaseUrl(databaseUrl);
             return DataSourceBuilder.create()
                     .url(connection.jdbcUrl())
                     .username(connection.username())
@@ -38,7 +38,7 @@ public class PostgreSqlDataSourceConfiguration {
                 .build();
     }
 
-    static DatabaseConnection parseRenderDatabaseUrl(String databaseUrl) {
+    static DatabaseConnection parseDatabaseUrl(String databaseUrl) {
         URI uri = URI.create(databaseUrl);
         if (!("postgresql".equals(uri.getScheme()) || "postgres".equals(uri.getScheme()))) {
             throw new IllegalArgumentException("DATABASE_URL must use the PostgreSQL protocol");
@@ -61,7 +61,9 @@ public class PostgreSqlDataSourceConfiguration {
                 .append(port)
                 .append(uri.getRawPath());
         if (StringUtils.hasText(uri.getRawQuery())) {
-            jdbcUrl.append('?').append(uri.getRawQuery());
+            String jdbcQuery = uri.getRawQuery()
+                    .replaceAll("(^|&)channel_binding=", "$1channelBinding=");
+            jdbcUrl.append('?').append(jdbcQuery);
         }
 
         return new DatabaseConnection(jdbcUrl.toString(), username, password);

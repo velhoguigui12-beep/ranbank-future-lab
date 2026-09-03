@@ -117,13 +117,13 @@ test("keeps local previews free from stale PWA styles", async () => {
   assert.match(serviceWorker, /cache\.put\(request, copy\)/);
 });
 
-test("warms the hosted API before the customer reaches login", async () => {
+test("warms the API through the same-origin proxy before login", async () => {
   const warmup = await readFile(warmupUrl, "utf8");
   const layout = await readFile(layoutUrl, "utf8");
   assert.match(warmup, /backendWarmupStarted/);
   assert.doesNotMatch(warmup, /pathname !== "\/"/);
-  assert.match(layout, /rel="preconnect"/);
-  assert.match(layout, /ranbank-api\.onrender\.com/);
+  assert.match(warmup, /fetch\("\/api\/health"/);
+  assert.doesNotMatch(layout, /onrender\.com/);
 });
 
 test("keeps account controls inside the customer profile", async () => {

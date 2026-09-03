@@ -1,5 +1,5 @@
 {
-  "name": "site-creator-vinext-starter",
+  "name": "ranbank-future-lab",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -8,8 +8,11 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
+    "build:cloudflare": "node scripts/cloudflare-build.mjs",
+    "deploy:cloudflare": "node scripts/cloudflare-deploy.mjs",
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "test:load": "node scripts/load-smoke.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
@@ -20,6 +23,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",
+    "@vinext/cloudflare": "1.0.0-beta.2",
     "@eslint/js": "9.39.4",
     "@next/eslint-plugin-next": "16.2.6",
     "@tailwindcss/postcss": "4.2.1",

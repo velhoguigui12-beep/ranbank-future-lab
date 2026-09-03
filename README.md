@@ -138,9 +138,12 @@ SPRING_DATASOURCE_PASSWORD=senha-segura
 
 Como alternativa, o backend aceita `DATABASE_URL` no formato
 `postgresql://usuario:senha@host:5432/banco`. Esse é o formato injetado pelo Blueprint
-atual do Render e também pelo PostgreSQL da Railway.
+atual do Render e também é aceito pelo Neon. Para o Neon, prefira a URL agrupada
+(`-pooler`) da região de São Paulo.
 
-O backend contém um `Dockerfile` pronto para serviços compatíveis com contêineres Java. Depois que o backend receber uma URL HTTPS, essa URL deve ser configurada no frontend por meio de `NEXT_PUBLIC_API_URL`.
+O backend contém um `Dockerfile` pronto para serviços compatíveis com contêineres Java.
+Na publicação recomendada, o frontend usa `/api` e encaminha as chamadas para a URL HTTPS
+do backend definida em `RANBANK_BACKEND_URL`.
 
 ## Instalar no celular
 
@@ -152,10 +155,12 @@ e a tela offline não guarda respostas da API nem dados financeiros no cache.
 
 ## Hospedagem sem tela de espera
 
-O Blueprint atual usa instâncias gratuitas do Render, que entram em repouso. Para manter
-frontend, API e PostgreSQL ativos, consulte `DEPLOY_RAILWAY.md`. A migração recomendada é
-para Railway Hobby com **Serverless desativado** nos serviços. A alternativa com menor risco
-é manter o Render e mudar as duas instâncias web para um plano pago.
+A publicação recomendada usa Cloudflare Workers no frontend, Cloud Run em São Paulo para a
+API e Neon em São Paulo para o PostgreSQL. Durante eventos, mantenha uma instância mínima da
+API e limite a escala máxima; depois, volte a instância mínima para zero para reduzir custos.
+O procedimento completo, incluindo migração dos dados, teste de carga e rollback para o
+Render, está em `DEPLOY_CLOUD_GRATUITO.md`. O plano gratuito pode cobrir uso leve, mas manter
+uma instância ativa no Cloud Run pode gerar uma pequena cobrança.
 
 ## Apresentação
 

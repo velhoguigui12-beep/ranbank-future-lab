@@ -11,26 +11,26 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties =
-    "app.cors.allowed-origin-patterns=http://localhost:3000,https://*.onrender.com")
+    "app.cors.allowed-origin-patterns=http://localhost:3000,https://ranbank.example")
 @AutoConfigureMockMvc
 class CorsConfigurationTests {
     @Autowired MockMvc mockMvc;
 
     @Test
-    void allowsOnlyTheConfiguredHostedFrontend() throws Exception {
+    void allowsOnlyTheConfiguredFrontend() throws Exception {
         mockMvc.perform(options("/api/health")
-                .header("Origin", "https://ranbank-future-lab.onrender.com")
+                .header("Origin", "https://ranbank.example")
                 .header("Access-Control-Request-Method", "GET"))
             .andExpect(status().isOk())
             .andExpect(header().string("Access-Control-Allow-Origin",
-                "https://ranbank-future-lab.onrender.com"))
+                "https://ranbank.example"))
             .andExpect(header().string("Access-Control-Allow-Credentials", "true"));
     }
 
     @Test
-    void rejectsOtherRenderApplications() throws Exception {
+    void rejectsOtherApplications() throws Exception {
         mockMvc.perform(options("/api/health")
-                .header("Origin", "https://untrusted-app.onrender.com")
+                .header("Origin", "https://untrusted.example")
                 .header("Access-Control-Request-Method", "GET"))
             .andExpect(status().isForbidden())
             .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
