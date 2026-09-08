@@ -27,6 +27,11 @@ Aplicação acadêmica que combina uma interface bancária com módulos interati
 
 ## Executar localmente
 
+No Windows, use `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-local.ps1`
+para verificar os pré-requisitos e iniciar frontend e backend juntos. Veja
+[operação e estabilidade](OPERACAO_ESTABILIDADE.md) para diagnóstico, limites e hospedagem.
+
+
 Use Node.js 22.13 ou superior e Java 21 (confira com `node --version` e
 `java -version`). Se houver mais de um Java instalado, configure `JAVA_HOME`
 para o JDK 21 e adicione seu diretório `bin` ao `Path` do terminal do backend.
@@ -164,6 +169,12 @@ Na publicação recomendada, o frontend usa `/api` e encaminha as chamadas para 
 do backend definida em `RANBANK_BACKEND_URL`.
 
 ## Instalar no celular
+
+O cache offline e o convite de instalação estão temporariamente desativados nesta
+versão para evitar que instalações antigas preservem telas e erros já corrigidos.
+O acesso atual deve ser feito pelo navegador. As instruções abaixo se aplicam quando
+a instalação PWA voltar a ser habilitada.
+
 
 Em uma versão publicada por HTTPS, abra o Ranbank no Chrome ou Edge e use o botão
 **Instalar Ranbank**. No Android, a opção também aparece em **Adicionar à tela inicial**.

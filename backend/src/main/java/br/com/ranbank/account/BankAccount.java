@@ -3,6 +3,8 @@ package br.com.ranbank.account;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
@@ -15,6 +17,14 @@ public class BankAccount {
     private Long id;
     private String customerName;
     private String accountNumber;
+    @Column(name = "account_number_normalized")
+    private String accountNumberNormalized;
+
+    @PrePersist
+    @PreUpdate
+    private void normalizeAccountNumber() {
+        accountNumberNormalized = accountNumber == null ? null : accountNumber.replaceAll("\\D", "");
+    }
     private String email;
     private String phoneNumber;
     @Column(precision = 19, scale = 2)

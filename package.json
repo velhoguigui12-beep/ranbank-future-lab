@@ -11,10 +11,11 @@
     "build:cloudflare": "node scripts/cloudflare-build.mjs",
     "deploy:cloudflare": "node scripts/cloudflare-deploy.mjs",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "test": "npm run build && node --test tests/*.test.mjs",
     "test:load": "node scripts/load-smoke.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "dev:local": "powershell -ExecutionPolicy Bypass -File scripts/start-local.ps1"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

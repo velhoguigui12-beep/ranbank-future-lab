@@ -27,7 +27,7 @@ export default function AccountLoadGuard() {
             <h2>Não foi possível abrir sua conta</h2>
             <p>{state.message}</p>
             <small>Se o servidor gratuito estiver iniciando, aguarde um pouco e tente novamente.</small>
-            <button type="button" onClick={() => window.location.reload()}>Tentar novamente</button>
+            <button type="button" onClick={() => window.dispatchEvent(new Event("ranbank:retry-account"))}>Tentar novamente</button><button type="button" onClick={() => window.dispatchEvent(new Event("ranbank:reauthenticate"))}>Entrar novamente</button>
           </>
         )}
       </section>

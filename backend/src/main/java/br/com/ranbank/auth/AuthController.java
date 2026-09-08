@@ -1,6 +1,7 @@
 package br.com.ranbank.auth;
 
 import jakarta.servlet.http.Cookie;
+import br.com.ranbank.auth.SessionCookies;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -29,8 +30,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
-        invalidateIncomingSessions(servletRequest);
         AuthenticationService.LoginResult result = authenticationService.login(request.identification(), request.pin());
+        invalidateIncomingSessions(servletRequest);
         ResponseCookie cookie = sessionCookie(result.token(), authenticationService.sessionDuration(), servletRequest);
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(new LoginResponse(result.customerName(), result.accountNumber(), result.expiresAt().toString()));
@@ -67,14 +68,7 @@ public class AuthController {
     }
 
     private ResponseCookie sessionCookie(String value, Duration maxAge, HttpServletRequest request) {
-        boolean secure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
-        return ResponseCookie.from(AuthenticationService.SESSION_COOKIE, value)
-            .httpOnly(true)
-            .secure(secure)
-            .sameSite(secure ? "Strict" : "Lax")
-            .path("/api")
-            .maxAge(maxAge)
-            .build();
+        return SessionCookies.create(value, maxAge, request);
     }
 
     @ExceptionHandler(AuthenticationService.AuthException.class)

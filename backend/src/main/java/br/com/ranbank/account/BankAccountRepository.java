@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 public interface BankAccountRepository extends JpaRepository<BankAccount, Long> {
     Optional<BankAccount> findByDocumentId(String documentId);
     Optional<BankAccount> findByAccountNumber(String accountNumber);
+    Optional<BankAccount> findByAccountNumberNormalized(String accountNumberNormalized);
     Optional<BankAccount> findByEmailIgnoreCase(String email);
     boolean existsByDocumentId(String documentId);
     boolean existsByEmailIgnoreCase(String email);

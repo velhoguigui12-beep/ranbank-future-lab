@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import type { BankingTab } from "./BankingSuite";
 import type { InnovationTab } from "./InnovationHub";
 import AuthScreen, { type AuthMode } from "./bank/AuthScreen";
-import { apiFetch } from "./bank/api";
+import { apiFetch, clearAccountSession } from "./bank/api";
 import { AccountSectionPage, SecuritySectionPage } from "./bank/BankSectionPages";
 import { transactionDescription, type TransactionView } from "./bank/transactionFormatting";
 
@@ -237,10 +237,12 @@ function BankIcon({ name, size = 20 }: { name: BankIconName; size?: number }) {
   };
   return <svg {...common}>{paths[name]}</svg>;
 }
-const SESSION_RESTORE_TIMEOUT_MS = 8000;
+
 export default function Home() {
   const pathname = usePathname();
   const [data, setData] = useState(demoData);
+  const [accessError, setAccessError] = useState("");
+  const [restoreAttempt, setRestoreAttempt] = useState(0);
   const [authStatus, setAuthStatus] = useState<"checking" | "authenticated" | "unauthenticated">("checking");
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [loginIdentification, setLoginIdentification] = useState("");
@@ -251,7 +253,24 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [signup, setSignup] = useState({ customerName: "", documentId: "", email: "", phoneNumber: "", accessPin: "", transactionPin: "" });
   const [recovery, setRecovery] = useState({ identification: "", email: "", transactionPin: "", newAccessPin: "" });
-  const [screen, setScreen] = useState<"dashboard" | "account" | "cards" | "pix" | "statement" | "security" | "lab">("dashboard");
+  const [screen, updateScreen] = useState<"dashboard" | "account" | "cards" | "pix" | "statement" | "security" | "lab" | "services">("dashboard");
+  const setScreen = (next: typeof screen) => {
+    updateScreen(next);
+    const url = new URL(window.location.href);
+    url.searchParams.set("aba", next);
+    if (url.href !== window.location.href) window.history.pushState({}, "", url);
+    window.scrollTo({ top: 0 });
+  };
+  useEffect(() => {
+    const sync = () => {
+      const requested = new URLSearchParams(window.location.search).get("aba");
+      const allowed = ["dashboard", "account", "cards", "pix", "statement", "security", "lab", "services"];
+      updateScreen(allowed.includes(requested ?? "") ? requested as typeof screen : "dashboard");
+    };
+    const timer = window.setTimeout(sync, 0);
+    window.addEventListener("popstate", sync);
+    return () => { window.clearTimeout(timer); window.removeEventListener("popstate", sync); };
+  }, []);
   const [utilityPanel, setUtilityPanel] = useState<"account" | "cards" | "security" | "notifications" | "profile" | null>(null);
   const [bankingOpen, setBankingOpen] = useState(false);
   const [bankingTab, setBankingTab] = useState<BankingTab>("statement");
@@ -367,33 +386,34 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (pathname === "/") return;
+    if (pathname === "/" || authStatus !== "checking") return;
     let active = true;
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), SESSION_RESTORE_TIMEOUT_MS);
+
     const restoreSession = async () => {
       try {
         const response = await apiFetch("/auth/session", { signal: controller.signal });
-        if (!response.ok) throw new Error();
+        if (response.status === 401 || response.status === 403) {
+          if (active) { clearAccountSession(); setAuthUser(null); setAuthStatus("unauthenticated"); }
+          return;
+        }
+        if (!response.ok) throw new Error("O servidor está indisponível. Tente restaurar seu acesso novamente.");
+        const session = await response.json();
         if (!active) return;
-        setAuthUser(await response.json());
+        setAccessError("");
+        setAuthUser(session);
         setAuthStatus("authenticated");
         await loadDashboard();
-      } catch {
-        if (!active) return;
-        setAuthUser(null);
-        setAuthStatus("unauthenticated");
-      } finally {
-        window.clearTimeout(timeout);
+      } catch (error) {
+        if (active) setAccessError(error instanceof Error ? error.message : "Não foi possível conectar ao servidor.");
       }
     };
     restoreSession();
     return () => {
       active = false;
-      window.clearTimeout(timeout);
       controller.abort();
     };
-  }, [pathname]);
+  }, [pathname, restoreAttempt, authStatus]);
 
   useEffect(() => {
     if (pathname !== "/banco") return;
@@ -414,9 +434,18 @@ export default function Home() {
     return () => { active = false; };
   }, [authStatus]);
 
+  useEffect(() => {
+    if (authStatus !== "authenticated") return;
+    const retry = () => { void loadDashboard(); };
+    const exit = () => { clearAccountSession(); setAuthStatus("unauthenticated"); setAuthUser(null); };
+    window.addEventListener("ranbank:retry-account", retry);
+    window.addEventListener("ranbank:reauthenticate", exit);
+    return () => { window.removeEventListener("ranbank:retry-account", retry); window.removeEventListener("ranbank:reauthenticate", exit); };
+  }, [authStatus]);
+
   const login = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (loginPin.length !== 4) return;
+    if (loginLoading || loginPin.length !== 4) return;
     setLoginLoading(true);
     setLoginProgress("Conectando ao ambiente seguro…");
     setLoginError("");
@@ -432,6 +461,8 @@ export default function Home() {
       }
       setAuthUser(await response.json());
       setAuthStatus("authenticated");
+      setNotifications([]);
+      setData(demoData);
       setLoginPin("");
       await loadDashboard();
     } catch (error) {
@@ -456,6 +487,8 @@ export default function Home() {
       });
       const result = await response.json().catch(() => ({ message: "Não foi possível criar a conta." }));
       if (!response.ok) throw new Error(result.message);
+      setSignup({ customerName: "", documentId: "", email: "", phoneNumber: "", accessPin: "", transactionPin: "" });
+      setNotifications([]);
       setAuthUser({ customerName: result.customerName, accountNumber: result.accountNumber });
       setAuthStatus("authenticated");
       await loadDashboard();
@@ -500,12 +533,18 @@ export default function Home() {
     setUtilityPanel(null);
     setBankingOpen(false);
     setInnovationOpen(false);
+    setData(demoData);
+    setNotifications([]);
+    setPixReceipt(null);
+    setTransactionPin("");
+    setScreen("dashboard");
   };
 
   const openBanking = (tab: BankingTab) => {
     if (tab === "statement" || tab === "card") { setScreen(tab === "card" ? "cards" : "statement"); setBankingOpen(false); setUtilityPanel(null); return; }
     setBankingTab(tab);
-    setBankingOpen(true);
+    setBankingOpen(false);
+    setScreen("services");
     setUtilityPanel(null);
   };
 
@@ -848,7 +887,7 @@ export default function Home() {
   if (pathname === "/") return null;
 
   if (authStatus === "checking") {
-    return <main className="login-shell"><section className="login-loading" aria-live="polite"><img src="/ranbank-logo.jpeg" alt="Ranbank"/><i/><p>Verificando seu acesso…</p><small>No primeiro acesso, o servidor pode precisar de alguns segundos para iniciar.</small></section></main>;
+    return <main className="login-shell"><section className="login-loading" aria-live="polite"><img src="/ranbank-logo.jpeg" alt="Ranbank"/>{accessError ? <><h2>Vamos recuperar seu acesso</h2><p>{accessError}</p><button onClick={() => { setAccessError(""); setRestoreAttempt(value => value + 1); }}>Tentar novamente</button><button onClick={() => { clearAccountSession(); setAuthStatus("unauthenticated"); }}>Ir para o login</button></> : <><i/><p>Verificando seu acesso…</p><small>O servidor pode precisar de até um minuto para iniciar.</small><button onClick={() => { setRestoreAttempt(value => value + 1); clearAccountSession(); setAuthStatus("unauthenticated"); }}>Ir para o login</button></>}</section></main>;
   }
 
   if (authStatus === "unauthenticated") {
@@ -988,6 +1027,7 @@ export default function Home() {
 </div>
         ) : screen === "cards" || screen === "statement" ? (
           <div className="bank-section-page"><header className="bank-section-heading"><span>{screen === "cards" ? "ECOCARD RANBANK" : "SUA CONTA"}</span><h1>{screen === "cards" ? "Meus cartões" : "Extrato"}</h1><p>{screen === "cards" ? "Acompanhe seus gastos e gerencie seu cartão." : "Consulte e encontre suas movimentações."}</p></header><Suspense fallback={<p>Carregando…</p>}><BankingSuite key={screen} open embedded initialTab={screen === "cards" ? "card" : "statement"} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
+        ) : screen === "services" ? (<div className="bank-section-page"><header className="bank-section-heading"><span>DIA A DIA</span><h1>Pagamentos e reservas</h1><p>Organize seus pagamentos, agendamentos e cofrinho.</p></header><Suspense fallback={<p>Carregando…</p>}><BankingSuite open embedded initialTab={bankingTab} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
         ) : screen === "security" ? (
           <SecuritySectionPage
             onAuthentication={() => { setScreen("lab"); void simulateAuthentication(); }}

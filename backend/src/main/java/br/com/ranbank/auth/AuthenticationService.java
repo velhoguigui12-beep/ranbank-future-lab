@@ -105,8 +105,10 @@ public class AuthenticationService {
             sessionRepository.delete(session);
             return null;
         }
-        session.renew(Instant.now().plus(sessionDuration));
-        sessionRepository.save(session);
+        if (session.getExpiresAt().isBefore(Instant.now().plus(sessionDuration).minusSeconds(60))) {
+            session.renew(Instant.now().plus(sessionDuration));
+            sessionRepository.save(session);
+        }
         return session.getAccountId();
     }
 
@@ -195,9 +197,7 @@ public class AuthenticationService {
         String normalized = digits(raw);
         return accountRepository.findByDocumentId(normalized)
             .or(() -> accountRepository.findByAccountNumber(raw))
-            .or(() -> accountRepository.findAll().stream()
-                .filter(account -> normalized.equals(digits(account.getAccountNumber())))
-                .findFirst());
+            .or(() -> accountRepository.findByAccountNumberNormalized(normalized));
     }
 
     private String hashToken(String token) {

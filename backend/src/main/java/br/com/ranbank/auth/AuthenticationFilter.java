@@ -50,6 +50,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             objectMapper.writeValue(response.getWriter(), Map.of("message", "Entre no Ranbank para continuar."));
             return;
         }
+        response.addHeader("Set-Cookie", SessionCookies.create(cookieValue(request), authenticationService.sessionDuration(), request).toString());
         request.setAttribute(AuthenticationService.ACCOUNT_REQUEST_ATTRIBUTE, accountId);
         filterChain.doFilter(request, response);
     }

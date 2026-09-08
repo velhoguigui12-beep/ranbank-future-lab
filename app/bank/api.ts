@@ -1,314 +1,115 @@
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
-
-export type AccountLoadState = {
-  status: "idle" | "loading" | "ready" | "error";
-  message: string;
-};
-
-type ExpectedSession = {
-  customerName: string;
-  accountNumber: string;
-  identification?: string;
-  pin?: string;
-};
-
+export type AccountLoadState = { status: "idle" | "loading" | "ready" | "error"; message: string };
+type ExpectedSession = { customerName: string; accountNumber: string };
 let accountLoadState: AccountLoadState = { status: "idle", message: "" };
-let dashboardReadyOnce = false;
 let expectedSession: ExpectedSession | null = null;
-const accountLoadListeners = new Set<() => void>();
+let sessionGeneration = 0;
+const listeners = new Set<() => void>();
 const transientStatuses = new Set([429, 502, 503, 504]);
-const retryDelays = [0, 1600, 4200];
-const sessionStartRetryDelays = [0, 2200, 5200];
-const INITIAL_DASHBOARD_TIMEOUT_MS = 15000;
-const SESSION_CONFIRM_TIMEOUT_MS = 10000;
-const SESSION_START_TIMEOUT_MS = 60000;
-const BACKEND_WARMUP_TIMEOUTS_MS = [70000, 45000, 15000];
-const BACKEND_READY_TTL_MS = 60000;
-let backendWarmupPromise: Promise<void> | null = null;
-let backendReadyAt = 0;
-
-export const subscribeAccountLoad = (listener: () => void) => {
-  accountLoadListeners.add(listener);
-  return () => accountLoadListeners.delete(listener);
-};
-
+const REQUEST_TIMEOUT_MS = 20000;
+const WARMUP_TIMEOUT_MS = 60000;
+let warmup: Promise<void> | null = null;
+let readyUntil = 0;
+export const subscribeAccountLoad = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 export const getAccountLoadSnapshot = () => accountLoadState;
+const update = (status: AccountLoadState["status"], message = "") => { accountLoadState = { status, message }; listeners.forEach(listener => listener()); };
+export const clearAccountSession = () => { sessionGeneration++; expectedSession = null; update("idle"); };
 
-const setAccountLoadState = (next: AccountLoadState) => {
-  if (accountLoadState.status === next.status && accountLoadState.message === next.message) return;
-  accountLoadState = next;
-  accountLoadListeners.forEach((listener) => listener());
-};
-
-const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-const withJitter = (milliseconds: number) =>
-  milliseconds === 0 ? 0 : milliseconds + Math.floor(Math.random() * 500);
-
-const request = async (path: string, init: RequestInit = {}, timeoutMs?: number) => {
-  const controller = timeoutMs && !init.signal ? new AbortController() : null;
-  const timeout = controller && typeof window !== "undefined"
-    ? window.setTimeout(() => controller.abort(), timeoutMs)
-    : null;
-  try {
-    return await fetch(`${API_BASE}${path}`, {
-      ...init,
-      cache: init.cache ?? "no-store",
-      signal: init.signal ?? controller?.signal,
-      credentials: "include",
-    });
-  } finally {
-    if (timeout !== null && typeof window !== "undefined") window.clearTimeout(timeout);
-  }
-};
-
-const bodyAsObject = (init: RequestInit) => {
-  if (typeof init.body !== "string") return {} as Record<string, unknown>;
-  try {
-    return JSON.parse(init.body) as Record<string, unknown>;
-  } catch {
-    return {} as Record<string, unknown>;
-  }
-};
-
-const errorResponse = (message: string, status = 409) => new Response(
-  JSON.stringify({ message }),
-  { status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } },
-);
-
-const sameAccount = (actual: unknown, expected: string) =>
-  typeof actual === "string" && actual.trim() === expected.trim();
-
-const retryAfterMilliseconds = (response: Response, fallback: number) => {
-  const header = response.headers.get("Retry-After");
-  if (!header) return fallback;
-
-  const seconds = Number(header);
-  if (Number.isFinite(seconds)) return Math.min(Math.max(seconds * 1000, fallback), 10000);
-
-  const timestamp = Date.parse(header);
-  if (Number.isNaN(timestamp)) return fallback;
-  return Math.min(Math.max(timestamp - Date.now(), fallback), 10000);
-};
-
-export const warmBackend = () => {
-  if (Date.now() - backendReadyAt < BACKEND_READY_TTL_MS) return Promise.resolve();
-  if (backendWarmupPromise) return backendWarmupPromise;
-
-  backendWarmupPromise = (async () => {
-    let lastResponse: Response | null = null;
-    let lastError: unknown = null;
-
-    for (let attempt = 0; attempt < BACKEND_WARMUP_TIMEOUTS_MS.length; attempt += 1) {
-      try {
-        const response = await request("/health", {
-          headers: { "X-Ranbank-Warmup": "1" },
-        }, BACKEND_WARMUP_TIMEOUTS_MS[attempt]);
-        lastResponse = response;
-        if (response.ok) {
-          backendReadyAt = Date.now();
-          return;
-        }
-        if (!transientStatuses.has(response.status)) break;
-        if (attempt < BACKEND_WARMUP_TIMEOUTS_MS.length - 1) {
-          await sleep(retryAfterMilliseconds(response, retryDelays[attempt + 1]));
-        }
-      } catch (error) {
-        lastError = error;
-        if (attempt < BACKEND_WARMUP_TIMEOUTS_MS.length - 1) await sleep(retryDelays[attempt + 1]);
-      }
-    }
-
-    if (lastResponse) {
-      throw new Error(`A API do RanBank não ficou pronta (erro ${lastResponse.status}).`);
-    }
-    throw lastError instanceof Error ? lastError : new Error("A API do RanBank não ficou pronta.");
-  })().finally(() => {
-    backendWarmupPromise = null;
+// One deadline covers headers AND body, and remains effective with caller cancellation.
+const request = async (path: string, init: RequestInit = {}, timeoutMs = REQUEST_TIMEOUT_MS) => {
+  const deadline = AbortSignal.timeout(timeoutMs);
+  const signal = init.signal ? AbortSignal.any([init.signal, deadline]) : deadline;
+  const response = await fetch(`${API_BASE}${path}`, { ...init, signal, credentials: "include", cache: "no-store" });
+  if (response.headers.get("content-type")?.includes("text/event-stream")) return response;
+  const body = await response.arrayBuffer();
+  return new Response(response.status === 204 || response.status === 205 || response.status === 304 ? null : body, {
+    status: response.status, statusText: response.statusText, headers: response.headers,
   });
-
-  return backendWarmupPromise;
 };
 
-const forceExpectedLogin = async () => {
-  if (!expectedSession?.identification || !expectedSession.pin) return false;
-  try {
-    const response = await request("/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        identification: expectedSession.identification,
-        pin: expectedSession.pin,
-      }),
-    }, SESSION_CONFIRM_TIMEOUT_MS);
-    if (!response.ok) return false;
-    const session = await request("/auth/session", {}, SESSION_CONFIRM_TIMEOUT_MS);
-    if (!session.ok) return false;
-    const data = await session.json().catch(() => null) as { accountNumber?: string } | null;
-    return Boolean(data && sameAccount(data.accountNumber, expectedSession.accountNumber));
-  } catch {
-    return false;
-  }
+/** Shared wakeup only for access restoration/sign-in. Never gates logout or money operations. */
+export const warmBackend = () => {
+  if (Date.now() < readyUntil) return Promise.resolve();
+  if (warmup) return warmup;
+  warmup = request("/health", {}, WARMUP_TIMEOUT_MS).then(async response => {
+    if (!response.ok) throw new Error(await responseMessage(response, "O servidor está indisponível. Tente novamente."));
+    readyUntil = Date.now() + 60000;
+  }).finally(() => { warmup = null; });
+  return warmup;
 };
 
-const rememberAuthenticatedAccount = async (path: string, init: RequestInit, response: Response) => {
-  if (!response.ok) return response;
-  const payload = await response.clone().json().catch(() => null) as {
-    customerName?: string;
-    accountNumber?: string;
-  } | null;
-  if (!payload?.customerName || !payload.accountNumber) return response;
+const pause = (ms: number, signal?: AbortSignal | null) => new Promise<void>((resolve, reject) => {
+  const abort = () => { clearTimeout(timer); reject(signal?.reason); };
+  const timer = setTimeout(() => { signal?.removeEventListener("abort", abort); resolve(); }, ms);
+  if (signal?.aborted) abort(); else signal?.addEventListener("abort", abort, { once: true });
+});
 
-  const submitted = bodyAsObject(init);
-  if (path === "/auth/login") {
-    expectedSession = {
-      customerName: payload.customerName,
-      accountNumber: payload.accountNumber,
-      identification: typeof submitted.identification === "string" ? submitted.identification : undefined,
-      pin: typeof submitted.pin === "string" ? submitted.pin : undefined,
-    };
-  } else if (path === "/demo-accounts") {
-    expectedSession = {
-      customerName: payload.customerName,
-      accountNumber: payload.accountNumber,
-      identification: typeof submitted.documentId === "string" ? submitted.documentId : undefined,
-      pin: typeof submitted.accessPin === "string" ? submitted.accessPin : undefined,
-    };
+async function readWithRetry(path: string, init: RequestInit) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await request(path, init);
+      if (attempt || !transientStatuses.has(response.status)) return response;
+      const retry = response.headers.get("retry-after");
+      const seconds = retry ? Number(retry) : NaN;
+      const delay = retry && !Number.isFinite(seconds) ? Date.parse(retry) - Date.now() : seconds * 1000;
+      // Longer rate limits are surfaced to the user, never retried prematurely.
+      if (Number.isFinite(delay) && delay > 5000) return response;
+      await pause(Number.isFinite(delay) ? Math.max(1000, delay) : 1000, init.signal);
+    } catch (error) {
+      if (attempt || init.signal?.aborted) throw error;
+      await pause(1000, init.signal);
+    }
   }
+}
 
+async function remember(response: Response) {
+  if (response.ok) {
+    const body = await response.clone().json().catch(() => null);
+    if (typeof body?.customerName === "string" && typeof body.accountNumber === "string") {
+      expectedSession = { customerName: body.customerName, accountNumber: body.accountNumber };
+    }
+  }
   return response;
-};
+}
 
 export async function apiFetch(path: string, init: RequestInit = {}) {
   const method = (init.method ?? "GET").toUpperCase();
-  const startsNewSession = method === "POST" && (path === "/auth/login" || path === "/demo-accounts");
-  const logsOut = method === "POST" && path === "/auth/logout";
-
-  if (startsNewSession) {
-    dashboardReadyOnce = false;
-    setAccountLoadState({ status: "idle", message: "" });
-    try {
-      await warmBackend();
-
-      let response: Response | null = null;
-      const attempts = path === "/auth/login" ? sessionStartRetryDelays.length : 1;
-      for (let attempt = 0; attempt < attempts; attempt += 1) {
-        response = await request(path, init, SESSION_START_TIMEOUT_MS);
-        if (!transientStatuses.has(response.status) || attempt === attempts - 1) break;
-        await sleep(withJitter(retryAfterMilliseconds(response, sessionStartRetryDelays[attempt + 1])));
-      }
-
-      if (!response) throw new Error("A API do RanBank não respondeu.");
-      return rememberAuthenticatedAccount(path, init, response);
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        throw new Error("O servidor demorou para responder. Aguarde alguns segundos e tente novamente.");
-      }
-      throw error;
+  const startsSession = method === "POST" && (path === "/auth/login" || path === "/demo-accounts");
+  const restoresSession = method === "GET" && path === "/auth/session";
+  const dashboard = method === "GET" && path === "/dashboard";
+  if (method === "POST" && path === "/auth/logout") clearAccountSession();
+  if (startsSession) clearAccountSession();
+  const generation = sessionGeneration;
+  if (dashboard) update("loading", "Conferindo o saldo e as movimentações da sua conta…");
+  try {
+    if (startsSession || restoresSession) {
+      // Wakeup failure must not prevent an otherwise healthy login endpoint from answering.
+      await warmBackend().catch(() => undefined);
+      init.signal?.throwIfAborted();
     }
-  }
-
-  if (logsOut) {
-    dashboardReadyOnce = false;
-    expectedSession = null;
-    setAccountLoadState({ status: "idle", message: "" });
-    return request(path, init);
-  }
-
-  const protectsInitialAccount = method === "GET" && path === "/dashboard" && !dashboardReadyOnce;
-  if (!protectsInitialAccount) return request(path, init);
-
-  setAccountLoadState({
-    status: "loading",
-    message: expectedSession
-      ? `Confirmando a conta de ${expectedSession.customerName}…`
-      : "Carregando os dados da conta autenticada…",
-  });
-
-  let lastResponse: Response | null = null;
-  let lastError: unknown = null;
-
-  for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
-    try {
-      let response = await request(path, init, INITIAL_DASHBOARD_TIMEOUT_MS);
-      lastResponse = response;
-
-      if (response.status === 429) {
-        if (attempt < retryDelays.length - 1) {
-          setAccountLoadState({
-            status: "loading",
-            message: "A API está ocupada. Aguardando alguns segundos antes de tentar novamente…",
-          });
-          await sleep(retryAfterMilliseconds(response, retryDelays[attempt + 1]));
-          continue;
-        }
-
-        setAccountLoadState({
-          status: "error",
-          message: "A API do RanBank ainda está limitada temporariamente. Aguarde alguns segundos e tente novamente.",
-        });
-        return response;
+    const response = method === "GET" ? await readWithRetry(path, init) : await request(path, init);
+    if (generation !== sessionGeneration) throw new Error("A sessão mudou durante a solicitação.");
+    if (startsSession || restoresSession) await remember(response);
+    if (dashboard) {
+      if (!response.ok) throw new Error(await responseMessage(response, "Não foi possível atualizar sua conta."));
+      const body = await response.clone().json();
+      if (expectedSession && body.account !== expectedSession.accountNumber) {
+        throw new Error("A conta da sessão mudou. Saia e entre novamente para continuar com segurança.");
       }
-
-      if (response.ok && expectedSession) {
-        const dashboard = await response.clone().json().catch(() => null) as { account?: string } | null;
-        if (!dashboard || !sameAccount(dashboard.account, expectedSession.accountNumber)) {
-          const switched = await forceExpectedLogin();
-          if (switched) {
-            response = await request(path, init, INITIAL_DASHBOARD_TIMEOUT_MS);
-            lastResponse = response;
-          }
-
-          if (response.ok) {
-            const retryDashboard = await response.clone().json().catch(() => null) as { account?: string } | null;
-            if (!retryDashboard || !sameAccount(retryDashboard.account, expectedSession.accountNumber)) {
-              setAccountLoadState({
-                status: "error",
-                message: `A sessão retornou uma conta diferente de ${expectedSession.customerName}. Por segurança, o dashboard foi bloqueado.`,
-              });
-              return errorResponse("A sessão retornou uma conta diferente da que acabou de ser autenticada.");
-            }
-          }
-        }
-      }
-
-      if (response.ok) {
-        dashboardReadyOnce = true;
-        setAccountLoadState({ status: "ready", message: "" });
-        return response;
-      }
-
-      if (!transientStatuses.has(response.status)) {
-        setAccountLoadState({
-          status: "error",
-          message: response.status === 401 || response.status === 403
-            ? "Sua sessão não foi reconhecida. Recarregue a página ou entre novamente."
-            : `Não foi possível carregar sua conta (erro ${response.status}).`,
-        });
-        return response;
-      }
-
-      if (attempt < retryDelays.length - 1) {
-        await sleep(retryDelays[attempt + 1]);
-      }
-    } catch (error) {
-      lastError = error;
-      if (attempt < retryDelays.length - 1) {
-        await sleep(retryDelays[attempt + 1]);
-      }
+      update("ready");
     }
+    return response;
+  } catch (error) {
+    const timeout = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+    const message = timeout ? "O servidor demorou para responder. Tente novamente em alguns segundos."
+      : error instanceof TypeError ? "Não foi possível conectar. Confira sua internet e tente novamente."
+      : error instanceof Error ? error.message : "Serviço indisponível. Tente novamente.";
+    if (dashboard && generation === sessionGeneration) update("error", message);
+    throw new Error(message, { cause: error });
   }
-
-  setAccountLoadState({
-    status: "error",
-    message: "O RanBank não conseguiu carregar sua conta agora. Tente novamente em alguns segundos.",
-  });
-
-  if (lastResponse) return lastResponse;
-  throw lastError instanceof Error ? lastError : new Error("Não foi possível carregar a conta.");
 }
 
 export async function responseMessage(response: Response, fallback: string) {
-  const body = await response.json().catch(() => ({ message: fallback }));
-  return typeof body.message === "string" ? body.message : fallback;
+  const body = await response.json().catch(() => null);
+  return typeof body?.message === "string" ? body.message : fallback;
 }

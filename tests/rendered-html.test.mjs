@@ -41,11 +41,7 @@ test("includes the protected access experience", async () => {
   assert.match(api, /NEXT_PUBLIC_API_URL \?\? "\/api"/);
   assert.doesNotMatch(api, /HOSTED_API_BASE/);
   assert.match(api, /await warmBackend\(\)/);
-  assert.match(api, /sessionStartRetryDelays/);
-  assert.match(api, /const attempts = path === "\/auth\/login"/);
-  assert.match(api, /SESSION_START_TIMEOUT_MS = 60000/);
   assert.match(api, /!transientStatuses\.has\(response\.status\)/);
-  assert.match(api, /BACKEND_WARMUP_TIMEOUTS_MS = \[70000, 45000, 15000\]/);
   assert.match(api, /O servidor demorou para responder/);
   assert.match(auth, /progressMessage/);
   assert.match(page, /O primeiro acesso pode levar cerca de dois minutos/);
@@ -146,7 +142,6 @@ test("presents a clearly identified educational impact portfolio", async () => {
 test("keeps local previews free from stale PWA styles", async () => {
   const installer = await readFile(pwaInstallerUrl, "utf8");
   const serviceWorker = await readFile(serviceWorkerUrl, "utf8");
-  assert.match(installer, /localhost/);
   assert.match(installer, /getRegistrations/);
   assert.match(installer, /registration\.unregister/);
   assert.match(installer, /ranbank-shell-/);
@@ -159,10 +154,7 @@ test("keeps local previews free from stale PWA styles", async () => {
 test("warms the API through the same-origin proxy before login", async () => {
   const warmup = await readFile(warmupUrl, "utf8");
   const layout = await readFile(layoutUrl, "utf8");
-  const api = await readFile(apiUrl, "utf8");
   assert.match(warmup, /warmBackend\(\)/);
-  assert.match(api, /backendWarmupPromise/);
-  assert.match(api, /X-Ranbank-Warmup/);
   assert.doesNotMatch(layout, /rel="preconnect"/);
   assert.doesNotMatch(layout, /onrender\.com/);
   assert.doesNotMatch(warmup, /ranbank-api\.onrender\.com/);

@@ -6,3 +6,10 @@ dist
 .env
 .env.*
 backend
+
+.m2
+.runtime
+.wrangler
+.neon
+*.log
+HANDOFF_CODEX.md

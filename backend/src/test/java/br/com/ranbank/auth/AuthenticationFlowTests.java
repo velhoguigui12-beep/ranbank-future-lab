@@ -35,6 +35,15 @@ class AuthenticationFlowTests {
     }
 
     @Test
+    void failedLoginDoesNotDestroyExistingSession() throws Exception {
+        Cookie session = login();
+        mockMvc.perform(post("/api/auth/login").cookie(session).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"identification\":\"12345678909\",\"pin\":\"9999\"}"))
+            .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/auth/session").cookie(session)).andExpect(status().isOk());
+    }
+
+    @Test
     void rejectsWrongAccessPin() throws Exception {
         mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"identification\":\"12345678909\",\"pin\":\"9999\"}"))
@@ -44,7 +53,7 @@ class AuthenticationFlowTests {
 
     @Test
     void authenticatesWithCpfAccountNumberOrEmail() throws Exception {
-        for (String identification : new String[] {"12345678909", "1234-5", "ana@ranbank.demo"}) {
+        for (String identification : new String[] {"12345678909", "1234-5", "12345", "ana@ranbank.demo"}) {
             mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                     .content("{\"identification\":\"" + identification + "\",\"pin\":\"2580\"}"))
                 .andExpect(status().isOk())

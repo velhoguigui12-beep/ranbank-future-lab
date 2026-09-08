@@ -4,6 +4,7 @@ import br.com.ranbank.auth.AuthenticationService;
 import br.com.ranbank.pix.PixKey;
 import br.com.ranbank.pix.PixKeyRepository;
 import jakarta.servlet.http.Cookie;
+import br.com.ranbank.auth.SessionCookies;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -45,7 +46,6 @@ public class DemoAccountController {
     @Transactional
     public ResponseEntity<AccountCreatedResponse> create(@Valid @RequestBody CreateDemoAccountRequest body,
                                                           HttpServletRequest request) {
-        invalidateIncomingSession(request);
 
         String document = digits(body.documentId());
         String email = body.email().trim().toLowerCase(Locale.ROOT);
@@ -72,6 +72,7 @@ public class DemoAccountController {
         pixKeys.save(new PixKey(accountId, "PHONE", phoneNumber, formatPhone(phoneNumber)));
 
         AuthenticationService.LoginResult session = authentication.login(document, body.accessPin());
+        invalidateIncomingSession(request);
         ResponseCookie cookie = sessionCookie(session.token(), authentication.sessionDuration(), request);
         return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(new AccountCreatedResponse(accountId, account.getCustomerName(), accountNumber, email,
@@ -100,14 +101,7 @@ public class DemoAccountController {
     }
 
     private ResponseCookie sessionCookie(String value, Duration maxAge, HttpServletRequest request) {
-        boolean secure = request.isSecure() || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
-        return ResponseCookie.from(AuthenticationService.SESSION_COOKIE, value)
-            .httpOnly(true)
-            .secure(secure)
-            .sameSite(secure ? "Strict" : "Lax")
-            .path("/api")
-            .maxAge(maxAge)
-            .build();
+        return SessionCookies.create(value, maxAge, request);
     }
 
     private static String digits(String value) { return value == null ? "" : value.replaceAll("\\D", ""); }

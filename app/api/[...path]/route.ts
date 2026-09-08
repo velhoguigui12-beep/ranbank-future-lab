@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.RANBANK_BACKEND_URL?.trim().replace(/\/$/, "") ?? "";
+const BACKEND_URL = (process.env.RANBANK_BACKEND_URL?.trim() || (process.env.NODE_ENV === "development" ? "http://localhost:8080/api" : "")).replace(/\/$/, "");
 const PROXY_SECRET = process.env.RANBANK_PROXY_SECRET?.trim() ?? "";
 const UPSTREAM_TIMEOUT_MS = 70000;
 
@@ -26,6 +26,7 @@ async function proxy(request: Request, context: RouteContext) {
   targetUrl.search = incomingUrl.search;
 
   const headers = new Headers(request.headers);
+  for (const name of ["connection", "origin", "referer", "forwarded", "x-forwarded-for", "x-forwarded-host", "x-forwarded-port", "x-real-ip", "cf-connecting-ip", "accept-encoding"]) headers.delete(name);
   headers.delete("host");
   headers.delete("content-length");
   headers.delete("x-ranbank-proxy-secret");
@@ -88,16 +89,18 @@ async function proxy(request: Request, context: RouteContext) {
 
     const responseHeaders = new Headers();
     for (const name of [
-      "content-type", "cache-control", "set-cookie", "location", "content-security-policy",
+      "content-type", "cache-control", "location", "content-security-policy",
       "permissions-policy", "referrer-policy", "strict-transport-security", "x-content-type-options",
       "x-frame-options", "retry-after", "ratelimit-limit", "ratelimit-remaining", "ratelimit-reset",
     ]) {
       const value = upstream.headers.get(name);
       if (value) responseHeaders.set(name, value);
     }
+    for (const cookie of upstream.headers.getSetCookie()) responseHeaders.append("set-cookie", cookie);
+    responseHeaders.set("cache-control", "no-store");
     responseHeaders.set("x-ranbank-upstream-status", String(upstream.status));
 
-    return new Response(upstream.body, {
+    return new Response(contentType.includes("text/event-stream") ? upstream.body : (upstream.status === 204 || upstream.status === 205 || upstream.status === 304 ? null : await upstream.arrayBuffer()), {
       status: upstream.status,
       statusText: upstream.statusText,
       headers: responseHeaders,

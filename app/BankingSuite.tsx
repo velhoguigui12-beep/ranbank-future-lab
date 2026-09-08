@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-static-element-interactions, @next/next/no-img-element -- Modal backdrops intentionally handle pointer dismissal; Vinext serves these local decorative images directly. */
 
+import { apiFetch } from "./bank/api";
 import { useEffect, useMemo, useState } from "react";
 import { sortTransactionsNewestFirst, transactionDescription, type TransactionView } from "./bank/transactionFormatting";
 
@@ -35,13 +36,7 @@ const parseMoneyInput = (value: string) => {
   if (/^\d{1,3}(\.\d{3})+$/.test(compact)) return Number(compact.replace(/\./g, ""));
   return Number(compact);
 };
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api";
-const bankFetch = (path: string, init: RequestInit = {}) =>
-  fetch(`${API_BASE}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...(init.headers ?? {}) },
-  });
+const bankFetch = (path: string, init: RequestInit = {}) => apiFetch(path, { ...init, headers: { "Content-Type": "application/json", ...init.headers } });
 
 const tabLabels: Array<{ id: BankingTab; icon: string; label: string }> = [
   { id: "statement", icon: "↕", label: "Extrato" },
@@ -72,6 +67,7 @@ export default function BankingSuite({
   const [success, setSuccess] = useState("");
   const [receipt, setReceipt] = useState<Receipt | StatementItem | null>(null);
   const [search, setSearch] = useState("");
+  const [period, setPeriod] = useState({ from: "", to: "" });
   const [statementType, setStatementType] = useState<"all" | "credit" | "debit">("all");
   const [bill, setBill] = useState({ barcode: "", payee: "", amount: "", pin: "" });
   const [schedule, setSchedule] = useState({ pixKey: "", amount: "", date: "", pin: "" });
@@ -107,9 +103,23 @@ export default function BankingSuite({
     return sortTransactionsNewestFirst(overview?.statement ?? []).filter((item) => {
       const matchesType = statementType === "all" || item.type === statementType;
       const matchesTerm = !term || `${item.title} ${item.detail}`.toLocaleLowerCase("pt-BR").includes(term);
-      return matchesType && matchesTerm;
+      const date = item.occurredAt ? new Date(item.occurredAt) : null;
+      const matchesDate = (!period.from || (date !== null && date >= new Date(`${period.from}T00:00:00`)))
+        && (!period.to || (date !== null && date <= new Date(`${period.to}T23:59:59.999`)));
+      return matchesType && matchesTerm && matchesDate;
     });
-  }, [overview, search, statementType]);
+  }, [overview, search, statementType, period]);
+
+  const exportStatement = () => {
+    const cell = (value: string) => '"' + value.replace(/^[=+@-]/, "'  const perform = async").replaceAll('"', '""') + '"';
+    const rows = [["Data", "Descrição", "Detalhe", "Tipo", "Valor (BRL)"], ...statement.map(item => [
+      item.occurredAt ? new Date(item.occurredAt).toLocaleString("pt-BR") : "", item.title, item.detail,
+      item.type === "credit" ? "Entrada" : "Saída", (item.type === "credit" ? Math.abs(item.amount) : -Math.abs(item.amount)).toFixed(2).replace(".", ","),
+    ])];
+    const url = URL.createObjectURL(new Blob(["\uFEFF" + rows.map(row => row.map(value => cell(value ?? "")).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a"); link.href = url; link.download = "extrato-ranbank.csv"; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   const perform = async (path: string, method: string, body?: unknown, message?: string) => {
     setWorking(true);
@@ -167,19 +177,19 @@ export default function BankingSuite({
   return (
     <div className={embedded ? "banking-page" : "banking-backdrop"} onMouseDown={embedded ? undefined : onClose}>
       <section className="banking-suite" role={embedded ? undefined : "dialog"} aria-modal={embedded ? undefined : true} aria-label={embedded ? (tab === "card" ? "Gerenciar cartões" : "Movimentações da conta") : undefined} aria-labelledby={embedded ? undefined : "banking-title"} onMouseDown={(event) => event.stopPropagation()}>
-        {!embedded && <><header className="banking-header">
+        {!embedded && <header className="banking-header">
           <div><span>SERVIÇOS BANCÁRIOS</span><h2 id="banking-title">Central financeira</h2></div>
           <div className="banking-balance"><small>Disponível</small><strong>{money.format(overview?.balance ?? 0)}</strong></div>
           <button onClick={onClose} aria-label="Fechar central financeira">×</button>
-        </header>
+        </header>}
 
-        <nav className="banking-tabs" aria-label="Serviços bancários">
-          {tabLabels.map((item) => (
+        {(!embedded || (initialTab !== "card" && initialTab !== "statement")) && <nav className="banking-tabs" aria-label="Serviços bancários">
+          {tabLabels.filter(item => !embedded || (item.id !== "card" && item.id !== "statement")).map((item) => (
             <button key={item.id} className={tab === item.id ? "active" : ""} onClick={() => { setTab(item.id); setError(""); setSuccess(""); }}>
               <b>{item.icon}</b><span>{item.label}</span>
             </button>
           ))}
-        </nav></>}
+        </nav>}
 
         <div className="banking-content">
           {loading && !overview ? <div className="banking-loading"><i/><p>Carregando sua central financeira…</p></div> : null}
@@ -190,11 +200,12 @@ export default function BankingSuite({
             <div className="statement-view">
               <div className="banking-section-heading"><div><span>MOVIMENTAÇÕES</span><h3>Extrato completo</h3></div><b>{overview.statement.length} lançamentos</b></div>
               <div className="statement-tools">
-                <label><span>⌕</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nome ou descrição" /></label>
+                <label><span>⌕</span><input aria-label="Buscar movimentações" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nome ou descrição" /></label>
                 <div>{(["all", "credit", "debit"] as const).map((type) => <button key={type} className={statementType === type ? "active" : ""} onClick={() => setStatementType(type)}>{type === "all" ? "Todos" : type === "credit" ? "Entradas" : "Saídas"}</button>)}</div>
               </div>
+              <div className="statement-period"><label>De<input type="date" value={period.from} max={period.to || undefined} onChange={event => setPeriod({ ...period, from: event.target.value })}/></label><label>Até<input type="date" min={period.from || undefined} value={period.to} onChange={event => setPeriod({ ...period, to: event.target.value })}/></label><button onClick={() => { setSearch(""); setPeriod({ from: "", to: "" }); setStatementType("all"); }}>Limpar filtros</button><button onClick={exportStatement} disabled={!statement.length}>Exportar extrato</button></div>
               <div className="statement-summary">
-                <article><span>Entradas</span><strong className="positive">{money.format(overview.statement.filter((item) => item.type === "credit").reduce((sum, item) => sum + Math.abs(item.amount), 0))}</strong></article>
+                <article><span>Entradas</span><strong className="positive">{money.format(statement.filter((item) => item.type === "credit").reduce((sum, item) => sum + Math.abs(item.amount), 0))}</strong></article>
                 <article><span>Saídas</span><strong>{money.format(overview.statement.filter((item) => item.type === "debit").reduce((sum, item) => sum + Math.abs(item.amount), 0))}</strong></article>
                 <article><span>Saldo atual</span><strong>{money.format(overview.balance)}</strong></article>
               </div>
