@@ -27,6 +27,19 @@ Aplicação acadêmica que combina uma interface bancária com módulos interati
 
 ## Executar localmente
 
+Use Node.js 22.13 ou superior e Java 21 (confira com `node --version` e
+`java -version`). Se houver mais de um Java instalado, configure `JAVA_HOME`
+para o JDK 21 e adicione seu diretório `bin` ao `Path` do terminal do backend.
+
+Crie `.env.local` na raiz com a configuração local do frontend:
+
+```text
+NEXT_PUBLIC_API_URL=/api
+RANBANK_BACKEND_URL=http://localhost:8080/api
+```
+
+O backend usa H2 local por padrão, sem precisar configurar PostgreSQL.
+
 Backend:
 
 ```powershell
@@ -42,6 +55,11 @@ npm run dev
 ```
 
 Abra `http://localhost:3000`.
+
+Se as dependências já estiverem instaladas e o comando `npm` não estiver no
+`Path`, o frontend também pode iniciar com `node node_modules/vinext/dist/cli.js dev`.
+A integração da Cloudflare é ativada nos builds e no script
+`deploy:cloudflare`. O desenvolvimento local usa o servidor Node.js.
 
 ## Rotas públicas
 

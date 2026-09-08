@@ -92,7 +92,7 @@ test("uses full pages for account, cards and security", async () => {
   assert.match(page, /setScreen\("cards"\)/);
   assert.match(page, /setScreen\("security"\)/);
   assert.match(sections, /AccountSectionPage/);
-  assert.match(sections, /CardsSectionPage/);
+  assert.match(page, /<BankingSuite key={screen} open embedded/);
   assert.match(sections, /SecuritySectionPage/);
 });
 
@@ -192,7 +192,7 @@ test("shows the Ecocard artwork in the card control panel", async () => {
   const bankingSuite = await readFile(bankingSuiteUrl, "utf8");
   const sections = await readFile(bankSectionPagesUrl, "utf8");
   assert.match(bankingSuite, /ecocard-suite-face/);
-  assert.match(bankingSuite, /ranbank-ecocard-reference\.jpeg/);
-  assert.match(bankingSuite, /Cartão Eco RanBank sustentável/);
-  assert.match(sections, /ranbank-ecocard-reference\.jpeg/);
+  assert.match(bankingSuite, /ranbank-ecocard-face\.png/);
+  assert.match(bankingSuite, /Frente ilustrativa do cartão Eco RanBank/);
+  assert.doesNotMatch(sections, /ranbank-ecocard-reference\.jpeg/);
 });

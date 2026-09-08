@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- The Ecocard artwork is a local presentation asset. */
 
 import { sortTransactionsNewestFirst, transactionDescription, type TransactionView } from "./transactionFormatting";
 
@@ -37,15 +36,6 @@ export function AccountSectionPage({ data, onStatement }: { data: AccountData; o
         <header><div><span>MOVIMENTAÇÕES</span><h2>Mais recentes</h2></div><button onClick={onStatement}>Ver extrato completo</button></header>
         <div>{transactions.map((transaction) => <article key={transaction.id}><i className={transaction.type}>{transaction.type === "credit" ? "↓" : "↑"}</i><div><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></div><b className={transaction.type}>{transaction.type === "credit" ? "+ " : "- "}{money.format(Math.abs(transaction.amount))}</b></article>)}</div>
       </section>
-    </div>
-  );
-}
-
-export function CardsSectionPage() {
-  return (
-    <div className="bank-section-page cards-section-page">
-      <header className="bank-section-heading"><span>ECOCARD RANBANK</span><h1>Meu cartão</h1><p>Cartão sustentável desenvolvido com materiais de origem consciente.</p></header>
-      <figure className="ecocard-page-art"><img src="/images/ranbank-ecocard-reference.jpeg" alt="Cartão Eco RanBank sustentável em frente à agência de Brasília" /></figure>
     </div>
   );
 }

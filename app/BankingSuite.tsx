@@ -53,11 +53,13 @@ const tabLabels: Array<{ id: BankingTab; icon: string; label: string }> = [
 
 export default function BankingSuite({
   open,
+  embedded = false,
   initialTab,
   onClose,
   onChanged,
 }: {
   open: boolean;
+  embedded?: boolean;
   initialTab: BankingTab;
   onClose: () => void;
   onChanged: () => void;
@@ -163,9 +165,9 @@ export default function BankingSuite({
   };
 
   return (
-    <div className="banking-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="banking-suite" role="dialog" aria-modal="true" aria-labelledby="banking-title" onMouseDown={(event) => event.stopPropagation()}>
-        <header className="banking-header">
+    <div className={embedded ? "banking-page" : "banking-backdrop"} onMouseDown={embedded ? undefined : onClose}>
+      <section className="banking-suite" role={embedded ? undefined : "dialog"} aria-modal={embedded ? undefined : true} aria-label={embedded ? (tab === "card" ? "Gerenciar cartões" : "Movimentações da conta") : undefined} aria-labelledby={embedded ? undefined : "banking-title"} onMouseDown={(event) => event.stopPropagation()}>
+        {!embedded && <><header className="banking-header">
           <div><span>SERVIÇOS BANCÁRIOS</span><h2 id="banking-title">Central financeira</h2></div>
           <div className="banking-balance"><small>Disponível</small><strong>{money.format(overview?.balance ?? 0)}</strong></div>
           <button onClick={onClose} aria-label="Fechar central financeira">×</button>
@@ -177,7 +179,7 @@ export default function BankingSuite({
               <b>{item.icon}</b><span>{item.label}</span>
             </button>
           ))}
-        </nav>
+        </nav></>}
 
         <div className="banking-content">
           {loading && !overview ? <div className="banking-loading"><i/><p>Carregando sua central financeira…</p></div> : null}
@@ -233,10 +235,10 @@ export default function BankingSuite({
 
           {tab === "card" && overview && (
             <div className="card-center">
-              <div className={`suite-card ecocard-suite ${overview.card.blocked ? "blocked" : ""}`}><img className="ecocard-suite-face" src="/images/ranbank-ecocard-reference.jpeg" alt="Cartão Eco RanBank sustentável em frente à agência de Brasília"/>{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div>
+              <div className="card-presentation"><div className={`suite-card ecocard-suite ${overview.card.blocked ? "blocked" : ""}`}><img className="ecocard-suite-face" src="/images/ranbank-ecocard-face.png" alt="Frente ilustrativa do cartão Eco RanBank"/>{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div><div className="card-account-data"><span className={overview.card.blocked ? "card-status blocked" : "card-status"}>{overview.card.blocked ? "Bloqueado temporariamente" : "Cartão ativo"}</span><h3>EcoCard RanBank</h3><dl><div><dt>Titular</dt><dd>{overview.customerName}</dd></div><div><dt>Número do cartão</dt><dd>•••• •••• •••• {overview.cardLastFour}</dd></div><div><dt>Modalidade</dt><dd>Cartão demonstrativo</dd></div></dl><small>A imagem é ilustrativa. Os dados da sua conta estão acima.</small></div></div>
               <div className="card-control-panel">
                 <div className="card-numbers"><article><span>Fatura atual</span><strong>{money.format(overview.card.spent)}</strong></article><article><span>Limite disponível</span><strong>{money.format(overview.card.available)}</strong></article></div>
-                <div className="limit-meter"><span><i style={{ width: `${Math.min(100, overview.card.spent / overview.card.limit * 100)}%` }}/></span><small>{money.format(overview.card.spent)} usados de {money.format(overview.card.limit)}</small></div>
+                <div className="limit-meter"><span><i style={{ width: `${Math.min(100, overview.card.spent / Math.max(overview.card.limit, 1) * 100)}%` }}/></span><small>{money.format(overview.card.spent)} usados de {money.format(overview.card.limit)}</small></div>
                 <button className={overview.card.blocked ? "card-unblock" : "card-block"} disabled={working} onClick={() => perform("/banking/card/toggle", "PATCH", undefined, overview.card.blocked ? "Cartão desbloqueado." : "Cartão bloqueado temporariamente.")}>{overview.card.blocked ? "Desbloquear cartão" : "Bloquear temporariamente"}</button>
                 <form onSubmit={async (event) => { event.preventDefault(); const ok = await perform("/banking/card/limit", "PUT", { limit: parseMoneyInput(limit.value), transactionPin: limit.pin }, "Novo limite definido."); if (ok) setLimit({ value: "", pin: "" }); }}>
                   <h4>Ajustar limite</h4>
