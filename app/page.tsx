@@ -925,13 +925,14 @@ export default function Home() {
 
       <section className="workspace bank-workspace-v2">
         <header className="topbar bank-topbar-v2">
-          <div className="bank-mobile-brand"><img src="/ranbank-logo.jpeg" alt=""/><strong>RanBank</strong></div>
+          <button type="button" className="bank-mobile-brand" onClick={() => { setScreen("dashboard"); setUtilityPanel(null); }} aria-label="Voltar ao início do RanBank"><img src="/ranbank-logo.jpeg" alt=""/><strong>RanBank</strong></button>
           <div className="bank-context">
             <small>CONTA DIGITAL</small>
             <strong>Agência 0001 <i/> Conta {data.account}</strong>
           </div>
           <div className="bank-demo-chip"><BankIcon name="spark" size={15}/><span><b>Demonstração Senac</b><small>Dados 100% fictícios</small></span></div>
           <div className="top-actions">
+            <button type="button" className="bank-mobile-logout" onClick={logout} aria-label="Sair com segurança"><BankIcon name="logout" size={17}/><span>Sair</span></button>
             <button className="theme-toggle" type="button" onClick={toggleBankTheme} aria-label={bankTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={bankTheme === "dark"} title={bankTheme === "dark" ? "Modo claro" : "Modo escuro"}><BankIcon name={bankTheme === "dark" ? "sun" : "moon"} /></button>
             <button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações"><BankIcon name="bell" />{notifications.some((item) => !item.read) && <i/>}</button>
             <button className="avatar" onClick={() => setScreen("account")} aria-label={`Abrir conta de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button>
