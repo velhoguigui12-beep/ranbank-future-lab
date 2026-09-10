@@ -223,3 +223,20 @@ test("shows the Ecocard artwork in the card control panel", async () => {
   assert.match(bankingSuite, /Frente ilustrativa do cartão Eco RanBank/);
   assert.doesNotMatch(sections, /ranbank-ecocard-reference\.jpeg/);
 });
+
+test("introduces Ran as the bank assistant without exposing the concept sheet", async () => {
+  const page = await readFile(pageUrl, "utf8");
+  assert.match(page, /Fale com a Ran/);
+  assert.match(page, /ran-assistente-v1\.png/);
+  assert.match(page, /Eu sou a Ran/);
+  assert.match(page, /bank-ran-card-v2/);
+  assert.doesNotMatch(page, /ran-mascote-conceito-v1\.png/);
+});
+
+test("uses Ran as a guide in public help and security", async () => {
+  const publicSite = await readFile(publicSiteUrl, "utf8");
+  assert.match(publicSite, /rb-ran-faq-help/);
+  assert.match(publicSite, /Falar com a Ran/);
+  assert.match(publicSite, /rb-ran-security-guide/);
+  assert.match(publicSite, /CONSELHO DA RAN/);
+});

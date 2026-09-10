@@ -651,9 +651,14 @@ export function PublicHome() {
               </details>
             ))}
           </div>
-          <div className="rb-faq-help">
-            <span>Ainda precisa de ajuda?</span>
-            <a href="mailto:atendimento@ranbank.demo">Fale com o atendimento demonstrativo →</a>
+          <div className="rb-faq-help rb-ran-faq-help">
+            <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-v1.png" alt="" /></span>
+            <div>
+              <small>CONHEÇA A RAN</small>
+              <strong>Ainda precisa de ajuda?</strong>
+              <p>A assistente do RanBank explica o projeto, segurança e tecnologias de forma simples.</p>
+            </div>
+            <Link href="/banco">Falar com a Ran →</Link>
           </div>
         </section>
         <section className="rb-final-cta">
@@ -731,6 +736,10 @@ export function SecurityPublicPage() {
               Antes de entrar, confira o endereço. Desconfie de urgência, links
               encurtados e contatos que pedem instalação de aplicativos.
             </p>
+            <aside className="rb-ran-security-guide">
+              <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-v1.png" alt="" /></span>
+              <div><small>CONSELHO DA RAN</small><strong>Segurança começa antes do login.</strong><p>Digite o endereço diretamente e nunca compartilhe códigos de acesso.</p></div>
+            </aside>
           </div>
           <div>
             <article>
