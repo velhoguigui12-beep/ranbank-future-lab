@@ -8,6 +8,7 @@ const apiUrl = new URL("../app/bank/api.ts", import.meta.url);
 const masksUrl = new URL("../app/bank/inputMasks.ts", import.meta.url);
 const publicSiteUrl = new URL("../app/PublicSiteGate.tsx", import.meta.url);
 const projectsUrl = new URL("../app/ProjectsPublicPage.tsx", import.meta.url);
+const organizationUrl = new URL("../app/OrganizationPublicPage.tsx", import.meta.url);
 const pwaInstallerUrl = new URL("../app/PwaInstaller.tsx", import.meta.url);
 const serviceWorkerUrl = new URL("../public/sw.js", import.meta.url);
 const warmupUrl = new URL("../app/BackendWarmup.tsx", import.meta.url);
@@ -64,6 +65,12 @@ test("offers a persistent, accessible dark mode across the bank", async () => {
   assert.match(theme, /ranbank-balance-logo-flat\.jpeg/);
   assert.match(theme, /background-blend-mode:lighten,normal/);
   assert.match(theme, /quick-actions span\{color:#79b8ff!important;background:transparent!important\}/);
+});
+
+test("keeps technology status cards readable in dark mode", async () => {
+  const bankV2 = await readFile(new URL("../app/bank-v2.css", import.meta.url), "utf8");
+  assert.match(bankV2, /data-bank-theme="dark".*bank-tech-signals-v2 article/);
+  assert.match(bankV2, /bank-tech-signals-v2 strong\{color:#f0f5fb!important\}/);
 });
 
 test("requires a separate four-digit password before sending Pix", async () => {
@@ -139,6 +146,33 @@ test("presents a clearly identified educational impact portfolio", async () => {
   assert.doesNotMatch(projects, /ranbank-demonstracao-03\.mp4/);
 });
 
+test("shows public vision, values, FAQ and a project-wide non-commercial seal", async () => {
+  const publicSite = await readFile(publicSiteUrl, "utf8");
+  const layout = await readFile(layoutUrl, "utf8");
+  assert.match(publicSite, /Visão e valores/);
+  assert.match(publicSite, /Dúvidas frequentes/);
+  assert.match(publicSite, /O RanBank é uma instituição financeira real\?/);
+  assert.match(publicSite, /id="visao-valores"/);
+  assert.match(publicSite, /id="duvidas"/);
+  assert.match(layout, /Sem valor comercial/);
+  assert.match(layout, /rb-noncommercial-seal/);
+});
+
+test("provides an interactive organization chart with role profiles", async () => {
+  const publicSite = await readFile(publicSiteUrl, "utf8");
+  const organization = await readFile(organizationUrl, "utf8");
+  assert.match(publicSite, /href="\/organograma"/);
+  assert.match(organization, /ESTRUTURA ORGANIZACIONAL/);
+  assert.match(organization, /Presidente \/ CEO/);
+  assert.match(organization, /Ouvidora-Geral/);
+  assert.match(organization, /Vice-Presidente/);
+  assert.match(organization, /Desenvolvedor \/ Analista de TI/);
+  assert.match(organization, /Assistente \/ Analista de RH/);
+  assert.match(organization, /selectedId/);
+  assert.match(organization, /PROFISSIONAL RESPONSÁVEL/);
+  assert.match(organization, /PRINCIPAIS RESPONSABILIDADES/);
+});
+
 test("keeps local previews free from stale PWA styles", async () => {
   const installer = await readFile(pwaInstallerUrl, "utf8");
   const serviceWorker = await readFile(serviceWorkerUrl, "utf8");
@@ -147,6 +181,7 @@ test("keeps local previews free from stale PWA styles", async () => {
   assert.match(installer, /ranbank-shell-/);
   assert.match(serviceWorker, /ranbank-shell-v4/);
   assert.match(serviceWorker, /"\/projetos"/);
+  assert.match(serviceWorker, /"\/organograma"/);
   assert.match(serviceWorker, /css\|js\|woff/);
   assert.match(serviceWorker, /cache\.put\(request, copy\)/);
 });

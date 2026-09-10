@@ -916,11 +916,6 @@ export default function Home() {
           <button className={screen === "lab" ? "active" : ""} onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span> Future Lab</button>
         </nav>
 
-        <div className="bank-sidebar-footer">
-          <button onClick={() => setAssistantOpen(true)}><BankIcon name="help" size={18}/> Central de ajuda</button>
-          <button onClick={logout}><BankIcon name="logout" size={18}/> Sair com segurança</button>
-          <div><i/><span><strong>Ambiente protegido</strong><small>Último acesso: hoje, 08:42</small></span></div>
-        </div>
       </aside>
 
       <section className="workspace bank-workspace-v2">
@@ -935,7 +930,7 @@ export default function Home() {
             <button type="button" className="bank-mobile-logout" onClick={logout} aria-label="Sair com segurança"><BankIcon name="logout" size={17}/><span>Sair</span></button>
             <button className="theme-toggle" type="button" onClick={toggleBankTheme} aria-label={bankTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={bankTheme === "dark"} title={bankTheme === "dark" ? "Modo claro" : "Modo escuro"}><BankIcon name={bankTheme === "dark" ? "sun" : "moon"} /></button>
             <button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações"><BankIcon name="bell" />{notifications.some((item) => !item.read) && <i/>}</button>
-            <button className="avatar" onClick={() => setScreen("account")} aria-label={`Abrir conta de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button>
+            <button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Abrir perfil de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button>
           </div>
         </header>
 
@@ -1143,4 +1138,3 @@ export default function Home() {
     </main>
   );
 }
-

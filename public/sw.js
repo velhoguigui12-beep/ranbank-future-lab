@@ -1,5 +1,5 @@
 const CACHE = "ranbank-shell-v4";
-const SHELL = ["/", "/banco", "/instituto", "/projetos", "/offline.html", "/favicon.svg", "/ranbank-logo.jpeg"];
+const SHELL = ["/", "/banco", "/instituto", "/projetos", "/organograma", "/offline.html", "/favicon.svg", "/ranbank-logo.jpeg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -15,6 +15,7 @@ import "./public-site.css";
 import "./account-load-guard.css";
 import "./pwa-install.css";
 import "./projects-impact.css";
+import "./organization-chart.css";
 import "./bank-theme.css";
 import "./bank-v2.css";
 import "./bank-section-pages.css";
@@ -29,5 +30,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="pt-BR"><head><meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="theme-color" content="#061a33"/></head><body className={geist.variable}><InstitutionalExperience /><PublicSiteGate /><BackendWarmup />{children}<AccountLoadGuard /><PwaInstaller /></body></html>;
+  return <html lang="pt-BR"><head><meta name="referrer" content="strict-origin-when-cross-origin"/><meta name="theme-color" content="#061a33"/></head><body className={geist.variable}><InstitutionalExperience /><PublicSiteGate /><BackendWarmup />{children}<AccountLoadGuard /><PwaInstaller /><aside className="rb-noncommercial-seal" role="note" aria-label="Projeto demonstrativo, sem valor comercial"><span>Projeto demonstrativo</span><strong>Sem valor comercial</strong></aside></body></html>;
 }

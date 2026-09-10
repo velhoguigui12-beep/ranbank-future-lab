@@ -6,6 +6,13 @@ html, body { margin:0; min-height:100%; }
 body { background:var(--paper); color:var(--ink); font-family:var(--font-geist), Arial, sans-serif; }
 button { font:inherit; }
 
+/* Identificação permanente do caráter educacional em todas as telas. */
+.rb-noncommercial-seal { position:fixed;left:18px;bottom:18px;z-index:190;max-width:230px;padding:9px 13px;display:grid;gap:2px;border:1px solid #78b9ff80;border-radius:11px;color:#eaf5ff;background:#061a33e8;box-shadow:0 10px 30px #00102a42;backdrop-filter:blur(10px);pointer-events:none;text-transform:uppercase; }
+.rb-noncommercial-seal span { color:#8fcdf5;font-size:7px;font-weight:750;letter-spacing:.15em; }
+.rb-noncommercial-seal strong { font-size:10px;letter-spacing:.08em; }
+@media(max-width:650px) { .rb-noncommercial-seal { left:10px;bottom:76px;padding:7px 10px; }.rb-noncommercial-seal span{font-size:6px}.rb-noncommercial-seal strong{font-size:8px} }
+@media print { .rb-noncommercial-seal { position:fixed;left:auto;right:12mm;bottom:10mm;border-color:#777;color:#222;background:#fff;box-shadow:none; }.rb-noncommercial-seal span{color:#555} }
+
 /* Secure access */
 .login-shell { min-height:100vh; display:grid; grid-template-columns:minmax(0,1.15fr) minmax(430px,.85fr); background:#fff; }
 .login-visual { min-height:100vh; padding:48px clamp(40px,7vw,105px); display:flex; flex-direction:column; position:relative; overflow:hidden; color:#fff; background:radial-gradient(circle at 75% 22%,#0a73ee55,transparent 28%),linear-gradient(140deg,#020d24 5%,#062966 62%,#074ec2); }

@@ -108,6 +108,22 @@ const securityControls = [
   ],
 ];
 
+const institutionalValues = [
+  { number: "01", title: "Pessoas no centro", text: "Tecnologia e atendimento devem simplificar escolhas e respeitar cada pessoa." },
+  { number: "02", title: "Segurança por princípio", text: "Proteção, privacidade e transparência orientam cada experiência construída." },
+  { number: "03", title: "Inovação responsável", text: "O futuro só faz sentido quando combina utilidade, consciência e impacto positivo." },
+  { number: "04", title: "Simplicidade que aproxima", text: "Informação clara e jornadas acessíveis tornam a vida financeira mais leve." },
+];
+
+const frequentlyAskedQuestions = [
+  { question: "O RanBank é uma instituição financeira real?", answer: "Não. O RanBank é um projeto demonstrativo e educacional. As contas, saldos, cartões, transferências e demais operações apresentadas não têm valor comercial ou financeiro real." },
+  { question: "Preciso usar dados pessoais verdadeiros?", answer: "Não. Para conhecer a experiência, use apenas os dados fictícios indicados no ambiente de demonstração e nunca informe senhas bancárias reais." },
+  { question: "As transferências Pix movimentam dinheiro?", answer: "Não. Todas as movimentações acontecem somente dentro do ambiente simulado e servem para demonstrar fluxos de uma aplicação bancária." },
+  { question: "O que é o Ecocard RanBank?", answer: "É um conceito demonstrativo de cartão sustentável integrado ao aplicativo, criado para apresentar controles de limite, bloqueio e acompanhamento de gastos." },
+  { question: "Como meus dados de navegação são tratados?", answer: "O site usa armazenamento essencial para funcionamento, sessão e preferências. Você pode consultar os detalhes e controlar escolhas na página de Privacidade." },
+  { question: "Onde encontro ajuda sobre segurança?", answer: "A Central de Segurança explica as camadas de proteção do projeto e reúne orientações para reconhecer golpes e manter seus acessos protegidos." },
+];
+
 type PublicTheme = "light" | "dark";
 
 export function PublicHeader({ dark = false }: { dark?: boolean }) {
@@ -153,10 +169,11 @@ export function PublicHeader({ dark = false }: { dark?: boolean }) {
           <img src="/ranbank-logo.jpeg" alt="RanBank" />
         </Link>
         <nav className="rb-public-nav" aria-label="Navegação principal">
-          <Link href="/#produtos">Pra você</Link>
-          <Link href="/#solucoes">Produtos e serviços</Link>
+          <Link href="/#produtos">Produtos</Link>
+          <Link href="/#visao-valores">Visão e valores</Link>
+          <Link href="/organograma">Organograma</Link>
           <Link href="/seguranca">Segurança</Link>
-          <Link href="/#brasilia">Atendimento</Link>
+          <Link href="/#duvidas">Dúvidas frequentes</Link>
           <Link href="/instituto">Instituto RanBank</Link>
           <Link href="/projetos">Impacto & Projetos</Link>
         </nav>
@@ -186,6 +203,9 @@ export function PublicFooter() {
         <strong>RanBank</strong>
         <Link href="/banco">Acessar conta</Link>
         <Link href="/#produtos">Produtos</Link>
+        <Link href="/#visao-valores">Visão e valores</Link>
+        <Link href="/organograma">Organograma</Link>
+        <Link href="/#duvidas">Dúvidas frequentes</Link>
         <Link href="/instituto">Instituto</Link>
         <Link href="/projetos">Impacto & Projetos</Link>
       </div>
@@ -519,6 +539,27 @@ export function PublicHome() {
             </article>
           ))}
         </section>
+        <section className="rb-purpose" id="visao-valores" aria-labelledby="purpose-title">
+          <div className="rb-purpose-intro">
+            <span>NOSSO JEITO DE CONSTRUIR O FUTURO</span>
+            <h2 id="purpose-title">Visão e valores</h2>
+            <p className="rb-purpose-statement">
+              <strong>Nossa visão</strong>
+              Ser uma referência demonstrativa de como tecnologia, educação
+              financeira e sustentabilidade podem criar experiências bancárias
+              mais humanas, seguras e acessíveis.
+            </p>
+          </div>
+          <div className="rb-values-grid">
+            {institutionalValues.map((value) => (
+              <article key={value.title}>
+                <span>{value.number}</span>
+                <h3>{value.title}</h3>
+                <p>{value.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
         <section className="rb-security" id="seguranca">
           <video className="rb-security-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
             <source src="/media/ranbank-demonstracao-01.mp4" type="video/mp4" />
@@ -594,6 +635,25 @@ export function PublicHome() {
             <span>
               <b>DF</b>tecnologia em Brasília
             </span>
+          </div>
+        </section>
+        <section className="rb-faq" id="duvidas" aria-labelledby="faq-title">
+          <div className="rb-section-heading">
+            <span>CENTRAL DE AJUDA</span>
+            <h2 id="faq-title">Dúvidas frequentes</h2>
+            <p>Respostas diretas para conhecer o projeto e navegar com segurança.</p>
+          </div>
+          <div className="rb-faq-list">
+            {frequentlyAskedQuestions.map((item, index) => (
+              <details key={item.question} open={index === 0}>
+                <summary>{item.question}<span aria-hidden="true">+</span></summary>
+                <p>{item.answer}</p>
+              </details>
+            ))}
+          </div>
+          <div className="rb-faq-help">
+            <span>Ainda precisa de ajuda?</span>
+            <a href="mailto:atendimento@ranbank.demo">Fale com o atendimento demonstrativo →</a>
           </div>
         </section>
         <section className="rb-final-cta">
