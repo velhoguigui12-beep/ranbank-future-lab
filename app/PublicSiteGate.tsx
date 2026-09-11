@@ -670,7 +670,7 @@ export function PublicHome() {
             ))}
           </div>
           <div className="rb-faq-help rb-ran-faq-help">
-            <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-sem-capuz.png" alt="" /></span>
+            <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-humana.png" alt="" /></span>
             <div>
               <small>CONHEÇA A RAN</small>
               <strong>Ainda precisa de ajuda?</strong>
@@ -755,7 +755,7 @@ export function SecurityPublicPage() {
               encurtados e contatos que pedem instalação de aplicativos.
             </p>
             <aside className="rb-ran-security-guide">
-              <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-sem-capuz.png" alt="" /></span>
+              <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-humana.png" alt="" /></span>
               <div><small>CONSELHO DA RAN</small><strong>Segurança começa antes do login.</strong><p>Digite o endereço diretamente e nunca compartilhe códigos de acesso.</p></div>
             </aside>
           </div>

@@ -237,7 +237,7 @@ test("shows the Ecocard artwork in the card control panel", async () => {
 test("introduces Ran as the bank assistant without exposing the concept sheet", async () => {
   const page = await readFile(pageUrl, "utf8");
   assert.match(page, /Fale com a Ran/);
-  assert.match(page, /ran-assistente-sem-capuz\.png/);
+  assert.match(page, /ran-assistente-humana\.png/);
   assert.match(page, /Eu sou a Ran/);
   assert.match(page, /bank-ran-card-v2/);
   assert.doesNotMatch(page, /ran-mascote-conceito-v1\.png/);
