@@ -136,7 +136,7 @@ export default function ProjectsPublicPage() {
             </div>
           </div>
           <div className="impact-hero-index" aria-label="Resumo do portal">
-            <span><b>05</b> frentes de atuação</span>
+            <span><b>04</b> frentes de atuação</span>
             <span><b>04</b> referências públicas</span>
             <span><b>DF</b> ponto de partida</span>
           </div>

@@ -111,9 +111,10 @@ html[data-bank-theme="dark"] .rb-cookie-settings{color:#eef4ff!important;backgro
 html[data-bank-theme="dark"] .rb-cookie-settings>p,html[data-bank-theme="dark"] .rb-cookie-settings label small,html[data-bank-theme="dark"] .rb-cookie-option small{color:#aebed1!important}
 html[data-bank-theme="dark"] .rb-cookie-settings>label,html[data-bank-theme="dark"] .rb-cookie-option{border-color:#29415e!important}
 html[data-bank-theme="dark"] .rb-purpose,html[data-bank-theme="dark"] .rb-faq{color:#f3f7ff!important;background:#050d1a!important}
-html[data-bank-theme="dark"] .rb-purpose-statement,html[data-bank-theme="dark"] .rb-values-grid p,html[data-bank-theme="dark"] .rb-faq .rb-section-heading p,html[data-bank-theme="dark"] .rb-faq-list details>p{color:#afbed1!important}
-html[data-bank-theme="dark"] .rb-purpose-statement strong,html[data-bank-theme="dark"] .rb-values-grid h3,html[data-bank-theme="dark"] .rb-faq-list summary{color:#eef5ff!important}
-html[data-bank-theme="dark"] .rb-values-grid article{background:#0b1b31!important;border-color:#29425f!important}
+html[data-bank-theme="dark"] .rb-purpose-foundations p,html[data-bank-theme="dark"] .rb-values-heading p,html[data-bank-theme="dark"] .rb-values-grid p,html[data-bank-theme="dark"] .rb-faq .rb-section-heading p,html[data-bank-theme="dark"] .rb-faq-list details>p{color:#afbed1!important}
+html[data-bank-theme="dark"] .rb-purpose-foundations strong,html[data-bank-theme="dark"] .rb-values-grid h3,html[data-bank-theme="dark"] .rb-faq-list summary{color:#eef5ff!important}
+html[data-bank-theme="dark"] .rb-purpose-foundations article,html[data-bank-theme="dark"] .rb-values-grid article{background:#0b1b31!important;border-color:#29425f!important}
+html[data-bank-theme="dark"] .rb-purpose-commitment{border:1px solid #294968;background:#071b33!important}
 html[data-bank-theme="dark"] .rb-faq-list,html[data-bank-theme="dark"] .rb-faq-list details{border-color:#29415e!important}
 html[data-bank-theme="dark"] .rb-faq-list summary span{color:#7dbaff!important;background:#132e50!important}
 

@@ -47,7 +47,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
-            objectMapper.writeValue(response.getWriter(), Map.of("message", "Entre no Ranbank para continuar."));
+            objectMapper.writeValue(response.getWriter(), Map.of("message", "Entre no RanBank para continuar."));
             return;
         }
         response.addHeader("Set-Cookie", SessionCookies.create(cookieValue(request), authenticationService.sessionDuration(), request).toString());

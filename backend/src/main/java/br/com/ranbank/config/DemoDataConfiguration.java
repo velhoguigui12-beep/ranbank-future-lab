@@ -80,10 +80,10 @@ public class DemoDataConfiguration {
             }
             if (deviceRepository.count() == 0) {
                 deviceRepository.saveAll(List.of(
-                    new ConnectedDevice(1L, "iPhone de Ana", "Celular", "Brasília, DF", "Agora", true),
-                    new ConnectedDevice(1L, "Notebook pessoal", "Computador", "Brasília, DF", "Hoje, 20:14", true),
+                    new ConnectedDevice(1L, "iPhone de Ana", "Celular", "Brasília - DF", "Agora", true),
+                    new ConnectedDevice(1L, "Notebook pessoal", "Computador", "Brasília - DF", "Hoje, 20:14", true),
                     new ConnectedDevice(1L, "Galaxy S24", "Celular", "Taguatinga, DF", "Hoje, 03:18", false),
-                    new ConnectedDevice(1L, "Caixa eletrônico 0842", "Terminal IoT", "Asa Sul, Brasília, DF", "Ontem, 17:42", true)
+                    new ConnectedDevice(1L, "Caixa eletrônico 0842", "Terminal IoT", "Asa Sul, Brasília - DF", "Ontem, 17:42", true)
                 ));
             }
             List<BankTransaction> legacyTransactions = repository.findAll().stream()

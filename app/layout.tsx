@@ -24,9 +24,9 @@ const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "RanBank | Banco digital de Brasília para o futuro",
-  description: "Conta digital RanBank com segurança em camadas, Pix, cartões, serviços e tecnologia com referência em Brasília, DF.",
+  description: "Conta digital RanBank com segurança em camadas, Pix, cartões, serviços e tecnologia com referência em Brasília - DF.",
   icons: { icon: "/ranbank-logo.jpeg" },
-  appleWebApp: { capable: true, title: "Ranbank", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "RanBank", statusBarStyle: "black-translucent" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

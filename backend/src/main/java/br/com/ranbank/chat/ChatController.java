@@ -25,11 +25,11 @@ public class ChatController {
         String topic;
         String answer;
         if (equalsAny(normalized, "oi", "ola", "opa", "bom dia", "boa tarde", "boa noite")) {
-            topic = "Boas-vindas"; answer = "Olá! Eu sou o assistente educacional do Ranbank. Posso explicar Pix, serviços bancários, segurança digital, IA, Big Data, nuvem, Open Finance, auditoria, IoT, robótica, RA e VR. O que você quer conhecer?";
+            topic = "Boas-vindas"; answer = "Olá! Eu sou o assistente educacional do RanBank. Posso explicar Pix, serviços bancários, segurança digital, IA, Big Data, nuvem, Open Finance, auditoria, IoT, robótica, RA e VR. O que você quer conhecer?";
         } else if (equalsAny(normalized, "ajuda", "menu", "assuntos") || contains(normalized, "o que posso perguntar", "quais assuntos", "como usar o assistente")) {
-            topic = "Ajuda"; answer = "Você pode perguntar sobre Ranbank, Pix, boleto, extrato, cartão, cofrinho, golpes, autenticação, IA, Big Data, nuvem, IoT, automação, Open Finance, auditoria, sustentabilidade, robótica, RA ou VR.";
+            topic = "Ajuda"; answer = "Você pode perguntar sobre RanBank, Pix, boleto, extrato, cartão, cofrinho, golpes, autenticação, IA, Big Data, nuvem, IoT, automação, Open Finance, auditoria, sustentabilidade, robótica, RA ou VR.";
         } else if (contains(normalized, "ranbank", "projeto", "aplicacao", "site", "banco digital")) {
-            topic = "Sobre o projeto"; answer = "O Ranbank é uma aplicação acadêmica que reúne frontend React, backend Java, banco H2 e experiências interativas sobre segurança e tecnologias emergentes.";
+            topic = "Sobre o projeto"; answer = "O RanBank é uma aplicação acadêmica que reúne frontend React, backend Java, banco H2 e experiências interativas sobre segurança e tecnologias emergentes.";
         } else if (contains(normalized, "phishing", "golpe", "link suspeito", "engenharia social")) {
             topic = "Segurança"; answer = "Phishing tenta enganar a pessoa para obter senhas ou dados. Verifique remetente e domínio, evite links inesperados e nunca informe códigos de autenticação.";
         } else if (contains(normalized, "malware", "virus", "ransomware", "trojan")) {
@@ -37,7 +37,7 @@ public class ChatController {
         } else if (contains(normalized, "senha", "biometria", "autenticacao", "dois fatores", "2fa", "mfa")) {
             topic = "Autenticação"; answer = "A autenticação em camadas combina senha, biometria, dispositivo confiável e segundo fator. Se o contexto parecer suspeito, o sistema pode exigir uma verificação adicional ou bloquear o acesso.";
         } else if (contains(normalized, "pix", "chave", "transferencia", "saldo")) {
-            topic = "Pix"; answer = "No Ranbank, o backend valida CPF, telefone, e-mail ou chave aleatória, confere o saldo, registra a movimentação no H2 e atualiza o painel.";
+            topic = "Pix"; answer = "No RanBank, o backend valida CPF, telefone, e-mail ou chave aleatória, confere o saldo, registra a movimentação no H2 e atualiza o painel.";
         } else if (contains(normalized, "boleto", "codigo de barras", "pagamento")) {
             topic = "Boletos"; answer = "A Central Financeira valida código, valor, saldo e PIN transacional antes de registrar o boleto e gerar o comprovante.";
         } else if (contains(normalized, "extrato", "movimentacoes", "comprovante")) {
@@ -65,9 +65,9 @@ public class ChatController {
         } else if (contains(normalized, "automacao", "n8n", "workflow")) {
             topic = "Automação"; answer = "A automação recebe o alerta, reúne contexto, aplica regras, solicita validação humana e registra o incidente. Ela organiza a resposta, mas não substitui as defesas.";
         } else if (contains(normalized, "energia", "sustentavel", "sustentabilidade", "green it", "carbono")) {
-            topic = "Tecnologia sustentável"; answer = "Green IT é o uso responsável da tecnologia para consumir menos energia e materiais. No Ranbank, ela aparece no uso de energia solar e eólica, na otimização de servidores e nuvem, na redução de emissões e no descarte responsável de cartões e equipamentos.";
+            topic = "Tecnologia sustentável"; answer = "Green IT é o uso responsável da tecnologia para consumir menos energia e materiais. No RanBank, ela aparece no uso de energia solar e eólica, na otimização de servidores e nuvem, na redução de emissões e no descarte responsável de cartões e equipamentos.";
         } else if (contains(normalized, "robotica", "robo", "automato")) {
-            topic = "Robótica"; answer = "Robótica combina sensores, software e atuadores para perceber, decidir e agir. No Ranbank, o robô apoia recepção, acessibilidade e segurança com supervisão humana.";
+            topic = "Robótica"; answer = "Robótica combina sensores, software e atuadores para perceber, decidir e agir. No RanBank, o robô apoia recepção, acessibilidade e segurança com supervisão humana.";
         } else if (contains(normalized, "realidade aumentada", "realidade virtual", "imersiva") || hasToken(normalized, "ra") || hasToken(normalized, "vr")) {
             topic = "Tecnologias imersivas"; answer = "A realidade aumentada adiciona informação ao ambiente real; a realidade virtual cria um ambiente digital imersivo. O laboratório compara usos, equipamentos e limitações das duas.";
         } else if (contains(normalized, "comparar", "comparacao", "melhor tecnologia", "qual tecnologia")) {

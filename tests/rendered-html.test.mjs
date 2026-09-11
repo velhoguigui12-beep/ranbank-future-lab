@@ -19,6 +19,7 @@ const bankingSuiteUrl = new URL("../app/BankingSuite.tsx", import.meta.url);
 const bankSectionPagesUrl = new URL("../app/bank/BankSectionPages.tsx", import.meta.url);
 const bankSectionStylesUrl = new URL("../app/bank-section-pages.css", import.meta.url);
 const transactionFormattingUrl = new URL("../app/bank/transactionFormatting.ts", import.meta.url);
+const presentationGuideUrl = new URL("../APRESENTACAO.md", import.meta.url);
 
 test("includes the protected access experience", async () => {
   const page = await readFile(pageUrl, "utf8");
@@ -137,6 +138,7 @@ test("presents a clearly identified educational impact portfolio", async () => {
   const projects = await readFile(projectsUrl, "utf8");
   assert.match(publicSite, /Impacto & Projetos/);
   assert.match(projects, /Portal de Impacto/);
+  assert.match(projects, /<b>04<\/b> frentes de atuação/);
   assert.match(projects, /carteira\s+<strong>demonstrativa<\/strong>/i);
   assert.match(projects, /metas anuais simuladas/i);
   assert.match(projects, /Estratégia Nacional de Educação Financeira/);
@@ -146,10 +148,18 @@ test("presents a clearly identified educational impact portfolio", async () => {
   assert.doesNotMatch(projects, /ranbank-demonstracao-03\.mp4/);
 });
 
-test("shows public vision, values, FAQ and a project-wide non-commercial seal", async () => {
+test("shows the institutional identity, FAQ and a project-wide non-commercial seal", async () => {
   const publicSite = await readFile(publicSiteUrl, "utf8");
   const layout = await readFile(layoutUrl, "utf8");
-  assert.match(publicSite, /Visão e valores/);
+  const presentationGuide = await readFile(presentationGuideUrl, "utf8");
+  assert.match(publicSite, /Missão, visão e valores/);
+  assert.match(publicSite, /Transformar a relação das pessoas e empresas com o dinheiro/);
+  assert.match(publicSite, /Pessoas em primeiro lugar/);
+  assert.match(publicSite, /tecnologia é o meio\. Confiança é a base\. E o futuro é o destino/);
+  assert.match(publicSite, /Brasília - DF/);
+  assert.doesNotMatch(publicSite, /Brasília, DF/);
+  assert.match(presentationGuide, /## Identidade institucional/);
+  assert.match(presentationGuide, /### Nosso compromisso/);
   assert.match(publicSite, /Dúvidas frequentes/);
   assert.match(publicSite, /O RanBank é uma instituição financeira real\?/);
   assert.match(publicSite, /id="visao-valores"/);
@@ -220,7 +230,7 @@ test("shows the Ecocard artwork in the card control panel", async () => {
   const sections = await readFile(bankSectionPagesUrl, "utf8");
   assert.match(bankingSuite, /ecocard-suite-face/);
   assert.match(bankingSuite, /ranbank-ecocard-face\.png/);
-  assert.match(bankingSuite, /Frente ilustrativa do cartão Eco RanBank/);
+  assert.match(bankingSuite, /Frente ilustrativa do cartão Ecocard RanBank/);
   assert.doesNotMatch(sections, /ranbank-ecocard-reference\.jpeg/);
 });
 

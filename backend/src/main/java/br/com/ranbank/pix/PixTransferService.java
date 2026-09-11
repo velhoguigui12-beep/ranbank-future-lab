@@ -42,7 +42,7 @@ public class PixTransferService {
 
     public Recipient resolveRecipient(Long senderAccountId, String rawKey) {
         PixKey key = pixKeys.findByNormalizedKey(normalize(rawKey))
-            .orElseThrow(() -> new PixException("Não encontramos uma conta Ranbank para esta chave Pix."));
+            .orElseThrow(() -> new PixException("Não encontramos uma conta RanBank para esta chave Pix."));
         if (key.getAccountId().equals(senderAccountId)) {
             throw new PixException("Use uma chave Pix de outra conta.");
         }
@@ -64,7 +64,7 @@ public class PixTransferService {
 
         authentication.verifyTransactionPin(senderAccountId, transactionPin);
         PixKey destinationKey = pixKeys.findByNormalizedKey(normalize(rawKey))
-            .orElseThrow(() -> new PixException("Não encontramos uma conta Ranbank para esta chave Pix."));
+            .orElseThrow(() -> new PixException("Não encontramos uma conta RanBank para esta chave Pix."));
         Long recipientAccountId = destinationKey.getAccountId();
         if (recipientAccountId.equals(senderAccountId)) throw new PixException("Não é possível enviar Pix para a própria conta.");
 

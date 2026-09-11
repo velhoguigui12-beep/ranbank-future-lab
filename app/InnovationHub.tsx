@@ -99,7 +99,7 @@ export default function InnovationHub({ open, initialTab, onClose }: { open: boo
               <div className="innovation-lead"><span>CONSENTIMENTO E PORTABILIDADE DE DADOS</span><h3>Uma visão financeira, várias instituições.</h3><p>A cliente escolhe quais instituições podem compartilhar informações e pode revogar o acesso quando quiser.</p></div>
               <div className="finance-total"><span>Patrimônio conectado</span><strong>{money.format(connectedTotal)}</strong><small>Consentimentos válidos até {new Date(`${openFinance.consentExpires}T12:00:00`).toLocaleDateString("pt-BR")}</small></div>
               <div className="institution-list">
-                {openFinance.institutions.map((item) => <article key={item.name} className={item.connected ? "connected" : ""}><b>{item.name.slice(0, 2).toUpperCase()}</b><div><strong>{item.name}</strong><small>{item.scope}</small></div><span><strong>{item.connected ? money.format(item.balance) : "Acesso pausado"}</strong><small>{item.connected ? "Dados sincronizados" : "Sem compartilhamento"}</small></span>{item.name === "Ranbank" ? <em>PRINCIPAL</em> : <button disabled={loading} onClick={() => toggleInstitution(item.name)}>{item.connected ? "Revogar" : "Conectar"}</button>}</article>)}
+                {openFinance.institutions.map((item) => <article key={item.name} className={item.connected ? "connected" : ""}><b>{item.name.slice(0, 2).toUpperCase()}</b><div><strong>{item.name}</strong><small>{item.scope}</small></div><span><strong>{item.connected ? money.format(item.balance) : "Acesso pausado"}</strong><small>{item.connected ? "Dados sincronizados" : "Sem compartilhamento"}</small></span>{item.name === "RanBank" ? <em>PRINCIPAL</em> : <button disabled={loading} onClick={() => toggleInstitution(item.name)}>{item.connected ? "Revogar" : "Conectar"}</button>}</article>)}
               </div>
               <div className="consent-flow"><span>Cliente autoriza</span><i>→</i><span>APIs padronizadas</span><i>→</i><span>Dados consolidados</span><i>→</i><span>Consentimento revogável</span></div>
             </div>
@@ -112,7 +112,7 @@ export default function InnovationHub({ open, initialTab, onClose }: { open: boo
               <div className="ledger-chain">
                 {audit.entries.map((entry, index) => <article key={entry.block}><div><span>BLOCO {String(entry.block).padStart(2, "0")}</span><b>{entry.status}</b></div><h4>{entry.event}</h4><dl><div><dt>Hash anterior</dt><dd>{entry.previousHash}</dd></div><div><dt>Hash atual</dt><dd>{entry.hash}</dd></div></dl>{index < audit.entries.length - 1 && <i>↓</i>}</article>)}
               </div>
-              <p className="audit-note"><b>Conceito:</b> o Ranbank usa um ledger encadeado para explicar imutabilidade e rastreabilidade, princípios também usados em soluções blockchain.</p>
+              <p className="audit-note"><b>Conceito:</b> o RanBank usa um ledger encadeado para explicar imutabilidade e rastreabilidade, princípios também usados em soluções blockchain.</p>
             </div>
           )}
 

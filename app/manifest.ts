@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Ranbank Banco Digital",
-    short_name: "Ranbank",
+    name: "RanBank Banco Digital",
+    short_name: "RanBank",
     description: "Conta digital educacional com Pix, segurança e Future Lab.",
     start_url: "/banco",
     scope: "/",

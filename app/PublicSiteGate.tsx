@@ -42,7 +42,7 @@ const products = [
   {
     icon: "♧",
     title: "Atendimento",
-    text: "Canais digitais e orientação com referência em Brasília, DF.",
+    text: "Canais digitais e orientação com referência em Brasília - DF.",
     href: "#brasilia",
   },
 ];
@@ -109,10 +109,14 @@ const securityControls = [
 ];
 
 const institutionalValues = [
-  { number: "01", title: "Pessoas no centro", text: "Tecnologia e atendimento devem simplificar escolhas e respeitar cada pessoa." },
-  { number: "02", title: "Segurança por princípio", text: "Proteção, privacidade e transparência orientam cada experiência construída." },
-  { number: "03", title: "Inovação responsável", text: "O futuro só faz sentido quando combina utilidade, consciência e impacto positivo." },
-  { number: "04", title: "Simplicidade que aproxima", text: "Informação clara e jornadas acessíveis tornam a vida financeira mais leve." },
+  { number: "01", title: "Segurança", text: "Protegemos informações, recursos e relações, tratando a segurança como um compromisso permanente." },
+  { number: "02", title: "Transparência", text: "Tomamos decisões e construímos relações com clareza, ética e responsabilidade." },
+  { number: "03", title: "Inovação", text: "Utilizamos tecnologia e criatividade para transformar desafios financeiros em soluções melhores." },
+  { number: "04", title: "Excelência", text: "Buscamos qualidade, eficiência e evolução contínua em tudo o que fazemos." },
+  { number: "05", title: "Simplicidade", text: "Tornamos processos e serviços financeiros mais claros, intuitivos e acessíveis." },
+  { number: "06", title: "Confiança", text: "Construímos relações sólidas por meio de consistência, responsabilidade e cumprimento de nossos compromissos." },
+  { number: "07", title: "Responsabilidade", text: "Entendemos o impacto de nossas decisões e atuamos de maneira sustentável e consciente." },
+  { number: "08", title: "Pessoas em primeiro lugar", text: "Valorizamos clientes, colaboradores e parceiros, reconhecendo que grandes resultados são construídos por pessoas." },
 ];
 
 const frequentlyAskedQuestions = [
@@ -120,7 +124,7 @@ const frequentlyAskedQuestions = [
   { question: "Preciso usar dados pessoais verdadeiros?", answer: "Não. Para conhecer a experiência, use apenas os dados fictícios indicados no ambiente de demonstração e nunca informe senhas bancárias reais." },
   { question: "As transferências Pix movimentam dinheiro?", answer: "Não. Todas as movimentações acontecem somente dentro do ambiente simulado e servem para demonstrar fluxos de uma aplicação bancária." },
   { question: "O que é o Ecocard RanBank?", answer: "É um conceito demonstrativo de cartão sustentável integrado ao aplicativo, criado para apresentar controles de limite, bloqueio e acompanhamento de gastos." },
-  { question: "Como meus dados de navegação são tratados?", answer: "O site usa armazenamento essencial para funcionamento, sessão e preferências. Você pode consultar os detalhes e controlar escolhas na página de Privacidade." },
+  { question: "Como meus dados de navegação são tratados?", answer: "O site usa armazenamento essencial para o funcionamento, a sessão e as preferências. Você pode consultar os detalhes e controlar suas escolhas na página de Privacidade." },
   { question: "Onde encontro ajuda sobre segurança?", answer: "A Central de Segurança explica as camadas de proteção do projeto e reúne orientações para reconhecer golpes e manter seus acessos protegidos." },
 ];
 
@@ -170,7 +174,7 @@ export function PublicHeader({ dark = false }: { dark?: boolean }) {
         </Link>
         <nav className="rb-public-nav" aria-label="Navegação principal">
           <Link href="/#produtos">Produtos</Link>
-          <Link href="/#visao-valores">Visão e valores</Link>
+          <Link href="/#visao-valores">Missão, visão e valores</Link>
           <Link href="/organograma">Organograma</Link>
           <Link href="/seguranca">Segurança</Link>
           <Link href="/#duvidas">Dúvidas frequentes</Link>
@@ -196,14 +200,14 @@ export function PublicFooter() {
         <img src="/ranbank-logo.jpeg" alt="RanBank" />
         <p>
           Banco digital demonstrativo com tecnologia, segurança e atendimento
-          centrado em Brasília, DF.
+          centrado em Brasília - DF.
         </p>
       </div>
       <div>
         <strong>RanBank</strong>
         <Link href="/banco">Acessar conta</Link>
         <Link href="/#produtos">Produtos</Link>
-        <Link href="/#visao-valores">Visão e valores</Link>
+        <Link href="/#visao-valores">Missão, visão e valores</Link>
         <Link href="/organograma">Organograma</Link>
         <Link href="/#duvidas">Dúvidas frequentes</Link>
         <Link href="/instituto">Instituto</Link>
@@ -216,10 +220,10 @@ export function PublicFooter() {
         <Link href="/#brasilia">Canais de atendimento</Link>
       </div>
       <div>
-        <strong>Brasília, DF</strong>
+        <strong>Brasília - DF</strong>
         <a href="tel:+556140042028">(61) 4004-2028</a>
         <span>Atendimento demonstrativo</span>
-        <span>Segunda a sexta, 8h às 20h</span>
+        <span>De segunda a sexta, das 8h às 20h</span>
       </div>
       <small>
         © 2026 RanBank. Projeto demonstrativo — não representa uma instituição
@@ -397,7 +401,7 @@ export function PublicHome() {
               <span>→</span>
             </Link>
             <a className="secondary" href="#produtos">
-              <b>Contrate on-line</b>
+              <b>Contrate online</b>
               <span>→</span>
             </a>
             <a href="#solucoes">
@@ -452,7 +456,7 @@ export function PublicHome() {
         </section>
         <section className="rb-contract-strip" id="produtos">
           <div>
-            <span>CONTRATE ON-LINE</span>
+            <span>CONTRATE ONLINE</span>
             <h2>Soluções para cada momento da sua vida.</h2>
           </div>
           <Link href="/banco?modo=criar-conta">
@@ -541,23 +545,37 @@ export function PublicHome() {
         </section>
         <section className="rb-purpose" id="visao-valores" aria-labelledby="purpose-title">
           <div className="rb-purpose-intro">
-            <span>NOSSO JEITO DE CONSTRUIR O FUTURO</span>
-            <h2 id="purpose-title">Visão e valores</h2>
-            <p className="rb-purpose-statement">
-              <strong>Nossa visão</strong>
-              Ser uma referência demonstrativa de como tecnologia, educação
-              financeira e sustentabilidade podem criar experiências bancárias
-              mais humanas, seguras e acessíveis.
-            </p>
-          </div>
-          <div className="rb-values-grid">
-            {institutionalValues.map((value) => (
-              <article key={value.title}>
-                <span>{value.number}</span>
-                <h3>{value.title}</h3>
-                <p>{value.text}</p>
+            <span>IDENTIDADE RANBANK</span>
+            <h2 id="purpose-title">Missão, visão e valores</h2>
+            <div className="rb-purpose-foundations">
+              <article>
+                <strong>Missão</strong>
+                <p>Transformar a relação das pessoas e empresas com o dinheiro por meio de soluções financeiras seguras, inteligentes e acessíveis, combinando tecnologia, transparência e excelência para tornar cada decisão financeira mais simples e eficiente.</p>
               </article>
-            ))}
+              <article>
+                <strong>Visão</strong>
+                <p>Ser reconhecido como um dos bancos mais inovadores, confiáveis e eficientes do mercado, construindo uma instituição financeira preparada para o futuro e capaz de gerar valor para clientes, colaboradores, parceiros e para a sociedade.</p>
+              </article>
+            </div>
+            <div className="rb-purpose-commitment">
+              <span>NOSSO COMPROMISSO</span>
+              <p>No RanBank, tecnologia é o meio. Confiança é a base. E o futuro é o destino.</p>
+            </div>
+          </div>
+          <div className="rb-values-column">
+            <div className="rb-values-heading">
+              <span>VALORES</span>
+              <p>Os princípios que orientam nossas decisões, relações e experiências.</p>
+            </div>
+            <div className="rb-values-grid">
+              {institutionalValues.map((value) => (
+                <article key={value.title}>
+                  <span>{value.number}</span>
+                  <h3>{value.title}</h3>
+                  <p>{value.text}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
         <section className="rb-security" id="seguranca">
@@ -597,9 +615,9 @@ export function PublicHome() {
           </div>
           <div>
             <span>ATENDIMENTO COM REFERÊNCIA LOCAL</span>
-            <h2>Brasília em primeiro lugar. O Brasil inteiro no alcance.</h2>
+            <h2>Brasília em primeiro lugar. O Brasil inteiro ao alcance.</h2>
             <p>
-              Exemplos, contatos e experiências do RanBank usam Brasília, DF,
+              Exemplos, contatos e experiências do RanBank usam Brasília - DF
               como referência. Em análises de risco, acessos muito distantes da
               região podem exigir confirmação adicional.
             </p>
@@ -830,7 +848,7 @@ export function PrivacyPublicPage() {
               <b>Segurança</b>
               <p>
                 Sessões, tentativas, dispositivos e contexto de localização para
-                reduzir fraude.
+                reduzir fraudes.
               </p>
               <span>Finalidade: prevenção e controle</span>
             </article>
@@ -934,7 +952,7 @@ export function InstitutePublicPage() {
       <main>
         <section className="rb-institute-hero">
           <span className="rb-kicker">
-            INSTITUTO RANBANK DE TECNOLOGIA · BRASÍLIA, DF
+            INSTITUTO RANBANK DE TECNOLOGIA · BRASÍLIA - DF
           </span>
           <h1>
             Pesquisa, inovação

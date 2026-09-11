@@ -59,7 +59,7 @@ async function proxy(request: Request, context: RouteContext) {
     // of falling back to the generic "Não foi possível entrar." message.
     if (!upstream.ok && !contentType.toLowerCase().includes("application/json")) {
       const responseText = await upstream.text();
-      console.error("[Ranbank proxy] upstream non-JSON error", {
+      console.error("[RanBank proxy] upstream non-JSON error", {
         status: upstream.status,
         statusText: upstream.statusText,
         target: `${targetUrl.origin}${targetUrl.pathname}`,
@@ -76,7 +76,7 @@ async function proxy(request: Request, context: RouteContext) {
 
       return Response.json(
         {
-          message: `A API do Ranbank respondeu com erro ${status}. Tente novamente em alguns segundos.`,
+          message: `A API do RanBank respondeu com erro ${status}. Tente novamente em alguns segundos.`,
           upstreamStatus: upstream.status,
           upstreamStatusText: upstream.statusText,
         },
@@ -106,14 +106,14 @@ async function proxy(request: Request, context: RouteContext) {
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error("[Ranbank proxy] failed to reach backend", {
+    console.error("[RanBank proxy] failed to reach backend", {
       target: `${targetUrl.origin}${targetUrl.pathname}`,
       error: error instanceof Error ? error.message : String(error),
     });
 
     return Response.json(
       {
-        message: "A API do Ranbank está indisponível ou iniciando. Aguarde alguns segundos e tente novamente.",
+        message: "A API do RanBank está indisponível ou iniciando. Aguarde alguns segundos e tente novamente.",
       },
       {
         status: 503,

@@ -13,7 +13,7 @@ export default function AccountLoadGuard() {
   return (
     <div className="account-load-guard" role={state.status === "error" ? "alert" : "status"} aria-live="polite">
       <section className="account-load-card">
-        <img src="/ranbank-logo.jpeg" alt="Ranbank" />
+        <img src="/ranbank-logo.jpeg" alt="RanBank" />
         {state.status === "loading" ? (
           <>
             <i className="account-load-spinner" />

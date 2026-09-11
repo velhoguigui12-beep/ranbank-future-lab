@@ -23,7 +23,7 @@ public class InnovationController {
     @GetMapping("/open-finance")
     public OpenFinanceOverview openFinance() {
         List<Institution> institutions = List.of(
-            institution("Ranbank", "Conta principal", "8540.75", true),
+            institution("RanBank", "Conta principal", "8540.75", true),
             institution("Banco Horizonte", "Conta e cartão", "3260.40", connectedInstitutions.contains("Banco Horizonte")),
             institution("Cooperativa Cerrado", "Investimentos", "4180.00", connectedInstitutions.contains("Cooperativa Cerrado"))
         );

@@ -25,7 +25,7 @@ class AccountIsolationTests {
         transactions.save(new BankTransaction(101L, "Crédito A", "Conta A", BigDecimal.TEN, "credit"));
         transactions.save(new BankTransaction(202L, "Crédito B", "Conta B", BigDecimal.ONE, "credit"));
         ConnectedDevice deviceA = devices.save(new ConnectedDevice(
-            101L, "Celular A", "Celular", "Brasília, DF", "Agora", true
+            101L, "Celular A", "Celular", "Brasília - DF", "Agora", true
         ));
         devices.save(new ConnectedDevice(202L, "Celular B", "Celular", "Goiânia, GO", "Agora", true));
 
