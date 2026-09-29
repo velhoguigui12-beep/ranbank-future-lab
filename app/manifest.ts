@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "RanBank Banco Digital",
     short_name: "RanBank",
-    description: "Conta digital educacional com Pix, segurança e Future Lab.",
+    description: "Conta digital educacional com Pix, segurança e tecnologia explicada de forma simples.",
     start_url: "/banco",
     scope: "/",
     display: "standalone",

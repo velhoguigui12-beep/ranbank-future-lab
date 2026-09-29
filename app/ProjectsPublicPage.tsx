@@ -7,53 +7,51 @@ const projects = [
   {
     className: "is-featured",
     eyebrow: "EDUCAÇÃO FINANCEIRA",
-    title: "RanEduca — escolhas que cabem no futuro",
-    text: "Oficinas para jovens aprendizes com orçamento, crédito, prevenção a golpes, Pix e planejamento. A conta demonstrativa do RanBank transforma conceitos em uma experiência prática.",
+    title: "Educação que transforma",
+    text: "Atividades sobre orçamento, crédito, Pix, planejamento e prevenção a golpes. A conta demonstrativa ajuda a praticar o que foi aprendido.",
     audience: "Jovens e educadores",
-    format: "Oficinas + laboratório",
+    format: "Oficinas e prática",
     media: "image",
     source: "/images/ranbank-hero-ecocard.png",
     alt: "Cliente utilizando o Ecocard RanBank em um pequeno negócio",
   },
   {
-    eyebrow: "INCLUSÃO DIGITAL",
-    title: "RanConecta",
-    text: "Laboratórios itinerantes apresentam inteligência artificial, nuvem, IoT, robótica e segurança digital de forma acessível, com desafios ligados à rotina de um banco.",
-    audience: "Turmas de aprendizagem",
-    format: "Trilhas práticas",
+    eyebrow: "COMUNIDADES QUE DECIDEM",
+    title: "Apoio a iniciativas indígenas e comunitárias",
+    text: "Uma proposta de apoio financeiro e digital construída com escuta, respeito à cultura e participação das próprias comunidades nas decisões.",
+    audience: "Povos indígenas e comunidades locais",
+    format: "Escuta e construção conjunta",
     media: "video",
-    source: "/media/ranbank-demonstracao-04.mp4",
+    source: "/videos/ranbank-demonstracao-04.mp4",
     alt: "",
   },
   {
-    eyebrow: "FINANÇAS SUSTENTÁVEIS",
-    title: "EcoLab RanBank",
-    text: "Uma frente de consumo consciente que conecta o Ecocard, descarte responsável, eficiência energética e escolhas financeiras de menor impacto.",
-    audience: "Comunidade e clientes",
-    format: "Campanhas + protótipos",
+    eyebrow: "CRÉDITO COM PROPÓSITO",
+    title: "Crédito para impacto positivo",
+    text: "Um conceito de crédito com condições ligadas a projetos sociais, geração de renda e redução de impactos ambientais.",
+    audience: "Pessoas e pequenos negócios",
+    format: "Crédito demonstrativo",
     media: "image",
     source: "/images/ranbank-impact-ecocard.jpeg",
     alt: "Apresentação do Ecocard sustentável do RanBank",
   },
   {
-    eyebrow: "TECNOLOGIA ASSISTIVA",
-    title: "TechAcesso",
-    text: "Projetos de acessibilidade aplicados ao atendimento bancário, com interfaces inclusivas, protótipos de robótica e testes conduzidos com participação humana.",
-    audience: "Pessoas com deficiência",
-    format: "Cocriação + testes",
+    eyebrow: "ATENDIMENTO ACESSÍVEL",
+    title: "Um banco para todas as pessoas",
+    text: "Telas legíveis, linguagem simples e atendimento com a Ran para ajudar cada pessoa a encontrar o que precisa.",
+    audience: "Clientes com diferentes necessidades",
+    format: "Testes com participação humana",
     media: "video",
-    source: "/media/ranbank-demonstracao-02.mp4",
+    source: "/videos/ranbank-demonstracao-02.mp4",
     alt: "",
   },
 ];
 
 const selectionCriteria = [
-  ["01", "Impacto local", "Prioridade para iniciativas com vínculo com Brasília e o Distrito Federal."],
-  ["02", "Inclusão e diversidade", "Acesso real para públicos diferentes, com linguagem e recursos inclusivos."],
-  ["03", "Educação aplicável", "Conhecimento que possa ser praticado e compartilhado depois da atividade."],
-  ["04", "Tecnologia responsável", "Inovação com segurança, privacidade, acessibilidade e supervisão humana."],
-  ["05", "Sustentabilidade", "Uso consciente de recursos e contribuição social ou ambiental demonstrável."],
-  ["06", "Transparência", "Objetivos, responsáveis, metas e aprendizados apresentados com clareza."],
+  ["01", "Escuta da comunidade", "A solução começa pelas necessidades das pessoas que serão atendidas."],
+  ["02", "Benefício claro", "A iniciativa precisa melhorar a vida financeira, social ou ambiental de forma compreensível."],
+  ["03", "Inclusão", "O acesso deve considerar diferentes públicos, culturas e necessidades."],
+  ["04", "Transparência", "Objetivos, responsáveis, recursos e aprendizados devem ser apresentados com clareza."],
 ];
 
 const publicReferences = [
@@ -70,10 +68,10 @@ const publicReferences = [
     href: "https://www.bcb.gov.br/cidadaniafinanceira/indexcidadaniafinanceira",
   },
   {
-    acronym: "PNED",
-    title: "Política Nacional de Educação Digital",
-    text: "Inspira inclusão digital, educação, capacitação e pesquisa em tecnologias da informação.",
-    href: "https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/lei/l14533.htm",
+    acronym: "AgSUS",
+    title: "Agência Brasileira de Apoio à Gestão do SUS",
+    text: "Referência pública de atuação com respeito aos territórios, às culturas e às necessidades locais.",
+    href: "https://agenciasus.org.br/",
   },
   {
     acronym: "ODS",
@@ -84,10 +82,10 @@ const publicReferences = [
 ];
 
 const impactGoals = [
-  ["600", "participantes em experiências educativas"],
-  ["12", "oficinas e laboratórios demonstrativos"],
-  ["08", "protótipos de tecnologia responsável"],
-  ["75%", "de participação de públicos prioritários"],
+  ["Ouvir", "as pessoas antes de definir uma solução"],
+  ["Explicar", "como os recursos seriam utilizados"],
+  ["Medir", "resultados sociais e ambientais"],
+  ["Publicar", "aprendizados e próximos passos"],
 ];
 
 function ProjectMedia({ project }: { project: (typeof projects)[number] }) {
@@ -120,11 +118,11 @@ export default function ProjectsPublicPage() {
               src="/images/ranbank-projects-logo.jpeg"
               alt="RanBank"
             />
-            <span>SEU FUTURO. NOSSO COMPROMISSO.</span>
-            <h1 id="impact-title">Portal de Impacto</h1>
+            <span>IMPACTO SOCIAL E AMBIENTAL</span>
+            <h1 id="impact-title">Projetos com propósito</h1>
             <p>
-              Tecnologia financeira, educação e parcerias para abrir caminhos
-              e transformar possibilidades em Brasília.
+              Ideias para usar educação, crédito e tecnologia a favor das
+              pessoas, das comunidades e do meio ambiente.
             </p>
             <div className="impact-hero-actions">
               <a className="impact-button is-light" href="#projetos">
@@ -137,7 +135,7 @@ export default function ProjectsPublicPage() {
           </div>
           <div className="impact-hero-index" aria-label="Resumo do portal">
             <span><b>04</b> frentes de atuação</span>
-            <span><b>04</b> referências públicas</span>
+            <span><b>04</b> projetos demonstrativos</span>
             <span><b>DF</b> ponto de partida</span>
           </div>
         </section>
@@ -145,21 +143,17 @@ export default function ProjectsPublicPage() {
         <section className="impact-intro">
           <div className="impact-section-label">CONHEÇA O PORTAL</div>
           <div className="impact-intro-copy">
-            <h2>Um banco do futuro também investe no futuro das pessoas.</h2>
+            <h2>Um banco também pode ajudar a transformar realidades.</h2>
             <div>
               <p>
-                O RanBank nasceu como uma simulação bancária realista para
-                aproximar estudantes das tecnologias que já transformam o
-                sistema financeiro. Nosso compromisso social amplia essa ideia:
-                usar conhecimento, inovação e escolhas sustentáveis para gerar
-                oportunidades que façam sentido na vida real.
+                O RanBank é uma simulação bancária criada para mostrar, de forma
+                simples, como os serviços financeiros funcionam e como podem
+                apoiar educação, inclusão e geração de oportunidades.
               </p>
               <p>
-                Este portal apresenta uma carteira <strong>demonstrativa</strong>
-                de investimento social privado. Cada iniciativa foi desenhada
-                para apoiar aprendizagem, inclusão digital, trabalho e renda,
-                acessibilidade e sustentabilidade — sempre com metas claras e
-                participação da comunidade.
+                Os projetos desta página são <strong>propostas demonstrativas</strong>.
+                Eles não representam ações já realizadas, mas mostram os
+                compromissos que orientariam uma implantação real.
               </p>
             </div>
           </div>
@@ -170,8 +164,8 @@ export default function ProjectsPublicPage() {
             <span>PROJETOS EM DESTAQUE</span>
             <h2>Ideias que saem da tela e chegam à comunidade.</h2>
             <p>
-              Uma carteira simulada para mostrar como um banco pode combinar
-              recursos, voluntariado e tecnologia em iniciativas de impacto.
+              Quatro propostas simples para mostrar como um banco pode gerar
+              benefícios além dos serviços financeiros.
             </p>
           </header>
           <div className="impact-project-grid">
@@ -199,11 +193,11 @@ export default function ProjectsPublicPage() {
         <section className="impact-method" id="metodologia">
           <div className="impact-method-intro">
             <span>COMO ESCOLHEMOS</span>
-            <h2>Impacto com método, responsabilidade e espaço para aprender.</h2>
+            <h2>Escolhas feitas com responsabilidade.</h2>
             <p>
-              As iniciativas passam por uma jornada simples: escuta do desafio,
-              desenho com parceiros, teste em pequena escala, acompanhamento de
-              metas e compartilhamento dos aprendizados.
+              Cada iniciativa começa pela escuta, passa por um teste em pequena
+              escala e só avança quando seus objetivos e resultados podem ser
+              explicados com clareza.
             </p>
             <a href="mailto:impacto@ranbank.demo">Apresentar uma iniciativa →</a>
           </div>
@@ -262,16 +256,16 @@ export default function ProjectsPublicPage() {
 
         <section className="impact-goals">
           <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-            <source src="/media/ranbank-historia-2026.mp4" type="video/mp4" />
+            <source src="/videos/ranbank-historia-2026.mp4" type="video/mp4" />
           </video>
           <div className="impact-goals-shade" aria-hidden="true" />
           <div className="impact-goals-copy">
             <span>TRANSPARÊNCIA DESDE O COMEÇO</span>
-            <h2>Metas para orientar. Dados para aprender.</h2>
+            <h2>Compromissos antes dos números.</h2>
             <p>
-              Em uma implantação real, cada projeto publicaria indicadores,
-              responsáveis, investimento e resultados. Para esta experiência,
-              os números abaixo são metas anuais simuladas.
+              Como os projetos ainda são demonstrativos, não apresentamos
+              resultados inventados. Em uma implantação real, cada iniciativa
+              publicaria responsáveis, investimento, metas e resultados.
             </p>
           </div>
           <div className="impact-goal-grid">

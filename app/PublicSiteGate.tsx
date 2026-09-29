@@ -23,7 +23,7 @@ const products = [
   },
   {
     icon: "◎",
-    title: "Reserva Future",
+    title: "Reserva para objetivos",
     text: "Organize metas e acompanhe a evolução do seu dinheiro.",
     href: "/banco",
   },
@@ -33,18 +33,6 @@ const products = [
     text: "Envie, receba, agende e gerencie suas próprias chaves.",
     href: "/banco",
   },
-  {
-    icon: "⌂",
-    title: "Crédito e casa",
-    text: "Conheça soluções demonstrativas para seus próximos projetos.",
-    href: "#solucoes",
-  },
-  {
-    icon: "♧",
-    title: "Atendimento",
-    text: "Canais digitais e orientação com referência em Brasília - DF.",
-    href: "#brasilia",
-  },
 ];
 
 const services = [
@@ -52,8 +40,8 @@ const services = [
   ["◷", "Agendamentos", "Organize o mês"],
   ["▭", "Cartões", "Controle completo"],
   ["↕", "Extrato", "Movimentações"],
-  ["◎", "Metas", "Reserva Future"],
-  ["⌾", "Segurança", "Central de proteção"],
+  ["◎", "Metas", "Guarde para seus planos"],
+  ["⌾", "Segurança", "Proteção da conta"],
 ];
 
 const motionStories = [
@@ -61,7 +49,7 @@ const motionStories = [
     eyebrow: "RANBANK EM MOVIMENTO",
     title: "Tecnologia que participa da vida real.",
     text: "Uma experiência digital presente nos momentos que importam, com simplicidade para usar e segurança para seguir.",
-    source: "/media/ranbank-historia-2026.mp4",
+    source: "/videos/ranbank-historia-2026.mp4",
     href: "/banco?modo=criar-conta",
     action: "Viver essa experiência",
   },
@@ -69,7 +57,7 @@ const motionStories = [
     eyebrow: "ATENDIMENTO DO FUTURO",
     title: "Pessoas no centro. Inovação ao redor.",
     text: "Um conceito de agência que combina acolhimento, inteligência e novos jeitos de cuidar da sua vida financeira.",
-    source: "/media/ranbank-demonstracao-04.mp4",
+    source: "/videos/ranbank-demonstracao-04.mp4",
     href: "/instituto",
     action: "Conhecer o Instituto RanBank",
   },
@@ -78,23 +66,23 @@ const motionStories = [
 const securityControls = [
   [
     "SESSÃO",
-    "Cookie protegido",
-    "Sessão em cookie HttpOnly e Secure no ambiente hospedado, com política SameSite adequada à integração entre site e API.",
+    "Acesso protegido",
+    "A sessão é protegida e encerrada com segurança quando você sai da conta.",
   ],
   [
     "ACESSO",
-    "PIN protegido com BCrypt",
-    "O PIN não é salvo em texto aberto e tentativas repetidas acionam bloqueio temporário.",
+    "Senha protegida",
+    "A senha não fica visível e tentativas repetidas causam bloqueio temporário.",
   ],
   [
     "OPERAÇÕES",
-    "Confirmação independente",
-    "Pix e operações sensíveis exigem um PIN transacional separado do PIN de acesso.",
+    "Segunda confirmação",
+    "Pix e operações importantes exigem uma senha diferente da usada para entrar.",
   ],
   [
     "MONITORAMENTO",
-    "Contexto e alertas",
-    "Dispositivos, localização e comportamento fora do padrão podem gerar revisão e notificação.",
+    "Avisos de segurança",
+    "Acessos e movimentações fora do padrão podem exigir uma nova confirmação.",
   ],
   [
     "PRIVACIDADE",
@@ -109,23 +97,19 @@ const securityControls = [
 ];
 
 const institutionalValues = [
-  { number: "01", title: "Segurança", text: "Protegemos informações, recursos e relações, tratando a segurança como um compromisso permanente." },
-  { number: "02", title: "Transparência", text: "Tomamos decisões e construímos relações com clareza, ética e responsabilidade." },
-  { number: "03", title: "Inovação", text: "Utilizamos tecnologia e criatividade para transformar desafios financeiros em soluções melhores." },
-  { number: "04", title: "Excelência", text: "Buscamos qualidade, eficiência e evolução contínua em tudo o que fazemos." },
-  { number: "05", title: "Simplicidade", text: "Tornamos processos e serviços financeiros mais claros, intuitivos e acessíveis." },
-  { number: "06", title: "Confiança", text: "Construímos relações sólidas por meio de consistência, responsabilidade e cumprimento de nossos compromissos." },
-  { number: "07", title: "Responsabilidade", text: "Entendemos o impacto de nossas decisões e atuamos de maneira sustentável e consciente." },
-  { number: "08", title: "Pessoas em primeiro lugar", text: "Valorizamos clientes, colaboradores e parceiros, reconhecendo que grandes resultados são construídos por pessoas." },
+  { number: "01", title: "Simplicidade", text: "Falamos de forma clara e tornamos as escolhas financeiras mais fáceis de entender." },
+  { number: "02", title: "Segurança", text: "Protegemos cada acesso e cada movimentação com responsabilidade." },
+  { number: "03", title: "Inclusão", text: "Criamos experiências acessíveis e respeitamos as diferentes realidades das pessoas." },
+  { number: "04", title: "Impacto positivo", text: "Pensamos no efeito social e ambiental de cada decisão do banco." },
 ];
 
 const frequentlyAskedQuestions = [
-  { question: "O RanBank é uma instituição financeira real?", answer: "Não. O RanBank é um projeto demonstrativo e educacional. As contas, saldos, cartões, transferências e demais operações apresentadas não têm valor comercial ou financeiro real." },
-  { question: "Preciso usar dados pessoais verdadeiros?", answer: "Não. Para conhecer a experiência, use apenas os dados fictícios indicados no ambiente de demonstração e nunca informe senhas bancárias reais." },
-  { question: "As transferências Pix movimentam dinheiro?", answer: "Não. Todas as movimentações acontecem somente dentro do ambiente simulado e servem para demonstrar fluxos de uma aplicação bancária." },
-  { question: "O que é o Ecocard RanBank?", answer: "É um conceito demonstrativo de cartão sustentável integrado ao aplicativo, criado para apresentar controles de limite, bloqueio e acompanhamento de gastos." },
-  { question: "Como meus dados de navegação são tratados?", answer: "O site usa armazenamento essencial para o funcionamento, a sessão e as preferências. Você pode consultar os detalhes e controlar suas escolhas na página de Privacidade." },
-  { question: "Onde encontro ajuda sobre segurança?", answer: "A Central de Segurança explica as camadas de proteção do projeto e reúne orientações para reconhecer golpes e manter seus acessos protegidos." },
+  { question: "O que é o RanBank?", answer: "O RanBank é um projeto educacional que simula um banco digital. Ele foi criado para demonstrar serviços bancários, segurança, educação financeira e propostas de impacto social e ambiental." },
+  { question: "Posso testar Pix, cartão e pagamentos?", answer: "Sim. Você pode explorar a conta, fazer transferências entre contas demonstrativas, consultar o extrato, organizar uma reserva e controlar um cartão fictício. Nenhuma operação movimenta dinheiro real." },
+  { question: "Preciso informar dados bancários verdadeiros?", answer: "Não. Use somente os dados fictícios fornecidos na demonstração. Nunca informe senhas, cartões ou dados de uma conta bancária real." },
+  { question: "Como o RanBank protege a conta?", answer: "O projeto usa senha de acesso, confirmação separada para operações importantes, bloqueio após tentativas repetidas e avisos para atividades fora do padrão." },
+  { question: "O que a Ran pode fazer?", answer: "A Ran explica as funções da conta, orienta sobre Pix, cartão e segurança e apresenta os projetos do RanBank usando linguagem simples." },
+  { question: "Como o projeto trata privacidade e cookies?", answer: "O site utiliza apenas o necessário para manter a sessão e lembrar suas preferências. Na página de Privacidade você pode entender e controlar o uso de cookies." },
 ];
 
 type PublicTheme = "light" | "dark";
@@ -158,7 +142,7 @@ export function PublicHeader({ dark = false }: { dark?: boolean }) {
         <div className="rb-access-links">
           <Link href="/seguranca">Como acessar com segurança</Link>
           <span>•</span>
-          <a href="tel:+556140042028">Brasília: (61) 4004-2028</a>
+          <span>Projeto criado em Brasília - DF</span>
         </div>
         <Link className="rb-access-account" href="/banco">
           Acessar sua conta <b>→</b>
@@ -170,16 +154,15 @@ export function PublicHeader({ dark = false }: { dark?: boolean }) {
           href="/"
           aria-label="Página inicial do RanBank"
         >
-          <img src="/ranbank-logo.jpeg" alt="RanBank" />
+          <img src="/ranbank-logo-transparent.png" alt="RanBank" />
         </Link>
         <nav className="rb-public-nav" aria-label="Navegação principal">
-          <Link href="/#produtos">Produtos</Link>
-          <Link href="/#visao-valores">Missão, visão e valores</Link>
-          <Link href="/organograma">Organograma</Link>
+          <Link href="/#visao-valores">Quem somos</Link>
+          <Link href="/#produtos">Soluções</Link>
+          <Link href="/projetos">Projetos</Link>
           <Link href="/seguranca">Segurança</Link>
-          <Link href="/#duvidas">Dúvidas frequentes</Link>
           <Link href="/instituto">Instituto RanBank</Link>
-          <Link href="/projetos">Impacto & Projetos</Link>
+          <Link href="/#duvidas">Ajuda</Link>
         </nav>
         <div className="rb-header-tools">
           <button className="rb-public-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={theme === "dark"} title={theme === "dark" ? "Modo claro" : "Modo escuro"}><span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span></button>
@@ -197,7 +180,7 @@ export function PublicFooter() {
   return (
     <footer className="rb-public-footer">
       <div className="rb-footer-brand">
-        <img src="/ranbank-logo.jpeg" alt="RanBank" />
+        <img src="/ranbank-logo-transparent.png" alt="RanBank" />
         <p>
           Banco digital demonstrativo com tecnologia, segurança e atendimento
           centrado em Brasília - DF.
@@ -206,12 +189,11 @@ export function PublicFooter() {
       <div>
         <strong>RanBank</strong>
         <Link href="/banco">Acessar conta</Link>
-        <Link href="/#produtos">Produtos</Link>
-        <Link href="/#visao-valores">Missão, visão e valores</Link>
-        <Link href="/organograma">Organograma</Link>
-        <Link href="/#duvidas">Dúvidas frequentes</Link>
+        <Link href="/#visao-valores">Quem somos</Link>
         <Link href="/instituto">Instituto</Link>
-        <Link href="/projetos">Impacto & Projetos</Link>
+        <Link href="/organograma">Nossa equipe</Link>
+        <Link href="/projetos">Projetos e impacto</Link>
+        <Link href="/#duvidas">Ajuda</Link>
       </div>
       <div>
         <strong>Proteção</strong>
@@ -220,10 +202,10 @@ export function PublicFooter() {
         <Link href="/#brasilia">Canais de atendimento</Link>
       </div>
       <div>
-        <strong>Brasília - DF</strong>
-        <a href="tel:+556140042028">(61) 4004-2028</a>
-        <span>Atendimento demonstrativo</span>
-        <span>De segunda a sexta, das 8h às 20h</span>
+        <strong>Acompanhe o RanBank</strong>
+        <a href="https://www.instagram.com/ranbank.df" target="_blank" rel="noreferrer">Instagram ↗</a>
+        <a href="https://www.tiktok.com/@ranbank.df" target="_blank" rel="noreferrer">TikTok ↗</a>
+        <span>Projeto criado em Brasília - DF</span>
       </div>
       <small>
         © 2026 RanBank. Projeto demonstrativo — não representa uma instituição
@@ -550,16 +532,16 @@ export function PublicHome() {
             <div className="rb-purpose-foundations">
               <article>
                 <strong>Missão</strong>
-                <p>Transformar a relação das pessoas e empresas com o dinheiro por meio de soluções financeiras seguras, inteligentes e acessíveis, combinando tecnologia, transparência e excelência para tornar cada decisão financeira mais simples e eficiente.</p>
+                <p>Facilitar a vida financeira das pessoas com serviços simples, seguros e acessíveis.</p>
               </article>
               <article>
                 <strong>Visão</strong>
-                <p>Ser reconhecido como um dos bancos mais inovadores, confiáveis e eficientes do mercado, construindo uma instituição financeira preparada para o futuro e capaz de gerar valor para clientes, colaboradores, parceiros e para a sociedade.</p>
+                <p>Ser um banco digital reconhecido por unir tecnologia, educação financeira e responsabilidade social.</p>
               </article>
             </div>
             <div className="rb-purpose-commitment">
               <span>NOSSO COMPROMISSO</span>
-              <p>No RanBank, tecnologia é o meio. Confiança é a base. E o futuro é o destino.</p>
+              <p>Tecnologia para simplificar. Segurança para proteger. Responsabilidade para transformar.</p>
             </div>
           </div>
           <div className="rb-values-column">
@@ -580,7 +562,7 @@ export function PublicHome() {
         </section>
         <section className="rb-security" id="seguranca">
           <video className="rb-security-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-            <source src="/media/ranbank-demonstracao-01.mp4" type="video/mp4" />
+            <source src="/videos/ranbank-demonstracao-01.mp4" type="video/mp4" />
           </video>
           <div className="rb-security-copy">
             <span>SEGURANÇA RANBANK</span>
@@ -615,20 +597,19 @@ export function PublicHome() {
           </div>
           <div>
             <span>ATENDIMENTO COM REFERÊNCIA LOCAL</span>
-            <h2>Brasília em primeiro lugar. O Brasil inteiro ao alcance.</h2>
+            <h2>Nascido em Brasília. Pensado para todos.</h2>
             <p>
-              Exemplos, contatos e experiências do RanBank usam Brasília - DF
-              como referência. Em análises de risco, acessos muito distantes da
-              região podem exigir confirmação adicional.
+              O RanBank nasceu em Brasília como projeto educacional e foi pensado
+              para pessoas de diferentes regiões do Brasil.
             </p>
             <div className="rb-contact-cards">
-              <a href="tel:+556140042028">
-                <b>(61) 4004-2028</b>
-                <span>Central demonstrativa</span>
+              <a href="https://www.instagram.com/ranbank.df" target="_blank" rel="noreferrer">
+                <b>@ranbank.df</b>
+                <span>Instagram</span>
               </a>
-              <a href="mailto:atendimento@ranbank.demo">
-                <b>atendimento@ranbank.demo</b>
-                <span>Canal digital</span>
+              <a href="https://www.tiktok.com/@ranbank.df" target="_blank" rel="noreferrer">
+                <b>@ranbank.df</b>
+                <span>TikTok</span>
               </a>
             </div>
           </div>
@@ -638,20 +619,20 @@ export function PublicHome() {
             <span>INSTITUTO RANBANK</span>
             <h2>Um banco maior quando compartilha conhecimento.</h2>
             <p>
-              Pesquisa, educação, robótica e tecnologia aplicada em parceria com
-              universidades e centros de inovação.
+              Educação financeira, inclusão e tecnologia colocadas a serviço
+              das pessoas e das comunidades.
             </p>
             <Link href="/instituto">Explorar o Instituto RanBank →</Link>
           </div>
           <div className="rb-institute-numbers">
             <span>
-              <b>6</b>frentes de inovação
+              <b>01</b>educação financeira
             </span>
             <span>
-              <b>R2</b>robótica responsável
+              <b>02</b>inclusão e acesso
             </span>
             <span>
-              <b>DF</b>tecnologia em Brasília
+              <b>03</b>impacto socioambiental
             </span>
           </div>
         </section>
@@ -911,39 +892,27 @@ export function InstitutePublicPage() {
   const initiatives = [
     [
       "01",
-      "IA + Big Data",
-      "RanBank Intelligence & Research",
-      "Pesquisa aplicada para segurança financeira, análise de padrões e educação orientada por dados.",
+      "EDUCAÇÃO FINANCEIRA",
+      "Conhecimento para escolher melhor",
+      "Atividades simples sobre orçamento, crédito, Pix, planejamento e prevenção a golpes.",
     ],
     [
       "02",
-      "IoT + Sustentabilidade",
-      "RanBank Smart & Green",
-      "Sensores, eficiência energética e projetos para reduzir desperdícios em infraestrutura.",
+      "INCLUSÃO",
+      "Banco acessível para todos",
+      "Linguagem clara, telas legíveis e soluções pensadas para diferentes necessidades.",
     ],
     [
       "03",
-      "VR + RA",
-      "RanBank Immersive Lab",
-      "Treinamento, inclusão digital, acessibilidade e novas experiências de atendimento.",
+      "COMUNIDADES",
+      "Decisões construídas em conjunto",
+      "Propostas de apoio a iniciativas indígenas e comunitárias com escuta e respeito cultural.",
     ],
     [
       "04",
-      "Computação em nuvem",
-      "RanCloud Innovation Program",
-      "Disponibilidade, escala e recuperação de falhas para projetos digitais.",
-    ],
-    [
-      "05",
-      "Comparação",
-      "Conselho de Tecnologia RanBank",
-      "Impacto, custo, maturidade e risco orientando escolhas responsáveis.",
-    ],
-    [
-      "06",
-      "Robótica",
-      "RanBank Robotics Initiative",
-      "Bolsas, laboratórios e projetos de automação, acessibilidade e atendimento.",
+      "IMPACTO POSITIVO",
+      "Crédito social e ambiental",
+      "Conceitos de crédito e cartões ligados a escolhas que beneficiam pessoas e o meio ambiente.",
     ],
   ];
   return (
@@ -952,15 +921,15 @@ export function InstitutePublicPage() {
       <main>
         <section className="rb-institute-hero">
           <span className="rb-kicker">
-            INSTITUTO RANBANK DE TECNOLOGIA · BRASÍLIA - DF
+            INSTITUTO RANBANK · BRASÍLIA - DF
           </span>
           <h1>
-            Pesquisa, inovação
-            <br />e impacto social.
+            Conhecimento, inclusão
+            <br />e impacto positivo.
           </h1>
           <p>
-            Uma frente institucional que conecta o RanBank a universidades,
-            institutos e centros de ciência.
+            Um espaço para transformar educação financeira e responsabilidade
+            social em propostas que fazem sentido para as pessoas.
           </p>
           <div className="rb-hero-actions">
             <a className="rb-btn rb-btn-primary" href="#iniciativas">
@@ -973,12 +942,12 @@ export function InstitutePublicPage() {
         </section>
         <section className="rb-section" id="iniciativas">
           <div className="rb-section-heading">
-            <span>6 FRENTES DE INOVAÇÃO</span>
-            <h2>Da pesquisa à aplicação.</h2>
+            <span>4 FRENTES DE ATUAÇÃO</span>
+            <h2>Ideias simples para desafios reais.</h2>
           </div>
           <div className="rb-initiative-grid">
             {initiatives.map(([n, topic, title, text]) => (
-              <article key={n} id={n === "06" ? "robotica" : undefined}>
+              <article key={n}>
                 <b>{n}</b>
                 <span>{topic}</span>
                 <h3>{title}</h3>
@@ -989,25 +958,25 @@ export function InstitutePublicPage() {
         </section>
         <section className="rb-robotics-callout">
           <div>
-            <span>DESTAQUE · ROBÓTICA</span>
-            <h2>Tecnologia que amplia possibilidades.</h2>
+            <span>NOSSO JEITO DE TRABALHAR</span>
+            <h2>Primeiro ouvimos. Depois construímos.</h2>
             <p>
-              Formação, laboratórios e projetos que aproximam ciência robótica,
-              acessibilidade, automação responsável e sociedade.
+              Uma boa iniciativa começa pela realidade das pessoas, respeita
+              cada comunidade e apresenta seus objetivos com clareza.
             </p>
           </div>
           <div className="rb-robotics-points">
-            <span>Institutos e universidades</span>
-            <span>Bolsas e laboratórios</span>
-            <span>Projetos de acessibilidade</span>
-            <span>Pesquisa aplicada</span>
+            <span>Escuta das comunidades</span>
+            <span>Linguagem simples</span>
+            <span>Participação nas decisões</span>
+            <span>Resultados transparentes</span>
           </div>
         </section>
         <section className="rb-final-cta">
           <div>
             <span>AMBIENTE DEMONSTRATIVO</span>
             <h2>Veja a tecnologia dentro do banco.</h2>
-            <p>Entre no RanBank e acesse o Future Lab.</p>
+            <p>Entre no RanBank e conheça como o banco funciona por dentro.</p>
           </div>
           <Link className="rb-btn rb-btn-light" href="/banco">
             Acessar RanBank →

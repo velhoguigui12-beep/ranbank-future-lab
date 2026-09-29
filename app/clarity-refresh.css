@@ -1,0 +1,295 @@
+/* Presentation-first clarity layer: larger type, fewer competing elements and simpler rhythm. */
+.rb-public-nav{gap:22px}
+.rb-public-nav a,.rb-header-tools>a{font-size:14px}
+.rb-product-rail>a{min-height:245px}
+.rb-product-rail strong{font-size:20px}
+.rb-product-rail span,.rb-service-grid span,.rb-contact-cards span,.rb-public-footer a,.rb-public-footer span{font-size:14px;line-height:1.5}
+.rb-service-grid{grid-template-columns:repeat(2,1fr)}
+.rb-service-grid>a{min-height:165px}
+.rb-service-grid strong{font-size:18px}
+.rb-purpose{grid-template-columns:minmax(360px,.9fr) minmax(480px,1.1fr);gap:5vw}
+.rb-purpose-foundations p,.rb-values-grid p,.rb-values-heading p{font-size:16px}
+.rb-purpose-foundations strong{font-size:18px}
+.rb-values-grid article{min-height:180px}
+.rb-values-grid h3{font-size:24px}
+.rb-security-stack article p,.rb-faq-list details>p{font-size:15px}
+.rb-institute-numbers span{font-size:14px}
+.rb-public-footer>small{font-size:12px;line-height:1.55}
+.rb-initiative-grid{grid-template-columns:repeat(2,1fr)}
+.rb-initiative-grid article{min-height:250px}
+.rb-initiative-grid article>span{font-size:12px}
+.rb-initiative-grid p{font-size:16px}
+
+.impact-intro-copy p,.impact-section-heading p,.impact-method-intro p,.impact-goals-copy p{font-size:17px}
+.impact-project-grid>article{min-height:560px;grid-template-rows:270px 1fr}
+.impact-project-grid>article.is-featured{min-height:520px}
+.impact-project-copy>span,.impact-project-copy dt,.impact-project-copy>small{font-size:12px}
+.impact-project-copy h3{font-size:32px}
+.impact-project-copy p{font-size:16px}
+.impact-project-copy dd{font-size:15px}
+.impact-criteria p,.impact-reference-grid p{font-size:15px}
+.impact-reference-grid span{font-size:13px}
+.impact-reference-grid>a{min-height:300px}
+.impact-goal-grid strong{font-size:30px}
+.impact-goal-grid span{max-width:240px;font-size:15px}
+
+.bank-shell-v2{--bank-bg:#f4f7fb;--bank-surface:#fff;--bank-border:#d8e1eb}
+.bank-shell-v2 .bank-sidebar-v2 nav button{font-size:13px!important}
+.bank-context small,.bank-demo-chip small,.bank-page-heading p{font-size:12px!important}
+.bank-context strong,.bank-demo-chip b{font-size:13px!important}
+.bank-page-heading h1{font-size:30px!important}
+.bank-page-heading>button{font-size:13px!important}
+.bank-balance-v2 .balance-copy small,.bank-balance-v2 .balance-copy span,.bank-balance-v2 .balance-card-footer,.bank-card-summary-v2 small,.bank-card-summary-v2 footer{font-size:12px!important}
+.bank-card-summary-v2 header span,.bank-card-summary-v2 header button{font-size:13px!important}
+.bank-card-summary-values>span{font-size:11px!important}
+.bank-shortcuts-v2 h2,.bank-transactions-v2 .panel-title h2{font-size:20px!important}
+.bank-shortcuts-v2 header span{font-size:13px!important}
+.bank-shortcuts-v2>div{grid-template-columns:repeat(4,1fr)}
+.bank-shortcuts-v2>div>button{min-height:104px}
+.bank-shortcuts-v2>div strong{font-size:14px}
+.bank-shortcuts-v2>div small{font-size:12px}
+.bank-transactions-v2 .panel-title p{font-size:11px!important}
+.bank-transactions-v2 .panel-title button{font-size:12px!important}
+.bank-transactions-v2 .transaction strong,.bank-transactions-v2 .transaction>b{font-size:13px!important}
+.bank-transactions-v2 .transaction small{font-size:12px!important}
+.bank-security-card-v2 header small,.bank-security-card-v2 header em{font-size:10px}
+.bank-security-card-v2 header strong{font-size:14px}
+.bank-security-card-v2 p,.bank-security-card-v2 button{font-size:12px}
+.bank-ran-card-copy{width:72%;padding:23px 0 21px 22px}
+.bank-ran-card-copy>small{font-size:10px}
+.bank-ran-card-copy h3{max-width:220px;font-size:17px}
+.bank-ran-card-copy p{max-width:220px;font-size:12px}
+.bank-ran-card-copy button{font-size:12px}
+.bank-tech-preview-copy>span,.bank-tech-signals-v2 small{font-size:11px}
+.bank-tech-preview-copy h2{font-size:24px}
+.bank-tech-preview-copy p,.bank-tech-preview-copy button,.bank-tech-signals-v2 strong{font-size:13px}
+.bank-technology-hero-v2>div>span,.bank-technology-hero-v2>aside>small{font-size:11px}
+.bank-technology-hero-v2 p,.bank-technology-hero-v2>div button,.bank-technology-hero-v2>aside>span{font-size:13px}
+.bank-fraud-copy-v2>span,.bank-tech-section-title-v2 span{font-size:11px}
+.bank-fraud-copy-v2>p,.bank-fraud-copy-v2>button,.bank-fraud-copy-v2 dd,.bank-tech-section-title-v2>p{font-size:13px}
+.bank-fraud-copy-v2 dt,.bank-risk-visual-v2>div>span,.bank-risk-visual-v2>div>b,.bank-risk-visual-v2 li{font-size:11px}
+.bank-tech-section-title-v2 h2{font-size:24px}
+.bank-tech-grid-v2>button{min-height:155px}
+.bank-tech-grid-v2>button>div small{font-size:10px}
+.bank-tech-grid-v2 h3{font-size:16px}
+.bank-tech-grid-v2 p{font-size:13px}
+.bank-tech-grid-v2>button:nth-child(n+7){display:none}
+.bank-future-experiments-v2,.bank-operations-v2{display:none}
+.ran-assistant-label strong{font-size:13px}
+.ran-assistant-label small{font-size:10px}
+
+html[data-bank-theme="dark"] .bank-shell-v2{--bank-bg:#030a16;--bank-surface:#0b1b31;--bank-border:#29425f;--bank-ink:#f2f6fc;background:#030a16!important}
+html[data-bank-theme="dark"] .bank-workspace-v2{background:linear-gradient(145deg,#030a16,#07162a)!important}
+html[data-bank-theme="dark"] .bank-card-summary-v2,
+html[data-bank-theme="dark"] .bank-shortcuts-v2>div>button,
+html[data-bank-theme="dark"] .bank-transactions-v2,
+html[data-bank-theme="dark"] .bank-security-card-v2,
+html[data-bank-theme="dark"] .bank-tech-grid-v2>button,
+html[data-bank-theme="dark"] .bank-fraud-case-v2{color:#eef5ff!important;background:#0b1b31!important;border-color:#29425f!important}
+html[data-bank-theme="dark"] .bank-card-summary-v2 strong,
+html[data-bank-theme="dark"] .bank-shortcuts-v2 strong,
+html[data-bank-theme="dark"] .bank-transactions-v2 strong,
+html[data-bank-theme="dark"] .bank-security-card-v2 strong,
+html[data-bank-theme="dark"] .bank-tech-grid-v2 h3,
+html[data-bank-theme="dark"] .bank-fraud-case-v2 h2{color:#f4f8ff!important}
+html[data-bank-theme="dark"] .bank-tech-preview-v2{background:linear-gradient(120deg,#0b1b31,#102747)!important;border-color:#29425f!important}
+
+/* Neutral dark theme: black surfaces with blue used only as an accent. */
+html[data-bank-theme="dark"]{--rb-bg:#050505;--rb-bg-2:#090909;--rb-surface:#111;--rb-surface-2:#171717;--rb-panel:#121212;--rb-border:#2b2b2b;--rb-ink:#f5f5f5;--rb-muted:#b7b7b7;--rb-soft:#1b1b1b;--paper:#050505;--ink:#f5f5f5;--muted:#b7b7b7;--line:#2b2b2b;--white:#111}
+html[data-bank-theme="dark"],html[data-bank-theme="dark"] body{color:#f5f5f5!important;background:#050505!important}
+html[data-bank-theme="dark"] body{background:radial-gradient(circle at 82% 4%,rgba(18,105,239,.1),transparent 25%),#050505!important}
+html[data-bank-theme="dark"] .bank-shell-v2{--bank-bg:#050505;--bank-surface:#111;--bank-border:#2b2b2b;--bank-ink:#f5f5f5;background:#050505!important}
+html[data-bank-theme="dark"] .bank-workspace-v2{background:#080808!important}
+html[data-bank-theme="dark"] .bank-sidebar-v2{background:#050505!important;border-color:#252525!important;box-shadow:12px 0 38px rgba(0,0,0,.48)!important}
+html[data-bank-theme="dark"] .bank-sidebar-v2 nav button:hover,
+html[data-bank-theme="dark"] .bank-sidebar-v2 nav button.active{background:#171717!important}
+html[data-bank-theme="dark"] .bank-topbar-v2{background:rgba(8,8,8,.94)!important;border-color:#292929!important}
+html[data-bank-theme="dark"] .bank-topbar-v2 .top-actions button,
+html[data-bank-theme="dark"] .bank-demo-chip{color:#ddd!important;background:#141414!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .bank-card-summary-v2,
+html[data-bank-theme="dark"] .bank-shortcuts-v2>div>button,
+html[data-bank-theme="dark"] .bank-transactions-v2,
+html[data-bank-theme="dark"] .bank-security-card-v2,
+html[data-bank-theme="dark"] .bank-tech-grid-v2>button,
+html[data-bank-theme="dark"] .bank-fraud-case-v2,
+html[data-bank-theme="dark"] .bank-tech-signals-v2 article{color:#f4f4f4!important;background:#111!important;border-color:#2d2d2d!important}
+html[data-bank-theme="dark"] .bank-shortcuts-v2>div>button:hover,
+html[data-bank-theme="dark"] .bank-tech-grid-v2>button:hover{background:#181818!important;border-color:#444!important;box-shadow:0 10px 28px rgba(0,0,0,.3)!important}
+html[data-bank-theme="dark"] .bank-tech-preview-v2{background:linear-gradient(125deg,#101010,#171717)!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .bank-risk-visual-v2{background:#161616!important}
+html[data-bank-theme="dark"] .bank-technology-hero-v2{background:radial-gradient(circle at 82% 25%,rgba(34,160,255,.12) 0 1px,transparent 2px),linear-gradient(125deg,#070707,#151515)!important;background-size:18px 18px,cover!important;border:1px solid #303030}
+html[data-bank-theme="dark"] .bank-ran-card-v2{background:linear-gradient(115deg,#080808,#151515)!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .bank-ran-card-v2:after{background:linear-gradient(90deg,#090909 0%,rgba(9,9,9,.96) 48%,rgba(9,9,9,.18) 82%,transparent 100%)!important}
+html[data-bank-theme="dark"] .assistant-panel,
+html[data-bank-theme="dark"] .assistant-panel>footer,
+html[data-bank-theme="dark"] .chat-messages{background:#0d0d0d!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .chat-assistant{color:#eee!important;background:#191919!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .chat-user{background:#176fe0!important}
+html[data-bank-theme="dark"] .utility-modal,
+html[data-bank-theme="dark"] .pix-modal,
+html[data-bank-theme="dark"] .devices-modal,
+html[data-bank-theme="dark"] .cloud-modal,
+html[data-bank-theme="dark"] .sustainability-modal,
+html[data-bank-theme="dark"] .analysis-modal,
+html[data-bank-theme="dark"] .analytics-modal,
+html[data-bank-theme="dark"] .security-modal,
+html[data-bank-theme="dark"] .authentication-modal,
+html[data-bank-theme="dark"] .automation-modal{color:#f5f5f5!important;background:#101010!important;border-color:#333!important;box-shadow:0 30px 100px rgba(0,0,0,.8)!important}
+html[data-bank-theme="dark"] .login-shell,
+html[data-bank-theme="dark"] .login-panel,
+html[data-bank-theme="dark"] .login-loading{background:#070707!important;color:#f5f5f5!important}
+html[data-bank-theme="dark"] .login-visual{background:radial-gradient(circle at 15% 15%,rgba(20,112,240,.18),transparent 32%),#0b0b0b!important}
+
+html[data-bank-theme="dark"] .rb-public-shell{--pub-paper:#070707;--pub-ink:#f5f5f5;--pub-muted:#b9b9b9;--impact-ink:#f5f5f5;color:#f5f5f5!important;background:#070707!important}
+html[data-bank-theme="dark"] body:has(> .rb-public-shell){background:#070707!important}
+html[data-bank-theme="dark"] .rb-access-strip{background:#030303!important;border-color:#242424!important}
+html[data-bank-theme="dark"] .rb-public-header,
+html[data-bank-theme="dark"] .rb-public-header.is-dark{background:rgba(9,9,9,.96)!important;border-color:#292929!important}
+.rb-public-brand img{border-radius:0!important}
+html[data-bank-theme="dark"] .rb-public-theme-toggle{color:#eee!important;background:#151515!important;border-color:#333!important}
+html[data-bank-theme="dark"] .rb-hero .rb-hero-menu{color:#f3f3f3!important;background:rgba(12,12,12,.95)!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .rb-hero-menu>a{color:#e8e8e8!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .rb-hero-menu>a:not(.primary):not(.secondary):hover{background:#1a1a1a!important}
+html[data-bank-theme="dark"] .rb-cookie-banner,
+html[data-bank-theme="dark"] .rb-cookie-settings{color:#f4f4f4!important;background:#101010!important;border-color:#343434!important;box-shadow:0 20px 55px rgba(0,0,0,.55)!important}
+html[data-bank-theme="dark"] .rb-cookie-banner p,
+html[data-bank-theme="dark"] .rb-cookie-banner small{color:#bcbcbc!important}
+html[data-bank-theme="dark"] .rb-product-rail,
+html[data-bank-theme="dark"] .rb-solutions,
+html[data-bank-theme="dark"] .rb-brasilia,
+html[data-bank-theme="dark"] .rb-institute-teaser,
+html[data-bank-theme="dark"] .rb-info-page,
+html[data-bank-theme="dark"] .rb-institute-page,
+html[data-bank-theme="dark"] .rb-purpose,
+html[data-bank-theme="dark"] .rb-faq,
+html[data-bank-theme="dark"] .impact-intro,
+html[data-bank-theme="dark"] .impact-projects,
+html[data-bank-theme="dark"] .impact-frameworks,
+html[data-bank-theme="dark"] .impact-cta{color:#f5f5f5!important;background:#090909!important}
+html[data-bank-theme="dark"] .rb-product-rail>a,
+html[data-bank-theme="dark"] .rb-service-grid>a,
+html[data-bank-theme="dark"] .rb-purpose-foundations article,
+html[data-bank-theme="dark"] .rb-values-grid article,
+html[data-bank-theme="dark"] .rb-initiative-grid article,
+html[data-bank-theme="dark"] .impact-project-grid>article,
+html[data-bank-theme="dark"] .impact-reference-grid>a{color:#f3f3f3!important;background:#121212!important;border-color:#303030!important;box-shadow:0 14px 34px rgba(0,0,0,.34)!important}
+html[data-bank-theme="dark"] .rb-contact-cards a,
+html[data-bank-theme="dark"] .rb-institute-numbers span,
+html[data-bank-theme="dark"] .rb-robotics-points span{color:#eee!important;background:#151515!important;border-color:#343434!important}
+html[data-bank-theme="dark"] .rb-brasilia-map{background:radial-gradient(circle at 55% 45%,#242424 0 12%,transparent 13%),linear-gradient(145deg,#111,#292929)!important;box-shadow:inset 0 0 0 25px rgba(0,0,0,.25),0 28px 60px rgba(0,0,0,.45)!important}
+html[data-bank-theme="dark"] .rb-rights,
+html[data-bank-theme="dark"] .rb-robotics-callout{background:#101010!important}
+
+/* Complete the neutral dark theme across public pages and their footer. */
+html[data-bank-theme="dark"] .rb-public-footer{color:#bdbdbd!important;background:#030303!important;border-top:1px solid #242424!important}
+html[data-bank-theme="dark"] .rb-public-footer strong{color:#f5f5f5!important}
+html[data-bank-theme="dark"] .rb-public-footer a,
+html[data-bank-theme="dark"] .rb-public-footer span{color:#c9c9c9!important}
+html[data-bank-theme="dark"] .rb-public-footer>small{color:#989898!important;border-color:#292929!important}
+html[data-bank-theme="dark"] .rb-safe-guide,
+html[data-bank-theme="dark"] .rb-cookie-policy,
+html[data-bank-theme="dark"] .rb-security{background:#0a0a0a!important}
+html[data-bank-theme="dark"] .rb-security:before{background:rgba(5,5,5,.91)!important}
+html[data-bank-theme="dark"] .rb-safe-guide article,
+html[data-bank-theme="dark"] .rb-cookie-policy>div:last-child span,
+html[data-bank-theme="dark"] .rb-security-stack article,
+html[data-bank-theme="dark"] .rb-purpose-commitment,
+html[data-bank-theme="dark"] .rb-faq-help,
+html[data-bank-theme="dark"] .rb-ran-faq-help,
+html[data-bank-theme="dark"] .rb-ran-security-guide,
+html[data-bank-theme="dark"] .impact-ods{background:#151515!important;border-color:#343434!important}
+html[data-bank-theme="dark"] .rb-control-grid article,
+html[data-bank-theme="dark"] .rb-data-grid article{color:#f3f3f3!important;background:#121212!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .rb-org-page,
+html[data-bank-theme="dark"] .org-chart-section{background:#080808!important}
+html[data-bank-theme="dark"] .org-node,
+html[data-bank-theme="dark"] .org-ombudsman,
+html[data-bank-theme="dark"] .org-vice{color:#f1f1f1!important;background:#121212!important;border-color:#353535!important;box-shadow:0 12px 32px rgba(0,0,0,.42)!important}
+html[data-bank-theme="dark"] .org-president,
+html[data-bank-theme="dark"] .org-department>header{background:linear-gradient(135deg,#0b4e9d,#087bbb)!important}
+
+/* Presentation legibility. */
+.rb-security-stack h3{font-size:18px}
+.rb-security-stack p,.rb-control-grid p,.rb-data-grid p{font-size:15px}
+.rb-faq-list summary{font-size:18px}
+.rb-faq-list details>p{font-size:16px}
+.rb-contact-cards a{font-size:15px}
+.rb-public-footer p{font-size:15px;line-height:1.65}
+.rb-public-footer strong{font-size:16px}
+.rb-public-footer a,.rb-public-footer span{font-size:15px}
+.rb-public-footer>small{font-size:12px}
+.org-chart-instruction p{font-size:14px}
+.org-node small{font-size:10px}
+.org-node strong{font-size:16px}
+.org-node span{font-size:11px}
+
+/* A calmer, app-like bank home: priorities first, details behind clear menus. */
+.bank-shell-v2 .bank-sidebar-v2 nav button{font-size:14px!important}
+.bank-context small,.bank-demo-chip small,.bank-page-heading p{font-size:13px!important}
+.bank-context strong,.bank-demo-chip b{font-size:14px!important}
+.bank-page-heading h1{font-size:32px!important}
+.bank-page-heading>button{font-size:14px!important}
+.bank-shortcuts-v2{margin:25px 0 29px}
+.bank-shortcuts-v2>header{margin-bottom:16px}
+.bank-shortcuts-v2 h2,.bank-transactions-v2 .panel-title h2{font-size:22px!important}
+.bank-shortcuts-v2>div{display:flex;gap:18px;overflow-x:auto;padding-bottom:5px}
+.bank-shortcuts-v2>div>button{min-width:92px;min-height:94px;padding:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:flex-start;border:0;border-radius:0;background:transparent;text-align:center;box-shadow:none}
+.bank-shortcuts-v2>div>button:hover{transform:none;border:0;background:transparent;box-shadow:none}
+.bank-shortcuts-v2>div>button>span{width:58px;height:58px;display:grid;place-items:center;border-radius:50%;color:var(--bank-blue);background:#e8f1fc}
+.bank-shortcuts-v2>div strong{font-size:15px;align-self:auto}
+.bank-content-grid-v2{grid-template-columns:minmax(0,1.65fr) minmax(310px,.65fr)}
+.bank-transactions-v2 .panel-title p{font-size:12px!important}
+.bank-transactions-v2 .panel-title button{font-size:13px!important}
+.bank-transactions-v2 .transaction strong,.bank-transactions-v2 .transaction>b{font-size:14px!important}
+.bank-transactions-v2 .transaction small{font-size:13px!important}
+.bank-project-menu-v2{padding:22px;display:grid;align-content:start;gap:0;border:1px solid var(--bank-border);border-radius:17px;background:var(--bank-card)}
+.bank-project-menu-v2 header{padding-bottom:14px;border-bottom:1px solid var(--bank-border)}
+.bank-project-menu-v2 header small{color:var(--bank-blue);font-size:11px;font-weight:850;letter-spacing:.12em}
+.bank-project-menu-v2 h2{margin:7px 0 0;font-size:21px;letter-spacing:-.03em}
+.bank-project-menu-v2>button{min-height:69px;padding:12px 0;display:grid;grid-template-columns:42px 1fr 18px;gap:12px;align-items:center;border:0;border-bottom:1px solid var(--bank-border);color:var(--bank-ink);background:transparent;cursor:pointer;text-align:left}
+.bank-project-menu-v2>button:last-child{border-bottom:0}
+.bank-project-menu-v2>button>span{width:42px;height:42px;display:grid;place-items:center;border-radius:50%;color:var(--bank-blue);background:#e8f1fc;font-weight:850}
+.bank-project-menu-v2>button>div{display:grid;gap:4px}
+.bank-project-menu-v2 strong{font-size:14px}
+.bank-project-menu-v2 small{color:var(--bank-muted);font-size:12px}
+.bank-project-menu-v2>button>svg{color:#96a3b2}
+
+/* Remove the remaining pale/navy surfaces from the bank dark mode. */
+html[data-bank-theme="dark"] .bank-shell-v2{--bank-canvas:#050505;--bank-card:#111;--bank-ink:#f5f5f5;--bank-muted:#b9b9b9;--bank-border:#2d2d2d;--bank-soft:#181818}
+html[data-bank-theme="dark"] .bank-shortcuts-v2>div>button{background:transparent!important;border:0!important}
+html[data-bank-theme="dark"] .bank-shortcuts-v2>div>button>span,
+html[data-bank-theme="dark"] .bank-project-menu-v2>button>span{color:#6caeff!important;background:#1a1a1a!important}
+html[data-bank-theme="dark"] .bank-project-menu-v2,
+html[data-bank-theme="dark"] .account-page-details,
+html[data-bank-theme="dark"] .account-page-transactions,
+html[data-bank-theme="dark"] .security-page-grid article,
+html[data-bank-theme="dark"] .security-page-actions button,
+html[data-bank-theme="dark"] .banking-page .statement-view,
+html[data-bank-theme="dark"] .card-presentation,
+html[data-bank-theme="dark"] .pix-page-layout .pix-page-form,
+html[data-bank-theme="dark"] .pix-page-help{color:#f2f2f2!important;background:#111!important;border-color:#303030!important}
+html[data-bank-theme="dark"] .banking-page .statement-tools>label,
+html[data-bank-theme="dark"] .banking-page .statement-tools button,
+html[data-bank-theme="dark"] .banking-page .statement-summary article,
+html[data-bank-theme="dark"] .banking-page .card-numbers article,
+html[data-bank-theme="dark"] .banking-page .card-control-panel form{color:#f2f2f2!important;background:#151515!important;border-color:#333!important}
+html[data-bank-theme="dark"] .banking-page .statement-tools input,
+html[data-bank-theme="dark"] .banking-page .card-control-panel input,
+html[data-bank-theme="dark"] .pix-page-form form input{color:#f5f5f5!important;background:#0a0a0a!important;border-color:#383838!important}
+html[data-bank-theme="dark"] .banking-page .statement-list>button:hover,
+html[data-bank-theme="dark"] .bank-project-menu-v2>button:hover{background:#181818!important}
+
+@media(max-width:1150px){.rb-public-nav{display:none}.rb-purpose{grid-template-columns:1fr}.rb-purpose-intro{position:static}}
+@media(max-width:760px){
+  .rb-product-rail span,.rb-service-grid span,.rb-public-footer a,.rb-public-footer span{font-size:14px}
+  .bank-shortcuts-v2>div{grid-template-columns:repeat(2,1fr)}
+  .bank-shell-v2 .bank-sidebar-v2 nav button{font-size:10px!important}
+  .bank-nav-technology{display:none!important}
+  .bank-content-grid-v2{grid-template-columns:1fr}
+  .bank-shortcuts-v2>div{display:grid;grid-template-columns:repeat(4,minmax(78px,1fr));gap:8px;overflow:visible}
+  .bank-shortcuts-v2>div>button{min-width:0}
+  .bank-tech-grid-v2>button:nth-child(n+5){display:none}
+  .impact-project-grid>article,.impact-project-grid>article.is-featured{min-height:540px;grid-template-rows:250px 1fr}
+  .impact-goal-grid strong{font-size:23px}
+  .impact-goal-grid span{font-size:13px}
+}

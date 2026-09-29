@@ -15,6 +15,7 @@ const warmupUrl = new URL("../app/BackendWarmup.tsx", import.meta.url);
 const proxyUrl = new URL("../app/api/[...path]/route.ts", import.meta.url);
 const layoutUrl = new URL("../app/layout.tsx", import.meta.url);
 const bankThemeUrl = new URL("../app/bank-theme.css", import.meta.url);
+const clarityRefreshUrl = new URL("../app/clarity-refresh.css", import.meta.url);
 const bankingSuiteUrl = new URL("../app/BankingSuite.tsx", import.meta.url);
 const bankSectionPagesUrl = new URL("../app/bank/BankSectionPages.tsx", import.meta.url);
 const bankSectionStylesUrl = new URL("../app/bank-section-pages.css", import.meta.url);
@@ -56,6 +57,7 @@ test("offers a persistent, accessible dark mode across the bank", async () => {
   const page = await readFile(pageUrl, "utf8");
   const layout = await readFile(layoutUrl, "utf8");
   const theme = await readFile(bankThemeUrl, "utf8");
+  const clarity = await readFile(clarityRefreshUrl, "utf8");
   assert.match(page, /ranbank-theme/);
   assert.match(page, /aria-pressed/);
   assert.match(page, /Ativar modo escuro/);
@@ -66,6 +68,9 @@ test("offers a persistent, accessible dark mode across the bank", async () => {
   assert.match(theme, /ranbank-balance-logo-flat\.jpeg/);
   assert.match(theme, /background-blend-mode:lighten,normal/);
   assert.match(theme, /quick-actions span\{color:#79b8ff!important;background:transparent!important\}/);
+  assert.match(clarity, /data-bank-theme="dark".*rb-public-footer/);
+  assert.match(clarity, /data-bank-theme="dark".*org-chart-section/);
+  assert.match(clarity, /--bank-card:#111/);
 });
 
 test("keeps technology status cards readable in dark mode", async () => {
@@ -114,9 +119,11 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   const theme = await readFile(bankThemeUrl, "utf8");
   const page = await readFile(pageUrl, "utf8");
   assert.match(publicSite, /Feito em Brasília para o futuro/i);
-  assert.match(publicSite, /\(61\) 4004-2028/);
+  assert.doesNotMatch(publicSite, /\(61\) 4004-2028/);
+  assert.match(publicSite, /instagram\.com\/ranbank\.df/);
+  assert.match(publicSite, /tiktok\.com\/@ranbank\.df/);
   assert.match(publicSite, /CENTRAL DE SEGURANÇA RANBANK/);
-  assert.match(publicSite, /HttpOnly e Secure no ambiente hospedado/);
+  assert.match(publicSite, /A sessão é protegida e encerrada com segurança/);
   assert.match(publicSite, /Somente essenciais/);
   assert.match(publicSite, /Aceitar todos/);
   assert.match(publicSite, /SecurityPublicPage/);
@@ -125,6 +132,7 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   assert.match(publicSite, /ranbank-demonstracao-04\.mp4/);
   assert.match(publicSite, /\/banco\?modo=criar-conta/);
   assert.match(publicSite, /rb-public-theme-toggle/);
+  assert.match(publicSite, /<img src="\/ranbank-logo-transparent\.png" alt="RanBank" \/>/);
   assert.match(publicSite, /aria-pressed/);
   assert.match(publicSite, /ranbank-theme/);
   assert.match(theme, /rb-impact-shell/);
@@ -136,13 +144,14 @@ test("provides a Brasília-first public bank and privacy center", async () => {
 test("presents a clearly identified educational impact portfolio", async () => {
   const publicSite = await readFile(publicSiteUrl, "utf8");
   const projects = await readFile(projectsUrl, "utf8");
-  assert.match(publicSite, /Impacto & Projetos/);
-  assert.match(projects, /Portal de Impacto/);
+  assert.match(publicSite, /Projetos e impacto/);
+  assert.match(projects, /Projetos com propósito/);
   assert.match(projects, /<b>04<\/b> frentes de atuação/);
-  assert.match(projects, /carteira\s+<strong>demonstrativa<\/strong>/i);
-  assert.match(projects, /metas anuais simuladas/i);
+  assert.match(projects, /<strong>propostas demonstrativas<\/strong>/i);
+  assert.match(projects, /não apresentamos\s+resultados inventados/i);
   assert.match(projects, /Estratégia Nacional de Educação Financeira/);
-  assert.match(projects, /Política Nacional de Educação Digital/);
+  assert.match(projects, /Agência Brasileira de Apoio à Gestão do SUS/);
+  assert.match(projects, /Apoio a iniciativas indígenas e comunitárias/);
   assert.match(projects, /não significam\s+vínculo, certificação ou parceria oficial/i);
   assert.doesNotMatch(projects, /Elas do Futuro/);
   assert.doesNotMatch(projects, /ranbank-demonstracao-03\.mp4/);
@@ -153,15 +162,16 @@ test("shows the institutional identity, FAQ and a project-wide non-commercial se
   const layout = await readFile(layoutUrl, "utf8");
   const presentationGuide = await readFile(presentationGuideUrl, "utf8");
   assert.match(publicSite, /Missão, visão e valores/);
-  assert.match(publicSite, /Transformar a relação das pessoas e empresas com o dinheiro/);
-  assert.match(publicSite, /Pessoas em primeiro lugar/);
-  assert.match(publicSite, /tecnologia é o meio\. Confiança é a base\. E o futuro é o destino/);
+  assert.match(publicSite, /Facilitar a vida financeira das pessoas/);
+  assert.match(publicSite, /Impacto positivo/);
+  assert.match(publicSite, /Tecnologia para simplificar\. Segurança para proteger/);
   assert.match(publicSite, /Brasília - DF/);
   assert.doesNotMatch(publicSite, /Brasília, DF/);
   assert.match(presentationGuide, /## Identidade institucional/);
   assert.match(presentationGuide, /### Nosso compromisso/);
   assert.match(publicSite, /Dúvidas frequentes/);
-  assert.match(publicSite, /O RanBank é uma instituição financeira real\?/);
+  assert.match(publicSite, /O que é o RanBank\?/);
+  assert.match(publicSite, /O que a Ran pode fazer\?/);
   assert.match(publicSite, /id="visao-valores"/);
   assert.match(publicSite, /id="duvidas"/);
   assert.match(layout, /Sem valor comercial/);
@@ -239,8 +249,17 @@ test("introduces Ran as the bank assistant without exposing the concept sheet", 
   assert.match(page, /Fale com a Ran/);
   assert.match(page, /ran-assistente-humana\.png/);
   assert.match(page, /Eu sou a Ran/);
-  assert.match(page, /bank-ran-card-v2/);
+  assert.match(page, /bank-project-menu-v2/);
+  assert.match(page, /Explore o RanBank/);
   assert.doesNotMatch(page, /ran-mascote-conceito-v1\.png/);
+});
+
+test("keeps the bank home focused and moves project details into menus", async () => {
+  const page = await readFile(pageUrl, "utf8");
+  assert.match(page, /Seu dinheiro em um só lugar/);
+  assert.match(page, /data\.transactions\.slice\(0, 3\)/);
+  assert.match(page, /> Início<\/button>/);
+  assert.match(page, /Conheça o projeto RanBank/);
 });
 
 test("uses Ran as a guide in public help and security", async () => {

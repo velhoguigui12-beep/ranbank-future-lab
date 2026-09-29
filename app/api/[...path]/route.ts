@@ -1,3 +1,5 @@
+import { handleCloudflareApi } from "./cloudflare-backend";
+
 const BACKEND_URL = (process.env.RANBANK_BACKEND_URL?.trim() || (process.env.NODE_ENV === "development" ? "http://localhost:8080/api" : "")).replace(/\/$/, "");
 const PROXY_SECRET = process.env.RANBANK_PROXY_SECRET?.trim() ?? "";
 const UPSTREAM_TIMEOUT_MS = 70000;
@@ -5,6 +7,10 @@ const UPSTREAM_TIMEOUT_MS = 70000;
 type RouteContext = { params: Promise<{ path: string[] }> | { path: string[] } };
 
 async function proxy(request: Request, context: RouteContext) {
+  const params = await context.params;
+  const nativeResponse = await handleCloudflareApi(request, params.path);
+  if (nativeResponse) return nativeResponse;
+
   if (!BACKEND_URL) {
     return Response.json(
       { message: "A API do RanBank ainda não foi configurada neste ambiente." },
@@ -12,7 +18,6 @@ async function proxy(request: Request, context: RouteContext) {
     );
   }
 
-  const params = await context.params;
   const incomingUrl = new URL(request.url);
   let targetUrl: URL;
   try {

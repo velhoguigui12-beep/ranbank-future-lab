@@ -162,33 +162,36 @@ const demoData: DashboardData = {
   ],
 };
 
-const officialTopics = ["IA + Big Data", "IoT + Sustentabilidade", "VR + RA", "Computação em nuvem", "Comparação", "Robótica"];
+const officialTopics = ["Proteção contra fraudes", "Dispositivos seguros", "Banco sempre disponível", "Dados com autorização", "Impacto ambiental", "Atendimento acessível"];
 
 function answerLocally(message: string) {
   const normalized = message.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
   const has = (...terms: string[]) => terms.some((term) => normalized.includes(term));
-  if (["oi", "ola", "opa", "bom dia", "boa tarde", "boa noite"].includes(normalized)) return { topic: "Boas-vindas", text: "Olá! Posso explicar Pix, segurança digital, IA, Big Data, nuvem, automação, IoT, robótica, realidade aumentada e realidade virtual. O que você quer conhecer?" };
-  if (["ajuda", "menu", "assuntos"].includes(normalized) || has("o que posso perguntar", "quais assuntos")) return { topic: "Ajuda", text: "Pergunte sobre o RanBank, Pix, golpes, malware, autenticação, IA, Big Data, Java, banco de dados, nuvem, IoT, automação, sustentabilidade, robótica, RA ou VR." };
-  if (has("phishing", "golpe", "link suspeito")) return { topic: "Segurança", text: "Phishing tenta obter senhas ou dados por engano. Verifique o remetente e o domínio, evite links inesperados e nunca compartilhe códigos de autenticação." };
-  if (has("malware", "virus", "ransomware", "trojan")) return { topic: "Malware", text: "Malware é um software malicioso. Atualizações, backups, antivírus, permissões mínimas e cuidado com downloads ajudam a reduzir o risco." };
-  if (has("pix", "chave", "transferencia", "saldo")) return { topic: "Pix", text: "O backend valida a chave Pix, confere o saldo, registra a movimentação no banco H2 e atualiza o painel imediatamente." };
-  if (has("boleto", "codigo de barras", "pagamento")) return { topic: "Boletos", text: "A Central Financeira valida o código de barras, o valor, o saldo e o PIN transacional antes de registrar o pagamento e gerar o comprovante." };
+  if (["oi", "ola", "opa", "bom dia", "boa tarde", "boa noite"].includes(normalized)) return { topic: "Boas-vindas", text: "Olá! Eu sou a Ran. Posso ajudar com Pix, cartão, extrato, segurança, privacidade e projetos do RanBank. O que você quer saber?" };
+  if (["ajuda", "menu", "assuntos"].includes(normalized) || has("o que posso perguntar", "quais assuntos")) return { topic: "Ajuda", text: "Você pode perguntar: como fazer um Pix, como controlar o cartão, como a conta é protegida, se o projeto é real ou quais são as propostas sociais e ambientais." };
+  if (has("ranbank e real", "banco real", "dinheiro real", "projeto demonstrativo")) return { topic: "Sobre o projeto", text: "O RanBank é um projeto educacional. Saldos, cartões e transferências são fictícios e servem apenas para demonstrar como um banco digital pode funcionar." };
+  if (has("projeto social", "impacto social", "indigena", "comunidade", "meio ambiente", "credito social")) return { topic: "Impacto positivo", text: "O RanBank apresenta propostas de educação financeira, crédito com propósito, acessibilidade e apoio construído com comunidades. São ideias demonstrativas, não resultados já realizados." };
+  if (has("privacidade", "cookie", "dados pessoais")) return { topic: "Privacidade", text: "Use somente dados fictícios. O site guarda apenas o necessário para a sessão e suas preferências, que podem ser controladas na página de Privacidade." };
+  if (has("phishing", "golpe", "link suspeito")) return { topic: "Segurança", text: "Golpes costumam usar urgência e links falsos. Confira o endereço do site e nunca compartilhe senhas ou códigos recebidos." };
+  if (has("malware", "virus", "ransomware", "trojan")) return { topic: "Aplicativos maliciosos", text: "Evite arquivos e aplicativos de origem desconhecida, mantenha o aparelho atualizado e nunca conceda permissões sem entender o motivo." };
+  if (has("pix", "chave", "transferencia", "saldo")) return { topic: "Pix", text: "Informe a chave e o valor, confira quem vai receber e confirme com a senha de quatro dígitos do cartão. No RanBank, tudo acontece somente entre contas demonstrativas." };
+  if (has("boleto", "codigo de barras", "pagamento")) return { topic: "Pagamentos", text: "Informe o código e o valor, revise os dados e confirme com a senha da operação. Depois, o comprovante fica disponível no extrato." };
   if (has("extrato", "movimentacoes", "comprovante")) return { topic: "Extrato", text: "O extrato reúne entradas e saídas, permite pesquisar movimentações e abre um comprovante individual para cada registro." };
-  if (has("cartao", "fatura", "limite")) return { topic: "Cartão virtual", text: "O cartão virtual permite acompanhar a fatura, ajustar o limite com PIN e realizar um bloqueio temporário diretamente no backend." };
-  if (has("cofrinho", "reserva", "investimento", "guardar dinheiro")) return { topic: "Reserva Future", text: "O cofrinho separa parte do saldo, acompanha uma meta e mostra uma projeção mensal no painel financeiro." };
-  if (has("open finance", "banco aberto", "consentimento")) return { topic: "Open Finance", text: "Open Finance permite compartilhar dados entre instituições por APIs padronizadas, sempre com consentimento, prazo e possibilidade de revogação." };
+  if (has("cartao", "fatura", "limite")) return { topic: "Cartão", text: "Na área Cartões você consulta a fatura e o limite, além de bloquear ou desbloquear o cartão demonstrativo." };
+  if (has("cofrinho", "reserva", "investimento", "guardar dinheiro")) return { topic: "Guardar dinheiro", text: "A reserva separa uma parte do saldo para um objetivo e permite acompanhar o progresso da meta." };
+  if (has("open finance", "banco aberto", "consentimento")) return { topic: "Compartilhamento de dados", text: "Dados de outras instituições só podem ser compartilhados com autorização do cliente, por tempo definido e com opção de cancelar." };
   if (has("blockchain", "hash", "auditoria", "ledger")) return { topic: "Auditoria encadeada", text: "Cada evento recebe um hash ligado ao registro anterior. Uma alteração quebra a sequência e torna a inconsistência visível." };
   if (has("fraude", "risco", "transacao suspeita")) return { topic: "Fraudes", text: "A análise combina valor, dispositivo, localização e horário. Cada sinal contribui para uma pontuação explicável que apoia a decisão." };
   if (has("inteligencia artificial", "machine learning", "chatbot") || normalized.split(" ").includes("ia")) return { topic: "Inteligência Artificial", text: "A IA reconhece padrões, apoia a detecção de fraude e facilita o atendimento. Neste assistente, uma base local responde aos principais temas da apresentação." };
-  if (has("big data", "dados", "analytics")) return { topic: "Big Data", text: "Big Data reúne e processa grandes volumes de eventos para encontrar padrões, produzir métricas e apoiar decisões." };
-  if (has("java", "spring", "backend", "frontend", "banco de dados", "h2")) return { topic: "Arquitetura", text: "O frontend React apresenta a interface; o backend Java com Spring Boot aplica regras e oferece APIs; o H2 armazena as informações da aplicação." };
-  if (has("iot", "internet das coisas", "dispositivo")) return { topic: "IoT", text: "IoT conecta dispositivos que enviam telemetria. O RanBank mostra localização, último acesso, confiança e ações de bloqueio." };
-  if (has("nuvem", "cloud", "redundancia", "failover")) return { topic: "Nuvem", text: "A redundância mantém serviços em regiões diferentes. Se a principal falha, o tráfego pode ser redirecionado para preservar a disponibilidade." };
-  if (has("automacao", "n8n", "workflow")) return { topic: "Automação", text: "A automação recebe alertas, reúne contexto, aplica regras, pede validação humana e registra o incidente." };
-  if (has("energia", "sustentavel", "sustentabilidade", "green it")) return { topic: "Sustentabilidade", text: "Green IT é o uso responsável da tecnologia para consumir menos energia e materiais. No RanBank, ela aparece no uso de energia solar e eólica, na otimização de servidores e nuvem, na redução de emissões e no descarte responsável de cartões e equipamentos." };
+  if (has("big data", "dados", "analytics")) return { topic: "Análise de dados", text: "A análise organiza muitas movimentações para encontrar padrões e ajudar a identificar gastos ou situações incomuns." };
+  if (has("java", "spring", "backend", "frontend", "banco de dados", "h2", "neon", "cloudflare")) return { topic: "Como o sistema funciona", text: "A tela mostra as informações, o sistema aplica as regras do banco e o banco de dados guarda as contas e movimentações. Na versão publicada, esses serviços usam Cloudflare e Neon." };
+  if (has("iot", "internet das coisas", "dispositivo")) return { topic: "Dispositivos", text: "O RanBank reconhece aparelhos usados para acessar a conta e pode pedir uma confirmação extra quando encontra algo diferente." };
+  if (has("nuvem", "cloud", "redundancia", "failover")) return { topic: "Disponibilidade", text: "O sistema usa serviços online para continuar acessível e reduzir a dependência de um único servidor." };
+  if (has("automacao", "n8n", "workflow")) return { topic: "Resposta automática", text: "Algumas tarefas podem acontecer automaticamente, mas decisões importantes continuam sob responsabilidade de uma pessoa." };
+  if (has("energia", "sustentavel", "sustentabilidade", "green it")) return { topic: "Sustentabilidade", text: "A proposta é reduzir desperdícios de energia e materiais e criar produtos ligados a escolhas sociais e ambientais positivas." };
   if (has("robotica", "robo")) return { topic: "Robótica", text: "Robótica combina sensores, software e atuadores para perceber, decidir e agir, mantendo supervisão humana nas decisões importantes." };
   if (has("realidade aumentada", "realidade virtual", "imersiva") || normalized.split(" ").some((word) => word === "ra" || word === "vr")) return { topic: "Tecnologias imersivas", text: "RA acrescenta informações ao ambiente real; VR cria um ambiente digital imersivo para treinamento e experiências." };
-  return { topic: "Assistente local", text: "Digite ‘ajuda’ para ver os assuntos disponíveis ou pergunte sobre segurança, Pix, IA, Big Data, IoT, nuvem, automação, sustentabilidade, robótica, RA ou VR." };
+  return { topic: "Posso ajudar", text: "Não encontrei uma resposta direta. Tente perguntar sobre Pix, cartão, extrato, segurança, privacidade, projetos sociais ou sobre o próprio RanBank." };
 }
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -316,7 +319,7 @@ export default function Home() {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatMode, setChatMode] = useState<"LOCAL" | "OPENAI" | "LOCAL_FALLBACK">("LOCAL");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { role: "assistant", text: "Olá! Eu sou a Ran. Posso explicar as tecnologias e os recursos de segurança do RanBank.", topic: "Boas-vindas" },
+    { role: "assistant", text: "Olá! Eu sou a Ran. Posso ajudar com sua conta e explicar o RanBank de forma simples.", topic: "Boas-vindas" },
   ]);
   const [sustainability, setSustainability] = useState<SustainabilityStatus | null>(null);
   const [sustainabilityOpen, setSustainabilityOpen] = useState(false);
@@ -908,12 +911,13 @@ export default function Home() {
         </button>
 
         <nav aria-label="Navegação principal">
+          <button className={screen === "dashboard" ? "active" : ""} onClick={() => setScreen("dashboard")}><span><BankIcon name="home" /></span> Início</button>
           <button className={screen === "account" ? "active" : ""} onClick={() => setScreen("account")}><span><BankIcon name="home" /></span> Conta</button>
           <button className={screen === "pix" ? "active" : ""} onClick={() => { setPixStep("details"); setScreen("pix"); }}><span><BankIcon name="pix" /></span> Área Pix</button>
           <button className={screen === "statement" ? "active" : ""} onClick={() => openBanking("statement")}><span><BankIcon name="statement" /></span> Extrato</button>
           <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><span><BankIcon name="card" /></span> Cartões</button>
           <button className={screen === "security" ? "active" : ""} onClick={() => setScreen("security")}><span><BankIcon name="shield" /></span> Segurança</button>
-          <button className={screen === "lab" ? "active" : ""} onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span> Future Lab</button>
+          <button className={`bank-nav-technology ${screen === "lab" ? "active" : ""}`} onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span> Tecnologia do banco</button>
         </nav>
 
       </aside>
@@ -937,7 +941,7 @@ export default function Home() {
         {screen === "dashboard" ? (
           <div className="bank-dashboard-v2">
             <div className="bank-page-heading">
-              <div><p>{new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date())}</p><h1>Olá, {data.customerName.split(" ")[0]}. <span>Como podemos ajudar?</span></h1></div>
+              <div><p>{new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date())}</p><h1>Olá, {data.customerName.split(" ")[0]}. <span>Seu dinheiro em um só lugar.</span></h1></div>
               <button onClick={() => setScreen("account")}><BankIcon name="user" size={17}/> Dados da conta</button>
             </div>
 
@@ -960,13 +964,12 @@ export default function Home() {
             </div>
 
             <section className="bank-shortcuts-v2" aria-label="Acessos rápidos">
-              <header><h2>Acessos rápidos</h2><span>Faça tudo sem sair da conta</span></header>
+              <header><h2>Acessos rápidos</h2></header>
               <div>
-                <button onClick={() => { setPixStep("details"); setScreen("pix"); }}><span><BankIcon name="pix"/></span><strong>Fazer Pix</strong><small>Transferência imediata</small></button>
-                <button onClick={() => openBanking("bill")}><span><BankIcon name="pay"/></span><strong>Pagar</strong><small>Boleto ou conta</small></button>
-                <button onClick={() => openBanking("schedule")}><span><BankIcon name="schedule"/></span><strong>Agendar</strong><small>Programe pagamentos</small></button>
-                <button onClick={() => openBanking("savings")}><span><BankIcon name="chart"/></span><strong>Guardar</strong><small>Reserva Future</small></button>
-                <button onClick={() => setPixKeysOpen(true)}><span><BankIcon name="lock"/></span><strong>Minhas chaves</strong><small>Gerencie seu Pix</small></button>
+                <button onClick={() => { setPixStep("details"); setScreen("pix"); }}><span><BankIcon name="pix"/></span><strong>Fazer Pix</strong></button>
+                <button onClick={() => openBanking("bill")}><span><BankIcon name="pay"/></span><strong>Pagar</strong></button>
+                <button onClick={() => openBanking("schedule")}><span><BankIcon name="schedule"/></span><strong>Agendar</strong></button>
+                <button onClick={() => openBanking("savings")}><span><BankIcon name="chart"/></span><strong>Guardar</strong></button>
               </div>
             </section>
 
@@ -974,7 +977,7 @@ export default function Home() {
               <article className="transactions-panel bank-transactions-v2">
                 <div className="panel-title"><div><p>ÚLTIMOS LANÇAMENTOS</p><h2>Movimentações recentes</h2></div><button onClick={() => openBanking("statement")}>Extrato completo <BankIcon name="chevron" size={14}/></button></div>
                 <div className="transaction-list">
-                  {data.transactions.slice(0, 5).map((transaction) => (
+                  {data.transactions.slice(0, 3).map((transaction) => (
                     <button className="transaction" key={transaction.id} onClick={() => openBanking("statement")}>
                       <span className={`transaction-icon ${transaction.type}`}>{transaction.type === "credit" ? "↓" : "↑"}</span>
                       <div><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></div>
@@ -985,28 +988,13 @@ export default function Home() {
                 </div>
               </article>
 
-              <aside className="bank-side-stack-v2">
-                <article className="bank-security-card-v2">
-                  <header><span><BankIcon name="shield"/></span><div><small>RANGUARD</small><strong>Conta protegida</strong></div><b>92<em>/100</em></b></header>
-                  <p>Dispositivo reconhecido e nenhuma atividade suspeita identificada.</p>
-                  <button onClick={() => setScreen("security")}>Abrir central de segurança <BankIcon name="chevron" size={14}/></button>
-                </article>
-                <article className="bank-ran-card-v2">
-                  <img src="/images/ran-assistente-humana.png" alt="Ran, assistente virtual do RanBank" />
-                  <div className="bank-ran-card-copy">
-                    <small>RAN · ASSISTENTE RANBANK</small>
-                    <h3>Seus gastos estão dentro do padrão.</h3>
-                    <p>Posso explicar sua conta e mostrar como a tecnologia protege cada operação.</p>
-                    <div><button onClick={() => setAssistantOpen(true)}>Falar com a Ran</button><button onClick={openAnalytics}>Ver análise</button></div>
-                  </div>
-                </article>
+              <aside className="bank-project-menu-v2" aria-label="Conheça o projeto RanBank">
+                <header><small>CONHEÇA O PROJETO</small><h2>Explore o RanBank</h2></header>
+                <button onClick={() => setScreen("security")}><span><BankIcon name="shield"/></span><div><strong>Segurança</strong><small>Veja como protegemos a conta</small></div><BankIcon name="chevron" size={15}/></button>
+                <button onClick={() => setScreen("lab")}><span><BankIcon name="spark"/></span><div><strong>Tecnologia</strong><small>Entenda como o banco funciona</small></div><BankIcon name="chevron" size={15}/></button>
+                <button onClick={() => setAssistantOpen(true)}><span className="bank-project-ran">R</span><div><strong>Falar com a Ran</strong><small>Ajuda em palavras simples</small></div><BankIcon name="chevron" size={15}/></button>
               </aside>
             </div>
-
-            <section className="bank-tech-preview-v2">
-              <div className="bank-tech-preview-copy"><span><BankIcon name="spark" size={17}/> TECNOLOGIA APLICADA</span><h2>O banco por trás da tela.</h2><p>Veja IA antifraude, Big Data, nuvem, IoT, Open Finance e automações funcionando em situações bancárias reais.</p><button onClick={() => setScreen("lab")}>Explorar tecnologias <BankIcon name="chevron" size={15}/></button></div>
-              <div className="bank-tech-signals-v2"><article><BankIcon name="brain"/><span><small>IA antifraude</small><strong>Proteção ativa</strong></span><i/></article><article><BankIcon name="cloud"/><span><small>Nuvem</small><strong>99,98% disponível</strong></span><i/></article><article><BankIcon name="device"/><span><small>Dispositivos</small><strong>Acesso confiável</strong></span><i/></article></div>
-            </section>
           </div>
         ) : screen === "account" ? (
           <AccountSectionPage data={data} onStatement={() => openBanking("statement")} />
@@ -1036,8 +1024,8 @@ export default function Home() {
         ) : (
           <div className="bank-technology-v2">
             <header className="bank-technology-hero-v2">
-              <div><span><BankIcon name="spark" size={16}/> FUTURE LAB · EXPERIÊNCIA EDUCACIONAL</span><h1>Tecnologia bancária, por dentro.</h1><p>Cada demonstração parte de um problema real de um banco e mostra como pessoas, dados e sistemas trabalham juntos.</p><div><button onClick={analyzeSuspiciousTransaction}>Iniciar caso antifraude</button><button className="reset-demo" disabled={resettingDemo} onClick={resetDemo}>{resettingDemo ? "Restaurando…" : "Restaurar dados da apresentação"}</button></div></div>
-              <aside><small>TRILHA DA APRESENTAÇÃO</small>{officialTopics.map((topic, index) => <span key={topic}><b>{String(index + 1).padStart(2,"0")}</b>{topic}</span>)}</aside>
+              <div><span><BankIcon name="spark" size={16}/> DEMONSTRAÇÃO EDUCACIONAL</span><h1>Como o banco funciona por dentro.</h1><p>Veja como o RanBank protege as pessoas, mantém os serviços disponíveis e usa dados com responsabilidade.</p><div><button onClick={analyzeSuspiciousTransaction}>Ver um caso de fraude</button><button className="reset-demo" disabled={resettingDemo} onClick={resetDemo}>{resettingDemo ? "Restaurando…" : "Recomeçar demonstração"}</button></div></div>
+              <aside><small>ASSUNTOS DESTA ÁREA</small>{officialTopics.map((topic, index) => <span key={topic}><b>{String(index + 1).padStart(2,"0")}</b>{topic}</span>)}</aside>
             </header>
 
             <section className="bank-fraud-case-v2">
@@ -1045,17 +1033,14 @@ export default function Home() {
               <div className="bank-risk-visual-v2"><div><span>RISCO CALCULADO</span><strong>68<small>/100</small></strong><b>Validação adicional</b></div><ul><li><i className="high"/>Localização incomum <b>+28</b></li><li><i className="medium"/>Novo dispositivo <b>+24</b></li><li><i/>Horário habitual <b>+08</b></li></ul></div>
             </section>
 
-            <div className="bank-tech-section-title-v2"><div><span>SOLUÇÕES DO BANCO</span><h2>Do atendimento à infraestrutura</h2></div><p>Selecione um módulo para abrir a demonstração interativa conectada ao backend.</p></div>
+            <div className="bank-tech-section-title-v2"><div><span>SOLUÇÕES DO BANCO</span><h2>Escolha o que deseja conhecer</h2></div><p>Cada opção mostra, de forma simples, uma parte do funcionamento do banco.</p></div>
             <section className="bank-tech-grid-v2">
-              <button onClick={openAnalytics}><span><BankIcon name="chart"/></span><div><small>DADOS</small><h3>Inteligência financeira</h3><p>Big Data transforma movimentações em padrões e indicadores.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={loadDevices}><span><BankIcon name="device"/></span><div><small>IOT</small><h3>Dispositivos conectados</h3><p>Telemetria identifica acessos confiáveis e suspeitos.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={openCloud}><span><BankIcon name="cloud"/></span><div><small>NUVEM</small><h3>Continuidade do banco</h3><p>Regiões redundantes mantêm os serviços disponíveis.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={runAutomation}><span><BankIcon name="automation"/></span><div><small>AUTOMAÇÃO</small><h3>Resposta a incidentes</h3><p>Fluxos executam tarefas e preservam a decisão humana.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={() => openInnovation("open-finance")}><span><BankIcon name="transfer"/></span><div><small>OPEN FINANCE</small><h3>Dados sob consentimento</h3><p>APIs conectam instituições com autorização do cliente.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={openSustainability}><span><BankIcon name="leaf"/></span><div><small>GREEN IT</small><h3>Operação sustentável</h3><p>Energia limpa e software eficiente reduzem impacto.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={() => simulateAuthentication()}><span><BankIcon name="lock"/></span><div><small>IDENTIDADE</small><h3>Autenticação adaptativa</h3><p>Contexto, dispositivo e múltiplos fatores protegem o acesso.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={() => openInnovation("audit")}><span><BankIcon name="shield"/></span><div><small>RASTREABILIDADE</small><h3>Auditoria encadeada</h3><p>Hashes tornam alterações e inconsistências detectáveis.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={() => openInnovation("journey")}><span><BankIcon name="spark"/></span><div><small>JORNADA 360°</small><h3>Defesa integrada</h3><p>IA, IoT, nuvem e automação atuam na mesma transação.</p></div><BankIcon name="chevron"/></button>
+              <button onClick={openAnalytics}><span><BankIcon name="chart"/></span><div><small>MOVIMENTAÇÕES</small><h3>Análise financeira</h3><p>O banco organiza movimentações para ajudar nas decisões.</p></div><BankIcon name="chevron"/></button>
+              <button onClick={loadDevices}><span><BankIcon name="device"/></span><div><small>ACESSOS</small><h3>Dispositivos reconhecidos</h3><p>O banco identifica aparelhos confiáveis e acessos incomuns.</p></div><BankIcon name="chevron"/></button>
+              <button onClick={openCloud}><span><BankIcon name="cloud"/></span><div><small>DISPONIBILIDADE</small><h3>Banco sempre disponível</h3><p>Cópias e regiões de apoio mantêm o serviço funcionando.</p></div><BankIcon name="chevron"/></button>
+              <button onClick={runAutomation}><span><BankIcon name="automation"/></span><div><small>RESPOSTA RÁPIDA</small><h3>Proteção em etapas</h3><p>Tarefas automáticas ajudam a equipe, que mantém a decisão final.</p></div><BankIcon name="chevron"/></button>
+              <button onClick={() => openInnovation("open-finance")}><span><BankIcon name="transfer"/></span><div><small>AUTORIZAÇÃO</small><h3>Compartilhamento de dados</h3><p>Informações só são compartilhadas com permissão do cliente.</p></div><BankIcon name="chevron"/></button>
+              <button onClick={openSustainability}><span><BankIcon name="leaf"/></span><div><small>MEIO AMBIENTE</small><h3>Operação sustentável</h3><p>Energia limpa e sistemas eficientes ajudam a reduzir impactos.</p></div><BankIcon name="chevron"/></button>
             </section>
 
             <section className="bank-future-experiments-v2"><header><div><span>EXPERIMENTOS DE FUTURO</span><h2>Além do aplicativo bancário</h2></div><p>Protótipos para atendimento, capacitação e agências inteligentes.</p></header><div><button onClick={() => loadImmersive("ar")}><b>RA</b><span><strong>Realidade aumentada</strong><small>Orientação contextual</small></span></button><button onClick={() => loadImmersive("vr")}><b>VR</b><span><strong>Treinamento imersivo</strong><small>Ambiente seguro de prática</small></span></button><button onClick={() => loadRobotMission()}><b>R2</b><span><strong>Robótica assistiva</strong><small>Atendimento com supervisão</small></span></button><button onClick={() => loadComparison()}><b>≋</b><span><strong>Comparar tecnologias</strong><small>Escolha por objetivo</small></span></button></div></section>
@@ -1066,7 +1051,7 @@ export default function Home() {
       </section>
 
       <button className="assistant-button ran-assistant-button" onClick={() => setAssistantOpen(!assistantOpen)} aria-label={assistantOpen ? "Fechar conversa com a Ran" : "Falar com a Ran"} aria-expanded={assistantOpen}><span className="ran-assistant-avatar"><img src="/images/ran-assistente-humana.png" alt="" /></span><span className="ran-assistant-label"><strong>Fale com a Ran</strong><small>Assistente do RanBank</small></span></button>
-      {assistantOpen && <aside className="assistant-panel ran-assistant-panel" aria-label="Conversa com a Ran, assistente educacional do RanBank"><div className="assistant-header"><span className="assistant-icon ran-assistant-header-avatar"><img src="/images/ran-assistente-humana.png" alt="" /></span><div><strong>Ran</strong><small className={`assistant-mode mode-${chatMode.toLowerCase()}`}>{chatMode === "OPENAI" ? "Assistente conectada · OpenAI API" : chatMode === "LOCAL_FALLBACK" ? "API indisponível · modo local" : "Assistente local · conteúdo educacional"}</small></div><button onClick={() => setAssistantOpen(false)} aria-label="Fechar conversa com a Ran">×</button></div><div className="chat-messages" aria-live="polite">{chatMessages.map((message,index) => <article key={index} className={`chat-${message.role}`}>{message.topic && <span>{message.topic}</span>}<p>{message.text}</p></article>)}{chatLoading && <article className="chat-assistant chat-typing" aria-label="Ran está digitando"><i/><i/><i/></article>}</div><div className="chat-suggestions"><button onClick={() => sendChatMessage("Oi")}>Dizer oi</button><button onClick={() => sendChatMessage("O que é phishing?")}>Phishing</button><button onClick={() => sendChatMessage("O que posso perguntar?")}>Ver assuntos</button></div><form className="chat-form" onSubmit={(event) => { event.preventDefault(); sendChatMessage(); }}><input value={chatInput} maxLength={300} onChange={(event) => setChatInput(event.target.value)} placeholder="Pergunte à Ran…" aria-label="Pergunta para a Ran"/><button type="submit" disabled={chatLoading || !chatInput.trim()} aria-label="Enviar pergunta para a Ran">→</button></form><footer>Ran · conteúdo educacional, sem orientação financeira</footer></aside>}
+      {assistantOpen && <aside className="assistant-panel ran-assistant-panel" aria-label="Conversa com a Ran, assistente educacional do RanBank"><div className="assistant-header"><span className="assistant-icon ran-assistant-header-avatar"><img src="/images/ran-assistente-humana.png" alt="" /></span><div><strong>Ran</strong><small className={`assistant-mode mode-${chatMode.toLowerCase()}`}>{chatMode === "OPENAI" ? "Assistente conectada" : chatMode === "LOCAL_FALLBACK" ? "Modo de ajuda local" : "Ajuda do RanBank"}</small></div><button onClick={() => setAssistantOpen(false)} aria-label="Fechar conversa com a Ran">×</button></div><div className="chat-messages" aria-live="polite">{chatMessages.map((message,index) => <article key={index} className={`chat-${message.role}`}>{message.topic && <span>{message.topic}</span>}<p>{message.text}</p></article>)}{chatLoading && <article className="chat-assistant chat-typing" aria-label="Ran está digitando"><i/><i/><i/></article>}</div><div className="chat-suggestions"><button onClick={() => sendChatMessage("Como faço um Pix?")}>Como fazer um Pix</button><button onClick={() => sendChatMessage("Como o RanBank protege minha conta?")}>Segurança da conta</button><button onClick={() => sendChatMessage("O RanBank é um banco real?")}>Sobre o projeto</button></div><form className="chat-form" onSubmit={(event) => { event.preventDefault(); sendChatMessage(); }}><input value={chatInput} maxLength={300} onChange={(event) => setChatInput(event.target.value)} placeholder="Pergunte à Ran…" aria-label="Pergunta para a Ran"/><button type="submit" disabled={chatLoading || !chatInput.trim()} aria-label="Enviar pergunta para a Ran">→</button></form><footer>Ran · ajuda educacional, sem movimentar dinheiro real</footer></aside>}
       {analysisOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalysisOpen(false)}><section className="analysis-modal" role="dialog" aria-modal="true" aria-labelledby="analysis-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>SEGURANÇA EXPLICÁVEL</span><h2 id="analysis-title">Resultado da análise</h2></div><button onClick={() => setAnalysisOpen(false)} aria-label="Fechar">×</button></header>{analysisLoading ? <div className="analysis-loading"><i/><p>Analisando sinais da transação…</p></div> : analysis ? <><div className={`analysis-summary level-${analysis.level.toLowerCase()}`}><div><strong>{analysis.score}</strong><small>/100</small></div><span>Risco {analysis.level}</span></div><div className="method-label">{analysis.method} · resultado demonstrativo</div><div className="signal-list">{analysis.signals.map((signal) => <article key={signal.name}><b>{signal.weight}</b><div><strong>{signal.name}</strong><p>{signal.explanation}</p></div></article>)}</div><div className="recommendation"><span>Recomendação do sistema</span><strong>{analysis.recommendation}</strong></div></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar o simulador.</p></div>}</section></div>}
       {analyticsOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalyticsOpen(false)}><section className="analytics-modal" role="dialog" aria-modal="true" aria-labelledby="analytics-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>BIG DATA · DADOS DO H2</span><h2 id="analytics-title">Inteligência de movimentações</h2></div><button onClick={() => setAnalyticsOpen(false)} aria-label="Fechar">×</button></header>{analyticsLoading ? <div className="analysis-loading"><i/><p>Agregando movimentações…</p></div> : analytics ? <><div className="metric-grid"><article><span>Eventos analisados</span><strong>{analytics.totalTransactions}</strong><small>{analytics.creditCount} entradas · {analytics.debitCount} saídas</small></article><article><span>Total de entradas</span><strong className="metric-positive">{money.format(analytics.totalIn)}</strong><small>Valores creditados</small></article><article><span>Total de saídas</span><strong>{money.format(analytics.totalOut)}</strong><small>Valores debitados</small></article><article><span>Média por saída</span><strong>{money.format(analytics.averageOut)}</strong><small>Maior: {money.format(analytics.largestOut)}</small></article></div><div className="data-chart"><div><span>VOLUME RELATIVO</span><small>Cada barra representa uma movimentação armazenada</small></div><div className="data-bars">{analytics.series.map((value,index) => { const max = Math.max(...analytics.series.map(Math.abs),1); return <i key={index} className={value >= 0 ? "bar-credit" : "bar-debit"} style={{height:`${Math.max(12, Math.abs(value)/max*100)}%`}} title={money.format(value)}/>; })}</div><div className="chart-legend"><span><i className="legend-credit"/>Entrada</span><span><i className="legend-debit"/>Saída</span></div></div><div className="data-pipeline"><div><b>1</b><span><strong>Coleta</strong><small>Pix e movimentações</small></span></div><i>→</i><div><b>2</b><span><strong>Armazenamento</strong><small>Banco H2</small></span></div><i>→</i><div><b>3</b><span><strong>Agregação</strong><small>API Java</small></span></div><i>→</i><div><b>4</b><span><strong>Visualização</strong><small>Painel React</small></span></div></div><p className="analytics-caption">Em um banco real, esse fluxo processaria volumes muito maiores e exigiria infraestrutura distribuída. Aqui ele foi reduzido para fins didáticos.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar as estatísticas.</p></div>}</section></div>}
       {devicesOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setDevicesOpen(false)}><section className="devices-modal" role="dialog" aria-modal="true" aria-labelledby="devices-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>IOT · TELEMETRIA DEMONSTRATIVA</span><h2 id="devices-title">Dispositivos conectados</h2></div><button onClick={() => setDevicesOpen(false)} aria-label="Fechar">×</button></header><div className="iot-summary"><div><strong>{devices.filter((device) => !device.blocked).length}</strong><small>ativos</small></div><div><strong>{devices.filter((device) => device.trusted).length}</strong><small>confiáveis</small></div><div><strong>{devices.filter((device) => device.blocked).length}</strong><small>bloqueados</small></div><p>O banco recebe sinais dos aparelhos e reage quando encontra comportamento fora do padrão.</p></div>{devicesLoading ? <div className="analysis-loading"><i/><p>Consultando dispositivos…</p></div> : devices.length ? <div className="device-list">{devices.map((device) => <article key={device.id} className={!device.trusted ? "device-alert" : ""}><span className="device-icon">{device.type === "Celular" ? "▯" : device.type === "Computador" ? "▱" : "IoT"}</span><div><div className="device-name"><strong>{device.name}</strong>{device.blocked ? <b className="blocked-pill">Bloqueado</b> : device.trusted ? <b className="trusted-pill">Confiável</b> : <b className="alert-pill">Revisar</b>}</div><p>{device.type} · {device.location}</p><small>Último sinal: {device.lastAccess}</small></div><button className={device.blocked ? "unblock-button" : "block-button"} onClick={() => toggleDevice(device.id)}>{device.blocked ? "Reativar" : "Bloquear"}</button></article>)}</div> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar os dispositivos.</p></div>}<div className="iot-flow"><span>Dispositivo</span><i>envia telemetria →</i><span>API Java</span><i>avalia confiança →</i><span>Resposta</span></div><p className="analytics-caption">Acompanhe telemetria, confiança e respostas de segurança dos dispositivos conectados.</p></section></div>}

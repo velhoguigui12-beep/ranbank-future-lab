@@ -19,6 +19,7 @@ import "./organization-chart.css";
 import "./bank-theme.css";
 import "./bank-v2.css";
 import "./bank-section-pages.css";
+import "./clarity-refresh.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
