@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, @next/next/no-img-element -- Modal backdrops intentionally handle clicks; Vinext serves local decorative images directly. */
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, @next/next/no-img-element, @next/next/no-html-link-for-pages -- Modal backdrops intentionally handle clicks; Vinext serves local decorative images directly; the link back to the public site should reload the page. */
 
 import { lazy, Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -8,6 +8,8 @@ import type { InnovationTab } from "./InnovationHub";
 import AuthScreen, { type AuthMode } from "./bank/AuthScreen";
 import { apiFetch, clearAccountSession } from "./bank/api";
 import { AccountSectionPage, SecuritySectionPage } from "./bank/BankSectionPages";
+import { BkLoading, BkSheet, BkUnavailable } from "./bank/BkSheet";
+import { LabSheet, type LabId } from "./bank/Labs";
 import { transactionDescription, type TransactionView } from "./bank/transactionFormatting";
 
 const BankingSuite = lazy(() => import("./BankingSuite"));
@@ -26,14 +28,6 @@ type DashboardData = {
   createdAt: string;
   card: { lastFour: string; blocked: boolean; limit: number; spent: number; available: number };
   transactions: TransactionView[];
-};
-
-type FraudAnalysis = {
-  score: number;
-  level: string;
-  recommendation: string;
-  method: string;
-  signals: Array<{ name: string; weight: string; explanation: string }>;
 };
 
 type AnalyticsSummary = {
@@ -57,15 +51,6 @@ type ConnectedDevice = {
   blocked: boolean;
 };
 
-type CloudStatus = {
-  systemStatus: string;
-  availability: string;
-  activeRegion: string;
-  failureActive: boolean;
-  regions: Array<{ name: string; code: string; status: string; trafficPercent: number; latencyMs: number }>;
-  timeline: Array<{ time: string; title: string; description: string }>;
-};
-
 type AutomationRun = {
   incidentId: string;
   startedAt: string;
@@ -82,67 +67,6 @@ type PixReceipt = { transferId: string; transactionId: number; status: string; a
 type FlowExecution = { id: string; flowType: string; triggerType: string; referenceId?: string; status: string; startedAt: string; completedAt?: string; steps: AutomationRun["steps"] };
 type AdminInsights = { generatedAt: string; totalAccounts: number; activeAccounts: number; totalDeposits: number; totalTransactions: number; transactionVolume: number; pixTransfers: number; unreadNotifications: number; flowExecutions: number };
 type BankTheme = "light" | "dark";
-
-type SustainabilityStatus = {
-  optimized: boolean;
-  powerKw: number;
-  renewablePercent: number;
-  carbonKgHour: number;
-  pue: number;
-  savingsPercent: number;
-  sources: Array<{ name: string; percentage: number; type: string }>;
-  actions: string[];
-};
-
-type ComparisonResponse = {
-  goal: string;
-  goalLabel: string;
-  disclaimer: string;
-  results: Array<{
-    name: string;
-    score: number;
-    cost: string;
-    maturity: string;
-    bestUse: string;
-    limitation: string;
-  }>;
-};
-
-type ThreatScenario = {
-  name: string;
-  category: string;
-  risk: number;
-  description: string;
-  indicators: string[];
-  defenses: Array<{ name: string; result: string; responsibility: string }>;
-};
-
-type ImmersiveScenario = {
-  code: string;
-  name: string;
-  title: string;
-  definition: string;
-  steps: string[];
-  equipment: string;
-  strength: string;
-  limitation: string;
-};
-
-type RobotMission = {
-  name: string;
-  objective: string;
-  autonomy: number;
-  steps: Array<{ title: string; result: string; technology: string }>;
-  humanRole: string;
-};
-
-type AuthenticationResult = {
-  context: string;
-  risk: number;
-  decision: string;
-  explanation: string;
-  factors: Array<{ name: string; status: string; category: string }>;
-};
 
 const demoData: DashboardData = {
   customerName: "Ana Ribeiro",
@@ -162,8 +86,6 @@ const demoData: DashboardData = {
   ],
 };
 
-const officialTopics = ["Proteção contra fraudes", "Dispositivos seguros", "Banco sempre disponível", "Dados com autorização", "Impacto ambiental", "Atendimento acessível"];
-
 function answerLocally(message: string) {
   const normalized = message.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
   const has = (...terms: string[]) => terms.some((term) => normalized.includes(term));
@@ -177,7 +99,7 @@ function answerLocally(message: string) {
   if (has("pix", "chave", "transferencia", "saldo")) return { topic: "Pix", text: "Informe a chave e o valor, confira quem vai receber e confirme com a senha de quatro dígitos do cartão. No RanBank, tudo acontece somente entre contas demonstrativas." };
   if (has("boleto", "codigo de barras", "pagamento")) return { topic: "Pagamentos", text: "Informe o código e o valor, revise os dados e confirme com a senha da operação. Depois, o comprovante fica disponível no extrato." };
   if (has("extrato", "movimentacoes", "comprovante")) return { topic: "Extrato", text: "O extrato reúne entradas e saídas, permite pesquisar movimentações e abre um comprovante individual para cada registro." };
-  if (has("cartao", "fatura", "limite")) return { topic: "Cartão", text: "Na área Cartões você consulta a fatura e o limite, além de bloquear ou desbloquear o cartão demonstrativo." };
+  if (has("cartao", "fatura", "limite")) return { topic: "Cartão", text: "Na área Cartão você consulta a fatura e o limite, além de bloquear ou desbloquear o cartão demonstrativo." };
   if (has("cofrinho", "reserva", "investimento", "guardar dinheiro")) return { topic: "Guardar dinheiro", text: "A reserva separa uma parte do saldo para um objetivo e permite acompanhar o progresso da meta." };
   if (has("open finance", "banco aberto", "consentimento")) return { topic: "Compartilhamento de dados", text: "Dados de outras instituições só podem ser compartilhados com autorização do cliente, por tempo definido e com opção de cancelar." };
   if (has("blockchain", "hash", "auditoria", "ledger")) return { topic: "Auditoria encadeada", text: "Cada evento recebe um hash ligado ao registro anterior. Uma alteração quebra a sequência e torna a inconsistência visível." };
@@ -186,11 +108,11 @@ function answerLocally(message: string) {
   if (has("big data", "dados", "analytics")) return { topic: "Análise de dados", text: "A análise organiza muitas movimentações para encontrar padrões e ajudar a identificar gastos ou situações incomuns." };
   if (has("java", "spring", "backend", "frontend", "banco de dados", "h2", "neon", "cloudflare")) return { topic: "Como o sistema funciona", text: "A tela mostra as informações, o sistema aplica as regras do banco e o banco de dados guarda as contas e movimentações. Na versão publicada, esses serviços usam Cloudflare e Neon." };
   if (has("iot", "internet das coisas", "dispositivo")) return { topic: "Dispositivos", text: "O RanBank reconhece aparelhos usados para acessar a conta e pode pedir uma confirmação extra quando encontra algo diferente." };
-  if (has("nuvem", "cloud", "redundancia", "failover")) return { topic: "Disponibilidade", text: "O sistema usa serviços online para continuar acessível e reduzir a dependência de um único servidor." };
+  if (has("nuvem", "cloud", "redundancia", "failover")) return { topic: "Disponibilidade", text: "O sistema usa serviços na internet para continuar no ar e não depender de um único servidor." };
   if (has("automacao", "n8n", "workflow")) return { topic: "Resposta automática", text: "Algumas tarefas podem acontecer automaticamente, mas decisões importantes continuam sob responsabilidade de uma pessoa." };
   if (has("energia", "sustentavel", "sustentabilidade", "green it")) return { topic: "Sustentabilidade", text: "A proposta é reduzir desperdícios de energia e materiais e criar produtos ligados a escolhas sociais e ambientais positivas." };
   if (has("robotica", "robo")) return { topic: "Robótica", text: "Robótica combina sensores, software e atuadores para perceber, decidir e agir, mantendo supervisão humana nas decisões importantes." };
-  if (has("realidade aumentada", "realidade virtual", "imersiva") || normalized.split(" ").some((word) => word === "ra" || word === "vr")) return { topic: "Tecnologias imersivas", text: "RA acrescenta informações ao ambiente real; VR cria um ambiente digital imersivo para treinamento e experiências." };
+  if (has("realidade aumentada", "realidade virtual", "imersiva") || normalized.split(" ").some((word) => word === "ra" || word === "vr")) return { topic: "Tecnologias imersivas", text: "A realidade aumentada (RA) acrescenta informações ao ambiente real. A realidade virtual (RV) cria um ambiente digital para treinamentos e experiências." };
   return { topic: "Posso ajudar", text: "Não encontrei uma resposta direta. Tente perguntar sobre Pix, cartão, extrato, segurança, privacidade, projetos sociais ou sobre o próprio RanBank." };
 }
 
@@ -207,7 +129,7 @@ const formatMoneyFromDigits = (value: string) => {
   return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     .format(cents / 100);
 };
-type BankIconName = "home" | "pix" | "statement" | "card" | "shield" | "spark" | "bell" | "sun" | "moon" | "eye" | "eyeOff" | "pay" | "transfer" | "schedule" | "chevron" | "help" | "logout" | "chart" | "device" | "cloud" | "leaf" | "brain" | "automation" | "lock" | "user";
+type BankIconName = "home" | "pix" | "statement" | "card" | "shield" | "spark" | "bell" | "sun" | "moon" | "eye" | "eyeOff" | "pay" | "transfer" | "schedule" | "chevron" | "help" | "logout" | "chart" | "device" | "cloud" | "leaf" | "brain" | "automation" | "lock" | "user" | "key";
 
 function BankIcon({ name, size = 20 }: { name: BankIconName; size?: number }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
@@ -237,6 +159,7 @@ function BankIcon({ name, size = 20 }: { name: BankIconName; size?: number }) {
     automation: <><path d="M4 7h11M12 4l3 3-3 3M20 17H9M12 14l-3 3 3 3"/><circle cx="4" cy="17" r="1"/><circle cx="20" cy="7" r="1"/></>,
     lock: <><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>,
     user: <><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
+    key: <><circle cx="8" cy="15" r="4"/><path d="m10.8 12.2 8.7-8.7M16 7l2.5 2.5M18.5 4.5 21 7"/></>,
   };
   return <svg {...common}>{paths[name]}</svg>;
 }
@@ -281,6 +204,7 @@ export default function Home() {
   const [innovationTab, setInnovationTab] = useState<InnovationTab>("open-finance");
   const [notifications, setNotifications] = useState<BankNotification[]>([]);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [lab, setLab] = useState<LabId | null>(null);
 
   const [pixKey, setPixKey] = useState("");
   const [amount, setAmount] = useState("");
@@ -291,22 +215,12 @@ export default function Home() {
   const [pixRecipient, setPixRecipient] = useState<PixRecipient | null>(null);
   const [pixIdempotencyKey, setPixIdempotencyKey] = useState("");
   const [pixReceipt, setPixReceipt] = useState<PixReceipt | null>(null);
-  const [analysis, setAnalysis] = useState<FraudAnalysis | null>(null);
-  const [analysisOpen, setAnalysisOpen] = useState(false);
-  const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [devices, setDevices] = useState<ConnectedDevice[]>([]);
   const [devicesOpen, setDevicesOpen] = useState(false);
   const [devicesLoading, setDevicesLoading] = useState(false);
-  const [cloud, setCloud] = useState<CloudStatus | null>(null);
-  const [cloudOpen, setCloudOpen] = useState(false);
-  const [cloudLoading, setCloudLoading] = useState(false);
-  const [automation, setAutomation] = useState<AutomationRun | null>(null);
-  const [automationOpen, setAutomationOpen] = useState(false);
-  const [automationRunning, setAutomationRunning] = useState(false);
-  const [visibleAutomationSteps, setVisibleAutomationSteps] = useState(0);
   const [flowHistory, setFlowHistory] = useState<FlowExecution[]>([]);
   const [flowHistoryOpen, setFlowHistoryOpen] = useState(false);
   const [flowHistoryLoading, setFlowHistoryLoading] = useState(false);
@@ -321,24 +235,6 @@ export default function Home() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     { role: "assistant", text: "Olá! Eu sou a Ran. Posso ajudar com sua conta e explicar o RanBank de forma simples.", topic: "Boas-vindas" },
   ]);
-  const [sustainability, setSustainability] = useState<SustainabilityStatus | null>(null);
-  const [sustainabilityOpen, setSustainabilityOpen] = useState(false);
-  const [sustainabilityLoading, setSustainabilityLoading] = useState(false);
-  const [comparison, setComparison] = useState<ComparisonResponse | null>(null);
-  const [comparisonOpen, setComparisonOpen] = useState(false);
-  const [comparisonLoading, setComparisonLoading] = useState(false);
-  const [threat, setThreat] = useState<ThreatScenario | null>(null);
-  const [securityOpen, setSecurityOpen] = useState(false);
-  const [securityLoading, setSecurityLoading] = useState(false);
-  const [immersive, setImmersive] = useState<ImmersiveScenario | null>(null);
-  const [immersiveOpen, setImmersiveOpen] = useState(false);
-  const [immersiveLoading, setImmersiveLoading] = useState(false);
-  const [robotMission, setRobotMission] = useState<RobotMission | null>(null);
-  const [roboticsOpen, setRoboticsOpen] = useState(false);
-  const [roboticsLoading, setRoboticsLoading] = useState(false);
-  const [authentication, setAuthentication] = useState<AuthenticationResult | null>(null);
-  const [authenticationOpen, setAuthenticationOpen] = useState(false);
-  const [authenticationLoading, setAuthenticationLoading] = useState(false);
   const [resettingDemo, setResettingDemo] = useState(false);
   const [bankTheme, setBankTheme] = useState<BankTheme>("light");
   const [balanceVisible, setBalanceVisible] = useState(true);
@@ -364,11 +260,11 @@ export default function Home() {
   useEffect(() => {
     if (!loginLoading) return;
     const wakeupTimer = window.setTimeout(
-      () => setLoginProgress("Iniciando o servidor seguro do RanBank…"),
+      () => setLoginProgress("Conectando com segurança…"),
       1500,
     );
     const coldStartTimer = window.setTimeout(
-      () => setLoginProgress("O servidor gratuito está iniciando. O primeiro acesso pode levar cerca de dois minutos."),
+      () => setLoginProgress("Está demorando mais que o normal. Confira sua internet e aguarde mais um pouco."),
       10000,
     );
     return () => {
@@ -400,7 +296,7 @@ export default function Home() {
           if (active) { clearAccountSession(); setAuthUser(null); setAuthStatus("unauthenticated"); }
           return;
         }
-        if (!response.ok) throw new Error("O servidor está indisponível. Tente restaurar seu acesso novamente.");
+        if (!response.ok) throw new Error("O servidor não respondeu. Tente de novo.");
         const session = await response.json();
         if (!active) return;
         setAccessError("");
@@ -514,14 +410,14 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(recovery),
       });
-      const result = await response.json().catch(() => ({ message: "Não foi possível redefinir o PIN." }));
+      const result = await response.json().catch(() => ({ message: "Não foi possível redefinir a senha." }));
       if (!response.ok) throw new Error(result.message);
       setLoginIdentification(recovery.identification);
       setRecovery({ identification: "", email: "", transactionPin: "", newAccessPin: "" });
       setAuthMode("login");
       setLoginError(result.message);
     } catch (error) {
-      setLoginError(error instanceof Error ? error.message : "Não foi possível redefinir o PIN.");
+      setLoginError(error instanceof Error ? error.message : "Não foi possível redefinir a senha.");
     } finally {
       setLoginLoading(false);
       setLoginProgress("");
@@ -572,7 +468,7 @@ export default function Home() {
     event.preventDefault();
     const numericAmount = parseMoneyInput(amount);
     if (!pixKey.trim() || !Number.isFinite(numericAmount) || numericAmount <= 0) {
-      setPixError("Informe uma chave e um valor válido.");
+      setPixError("Informe uma chave e um valor válidos.");
       setPixStatus("error");
       return;
     }
@@ -628,24 +524,6 @@ export default function Home() {
     }
   };
 
-  const analyzeSuspiciousTransaction = async () => {
-    setAnalysisLoading(true);
-    setAnalysisOpen(true);
-    try {
-      const response = await apiFetch("/fraud/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: 2950, newDevice: true, unusualLocation: true, unusualTime: false }),
-      });
-      if (!response.ok) throw new Error();
-      setAnalysis(await response.json());
-    } catch {
-      setAnalysis(null);
-    } finally {
-      setAnalysisLoading(false);
-    }
-  };
-
   const openAnalytics = async () => {
     setAnalyticsOpen(true);
     setAnalyticsLoading(true);
@@ -682,43 +560,6 @@ export default function Home() {
     }
   };
 
-  const requestCloudStatus = async (path = "/status", method = "GET") => {
-    setCloudLoading(true);
-    try {
-      const response = await apiFetch(`/cloud${path}`, { method });
-      if (!response.ok) throw new Error();
-      setCloud(await response.json());
-    } catch {
-      setCloud(null);
-    } finally {
-      setCloudLoading(false);
-    }
-  };
-
-  const openCloud = () => {
-    setCloudOpen(true);
-    requestCloudStatus();
-  };
-
-  const runAutomation = async () => {
-    setAutomationOpen(true);
-    setAutomationRunning(true);
-    setAutomation(null);
-    setVisibleAutomationSteps(0);
-    try {
-      const response = await apiFetch("/automation/run", { method: "POST" });
-      if (!response.ok) throw new Error();
-      const result: AutomationRun = await response.json();
-      setAutomation(result);
-      result.steps.forEach((_, index) => {
-        setTimeout(() => setVisibleAutomationSteps(index + 1), 450 * (index + 1));
-      });
-      setTimeout(() => setAutomationRunning(false), 450 * (result.steps.length + 1));
-    } catch {
-      setAutomationRunning(false);
-    }
-  };
-
   const sendChatMessage = async (message = chatInput) => {
     const cleanMessage = message.trim();
     if (!cleanMessage || chatLoading) return;
@@ -744,94 +585,6 @@ export default function Home() {
     }
   };
 
-  const requestSustainability = async (optimize = false) => {
-    setSustainabilityLoading(true);
-    try {
-      const response = await apiFetch(`/sustainability/${optimize ? "optimize" : "status"}`, { method: optimize ? "POST" : "GET" });
-      if (!response.ok) throw new Error();
-      setSustainability(await response.json());
-    } catch {
-      setSustainability(null);
-    } finally {
-      setSustainabilityLoading(false);
-    }
-  };
-
-  const openSustainability = () => {
-    setSustainabilityOpen(true);
-    requestSustainability();
-  };
-
-  const loadComparison = async (goal = "seguranca") => {
-    setComparisonOpen(true);
-    setComparisonLoading(true);
-    try {
-      const response = await apiFetch(`/comparison?goal=${goal}`);
-      if (!response.ok) throw new Error();
-      setComparison(await response.json());
-    } catch {
-      setComparison(null);
-    } finally {
-      setComparisonLoading(false);
-    }
-  };
-
-  const simulateThreat = async (scenario = "phishing") => {
-    setSecurityOpen(true);
-    setSecurityLoading(true);
-    try {
-      const response = await apiFetch(`/security/simulate?threat=${scenario}`);
-      if (!response.ok) throw new Error();
-      setThreat(await response.json());
-    } catch {
-      setThreat(null);
-    } finally {
-      setSecurityLoading(false);
-    }
-  };
-
-  const loadImmersive = async (mode = "ar") => {
-    setImmersiveOpen(true);
-    setImmersiveLoading(true);
-    try {
-      const response = await apiFetch(`/immersive?mode=${mode}`);
-      if (!response.ok) throw new Error();
-      setImmersive(await response.json());
-    } catch {
-      setImmersive(null);
-    } finally {
-      setImmersiveLoading(false);
-    }
-  };
-
-  const loadRobotMission = async (type = "reception") => {
-    setRoboticsOpen(true);
-    setRoboticsLoading(true);
-    try {
-      const response = await apiFetch(`/robotics/mission?type=${type}`);
-      if (!response.ok) throw new Error();
-      setRobotMission(await response.json());
-    } catch {
-      setRobotMission(null);
-    } finally {
-      setRoboticsLoading(false);
-    }
-  };
-
-  const simulateAuthentication = async (scenario = "trusted") => {
-    setAuthenticationOpen(true);
-    setAuthenticationLoading(true);
-    try {
-      const response = await apiFetch(`/authentication/simulate?scenario=${scenario}`, { method: "POST" });
-      if (!response.ok) throw new Error();
-      setAuthentication(await response.json());
-    } catch {
-      setAuthentication(null);
-    } finally {
-      setAuthenticationLoading(false);
-    }
-  };
-
   const resetDemo = async () => {
     if (!window.confirm("Restaurar saldo, movimentações e dispositivos da demonstração da Ana?")) return;
     setResettingDemo(true);
@@ -843,7 +596,7 @@ export default function Home() {
       setAnalytics(null);
       window.alert("Demonstração restaurada.");
     } catch {
-      window.alert("Não foi possível restaurar. Verifique se o backend está ligado.");
+      window.alert("Não foi possível restaurar agora. Tente de novo em alguns segundos.");
     } finally {
       setResettingDemo(false);
     }
@@ -877,11 +630,6 @@ export default function Home() {
     }
   };
 
-  const toggleUtilityCard = async () => {
-    const response = await apiFetch("/banking/card/toggle", { method: "PATCH" });
-    if (response.ok) await loadDashboard();
-  };
-
   const markAllNotificationsRead = async () => {
     const response = await apiFetch("/notifications/read-all", { method: "PATCH" });
     if (response.ok) setNotifications((current) => current.map((item) => ({ ...item, read: true })));
@@ -890,7 +638,7 @@ export default function Home() {
   if (pathname === "/") return null;
 
   if (authStatus === "checking") {
-    return <main className="login-shell"><section className="login-loading" aria-live="polite"><img src="/ranbank-logo.jpeg" alt="RanBank"/>{accessError ? <><h2>Vamos recuperar seu acesso</h2><p>{accessError}</p><button onClick={() => { setAccessError(""); setRestoreAttempt(value => value + 1); }}>Tentar novamente</button><button onClick={() => { clearAccountSession(); setAuthStatus("unauthenticated"); }}>Ir para o login</button></> : <><i/><p>Verificando seu acesso…</p><small>O servidor pode precisar de até um minuto para iniciar.</small><button onClick={() => { setRestoreAttempt(value => value + 1); clearAccountSession(); setAuthStatus("unauthenticated"); }}>Ir para o login</button></>}</section></main>;
+    return <main className="bk-splash" aria-live="polite"><span className="bk-logo"><img src="/ranbank-logo-transparent.png" alt="RanBank" /></span>{accessError ? <><h1>Não conseguimos abrir sua conta</h1><p>{accessError}</p><div className="bk-splash-actions"><button className="bk-btn bk-btn-primary" onClick={() => { setAccessError(""); setRestoreAttempt(value => value + 1); }}>Tentar novamente</button><button className="bk-btn bk-btn-ghost" onClick={() => { clearAccountSession(); setAuthStatus("unauthenticated"); }}>Ir para o login</button></div></> : <><i className="bk-spinner" /><p>Abrindo o RanBank…</p><button className="bk-splash-skip" onClick={() => { setRestoreAttempt(value => value + 1); clearAccountSession(); setAuthStatus("unauthenticated"); }}>Ir para o login</button></>}</main>;
   }
 
   if (authStatus === "unauthenticated") {
@@ -902,223 +650,320 @@ export default function Home() {
       onRecover={recoverPin} appendDigit={appendLoginDigit}/>;
   }
 
+  const firstName = data.customerName.split(" ")[0];
+  const initials = (authUser?.customerName ?? data.customerName).split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB";
+  const shown = (value: number) => balanceVisible ? money.format(value) : "R$ ••••";
+  const openPix = () => { setPixStep("details"); setScreen("pix"); };
+  const cardUsage = Math.min(100, (data.card.spent / Math.max(data.card.limit, 1)) * 100);
+
   return (
-    <main className="bank-shell bank-shell-v2">
-      <aside className="sidebar bank-sidebar-v2">
-        <button className="brand bank-brand-v2" onClick={() => { setScreen("dashboard"); setUtilityPanel(null); }} aria-label="Ir para o início">
-          <img className="brand-logo" src="/ranbank-logo.jpeg" alt="" />
-          <span><strong>RanBank</strong><small>Banco digital</small></span>
+    <main className="bk-shell">
+      <aside className="bk-sidebar">
+        <button className="bk-brand" onClick={() => { setScreen("dashboard"); setUtilityPanel(null); }} aria-label="Ir para o início">
+          <span className="bk-logo"><img src="/ranbank-logo-transparent.png" alt="RanBank" /></span>
         </button>
-
-        <nav aria-label="Navegação principal">
-          <button className={screen === "dashboard" ? "active" : ""} onClick={() => setScreen("dashboard")}><span><BankIcon name="home" /></span> Início</button>
-          <button className={screen === "account" ? "active" : ""} onClick={() => setScreen("account")}><span><BankIcon name="home" /></span> Conta</button>
-          <button className={screen === "pix" ? "active" : ""} onClick={() => { setPixStep("details"); setScreen("pix"); }}><span><BankIcon name="pix" /></span> Área Pix</button>
-          <button className={screen === "statement" ? "active" : ""} onClick={() => openBanking("statement")}><span><BankIcon name="statement" /></span> Extrato</button>
-          <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><span><BankIcon name="card" /></span> Cartões</button>
-          <button className={screen === "security" ? "active" : ""} onClick={() => setScreen("security")}><span><BankIcon name="shield" /></span> Segurança</button>
-          <button className={`bank-nav-technology ${screen === "lab" ? "active" : ""}`} onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span> Tecnologia do banco</button>
+        <nav className="bk-nav" aria-label="Navegação principal">
+          <small>Dia a dia</small>
+          <button className={screen === "dashboard" ? "active" : ""} onClick={() => setScreen("dashboard")}><BankIcon name="home" /> Início</button>
+          <button className={screen === "pix" ? "active" : ""} onClick={openPix}><BankIcon name="pix" /> Pix</button>
+          <button className={screen === "statement" ? "active" : ""} onClick={() => openBanking("statement")}><BankIcon name="statement" /> Extrato</button>
+          <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><BankIcon name="card" /> Cartão</button>
+          <button className={screen === "services" ? "active" : ""} onClick={() => openBanking("bill")}><BankIcon name="pay" /> Pagar e guardar</button>
+          <small>Proteção</small>
+          <button className={screen === "security" ? "active" : ""} onClick={() => setScreen("security")}><BankIcon name="shield" /> Segurança</button>
+          <small>Conheça</small>
+          <button className={screen === "lab" ? "active" : ""} onClick={() => setScreen("lab")}><BankIcon name="spark" /> Como o banco funciona</button>
         </nav>
-
+        <div className="bk-sidebar-foot">
+          <a href="/">← Voltar ao site</a>
+          <button onClick={logout}><BankIcon name="logout" size={18} /> Sair da conta</button>
+        </div>
       </aside>
 
-      <section className="workspace bank-workspace-v2">
-        <header className="topbar bank-topbar-v2">
-          <button type="button" className="bank-mobile-brand" onClick={() => { setScreen("dashboard"); setUtilityPanel(null); }} aria-label="Voltar ao início do RanBank"><img src="/ranbank-logo.jpeg" alt=""/><strong>RanBank</strong></button>
-          <div className="bank-context">
-            <small>CONTA DIGITAL</small>
-            <strong>Agência 0001 <i/> Conta {data.account}</strong>
-          </div>
-          <div className="bank-demo-chip"><BankIcon name="spark" size={15}/><span><b>Demonstração Senac</b><small>Dados 100% fictícios</small></span></div>
-          <div className="top-actions">
-            <button type="button" className="bank-mobile-logout" onClick={logout} aria-label="Sair com segurança"><BankIcon name="logout" size={17}/><span>Sair</span></button>
-            <button className="theme-toggle" type="button" onClick={toggleBankTheme} aria-label={bankTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={bankTheme === "dark"} title={bankTheme === "dark" ? "Modo claro" : "Modo escuro"}><BankIcon name={bankTheme === "dark" ? "sun" : "moon"} /></button>
-            <button className="notification-trigger" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações"><BankIcon name="bell" />{notifications.some((item) => !item.read) && <i/>}</button>
-            <button className="avatar" onClick={() => setUtilityPanel("profile")} aria-label={`Abrir perfil de ${authUser?.customerName ?? "cliente"}`}>{authUser?.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB"}</button>
+      <section className="bk-workspace">
+        <header className="bk-topbar">
+          <button type="button" className="bk-mobile-brand" onClick={() => { setScreen("dashboard"); setUtilityPanel(null); }} aria-label="Voltar ao início do RanBank"><span className="bk-logo"><img src="/ranbank-logo-transparent.png" alt="RanBank" /></span></button>
+          <p className="bk-notice"><b>Projeto educacional.</b> Nenhum valor é real.</p>
+          <div className="bk-top-actions">
+            <button className="bk-icon-btn" type="button" onClick={() => setBalanceVisible((current) => !current)} aria-label={balanceVisible ? "Esconder valores" : "Mostrar valores"} title={balanceVisible ? "Esconder valores" : "Mostrar valores"}><BankIcon name={balanceVisible ? "eye" : "eyeOff"} /></button>
+            <button className="bk-icon-btn" type="button" onClick={toggleBankTheme} aria-label={bankTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={bankTheme === "dark"} title={bankTheme === "dark" ? "Modo claro" : "Modo escuro"}><BankIcon name={bankTheme === "dark" ? "sun" : "moon"} /></button>
+            <button className="bk-icon-btn" type="button" onClick={() => setUtilityPanel("notifications")} aria-label="Notificações"><BankIcon name="bell" />{notifications.some((item) => !item.read) && <i />}</button>
+            <button className="bk-avatar" type="button" onClick={() => setUtilityPanel("profile")} aria-label={`Abrir perfil de ${authUser?.customerName ?? "cliente"}`}>{initials}</button>
           </div>
         </header>
 
         {screen === "dashboard" ? (
-          <div className="bank-dashboard-v2">
-            <div className="bank-page-heading">
-              <div><p>{new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date())}</p><h1>Olá, {data.customerName.split(" ")[0]}. <span>Seu dinheiro em um só lugar.</span></h1></div>
-              <button onClick={() => setScreen("account")}><BankIcon name="user" size={17}/> Dados da conta</button>
-            </div>
+          <div className="bk-home">
+            <header className="bk-greeting">
+              <h1>Olá, {firstName}</h1>
+              <p>Seu dinheiro em um só lugar.</p>
+            </header>
 
-            <div className="bank-overview-v2">
-              <article className="balance-card bank-balance-v2">
-                <div className="balance-copy">
-                  <div><small>Saldo disponível</small><button onClick={() => setBalanceVisible((current) => !current)} aria-label={balanceVisible ? "Ocultar saldo" : "Mostrar saldo"}><BankIcon name={balanceVisible ? "eye" : "eyeOff"} size={18}/></button></div>
-                  <strong>{balanceVisible ? money.format(data.balance) : "R$ ••••••"}</strong>
-                  <span>Atualizado agora</span>
-                </div>
-                <div className="balance-card-footer"><span><i/>Conta protegida pelo RanGuard</span><button onClick={() => openBanking("statement")}>Ver extrato <BankIcon name="chevron" size={14}/></button></div>
-              </article>
-
-              <article className="bank-card-summary-v2">
-                <header><div><span>Cartão Eco</span><small>Final {data.card.lastFour}</small></div><button onClick={() => setScreen("cards")}>Ver cartão</button></header>
-                <div className="bank-card-summary-values"><div><small>Fatura atual</small><strong>{balanceVisible ? money.format(data.card.spent) : "R$ ••••"}</strong></div><span className={data.card.blocked ? "is-blocked" : ""}>{data.card.blocked ? "Bloqueado" : "Ativo"}</span></div>
-                <div className="bank-limit-track"><i style={{width:`${Math.min(100, (data.card.spent / Math.max(data.card.limit, 1)) * 100)}%`}}/></div>
-                <footer><span>Limite disponível</span><strong>{money.format(data.card.available)}</strong></footer>
-              </article>
-            </div>
-
-            <section className="bank-shortcuts-v2" aria-label="Acessos rápidos">
-              <header><h2>Acessos rápidos</h2></header>
-              <div>
-                <button onClick={() => { setPixStep("details"); setScreen("pix"); }}><span><BankIcon name="pix"/></span><strong>Fazer Pix</strong></button>
-                <button onClick={() => openBanking("bill")}><span><BankIcon name="pay"/></span><strong>Pagar</strong></button>
-                <button onClick={() => openBanking("schedule")}><span><BankIcon name="schedule"/></span><strong>Agendar</strong></button>
-                <button onClick={() => openBanking("savings")}><span><BankIcon name="chart"/></span><strong>Guardar</strong></button>
-              </div>
+            <section className="bk-block bk-area-account" aria-label="Conta">
+              <button className="bk-row" onClick={() => setScreen("account")}><span>Conta</span><BankIcon name="chevron" size={18} /></button>
+              <strong className="bk-balance">{shown(data.balance)}</strong>
+              <small className="bk-muted">Saldo disponível</small>
             </section>
 
-            <div className="bank-content-grid-v2">
-              <article className="transactions-panel bank-transactions-v2">
-                <div className="panel-title"><div><p>ÚLTIMOS LANÇAMENTOS</p><h2>Movimentações recentes</h2></div><button onClick={() => openBanking("statement")}>Extrato completo <BankIcon name="chevron" size={14}/></button></div>
-                <div className="transaction-list">
-                  {data.transactions.slice(0, 3).map((transaction) => (
-                    <button className="transaction" key={transaction.id} onClick={() => openBanking("statement")}>
-                      <span className={`transaction-icon ${transaction.type}`}>{transaction.type === "credit" ? "↓" : "↑"}</span>
-                      <div><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></div>
-                      <b className={transaction.type}>{transaction.amount > 0 ? "+ " : "- "}{money.format(Math.abs(transaction.amount))}</b>
-                      <BankIcon name="chevron" size={15}/>
-                    </button>
-                  ))}
-                </div>
-              </article>
+            <section className="bk-actions bk-area-actions" aria-label="Acessos rápidos">
+              <button onClick={openPix}><span><BankIcon name="pix" /></span>Pix</button>
+              <button onClick={() => openBanking("bill")}><span><BankIcon name="pay" /></span>Pagar</button>
+              <button onClick={() => openBanking("schedule")}><span><BankIcon name="schedule" /></span>Agendar</button>
+              <button onClick={() => openBanking("savings")}><span><BankIcon name="chart" /></span>Guardar</button>
+            </section>
 
-              <aside className="bank-project-menu-v2" aria-label="Conheça o projeto RanBank">
-                <header><small>CONHEÇA O PROJETO</small><h2>Explore o RanBank</h2></header>
-                <button onClick={() => setScreen("security")}><span><BankIcon name="shield"/></span><div><strong>Segurança</strong><small>Veja como protegemos a conta</small></div><BankIcon name="chevron" size={15}/></button>
-                <button onClick={() => setScreen("lab")}><span><BankIcon name="spark"/></span><div><strong>Tecnologia</strong><small>Entenda como o banco funciona</small></div><BankIcon name="chevron" size={15}/></button>
-                <button onClick={() => setAssistantOpen(true)}><span className="bank-project-ran">R</span><div><strong>Falar com a Ran</strong><small>Ajuda em palavras simples</small></div><BankIcon name="chevron" size={15}/></button>
+            <section className="bk-block bk-area-moves" aria-label="Últimas movimentações">
+              <button className="bk-row" onClick={() => openBanking("statement")}><span>Últimas movimentações</span><BankIcon name="chevron" size={18} /></button>
+              {data.transactions.length ? (
+                <ul className="bk-list">
+                  {data.transactions.slice(0, 3).map((transaction) => (
+                    <li key={transaction.id}>
+                      <button onClick={() => openBanking("statement")}>
+                        <span className={`bk-tx-icon ${transaction.type}`} aria-hidden="true">{transaction.type === "credit" ? "↓" : "↑"}</span>
+                        <span className="bk-tx-copy"><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></span>
+                        <b className={transaction.type}>{balanceVisible ? `${transaction.amount > 0 ? "+ " : "- "}${money.format(Math.abs(transaction.amount))}` : "••••"}</b>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="bk-muted">Nenhuma movimentação ainda.</p>}
+            </section>
+
+            <div className="bk-home-side">
+              <section className="bk-block bk-area-card" aria-label="Cartão Ecocard">
+                <button className="bk-row" onClick={() => setScreen("cards")}><span>Cartão Ecocard {data.card.blocked && <em className="bk-tag is-warn">Bloqueado</em>}</span><BankIcon name="chevron" size={18} /></button>
+                <small className="bk-muted">Fatura atual</small>
+                <strong className="bk-amount">{shown(data.card.spent)}</strong>
+                <div className="bk-meter" aria-hidden="true"><i style={{ width: `${cardUsage}%` }} /></div>
+                <small className="bk-muted">Limite disponível de {shown(data.card.available)}</small>
+              </section>
+
+              <aside className="bk-discover bk-area-discover bank-project-menu-v2" aria-label="Conheça o projeto RanBank">
+                <h2>Explore o RanBank</h2>
+                <div>
+                  <button onClick={() => setScreen("security")}><span><BankIcon name="shield" /></span><strong>Segurança</strong><small>Como a conta é protegida</small></button>
+                  <button onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span><strong>Como o banco funciona</strong><small>A tecnologia por trás</small></button>
+                  <button onClick={() => setAssistantOpen(true)}><span className="bk-discover-ran"><img src="/images/ran-assistente-humana.png" alt="" /></span><strong>Fale com a Ran</strong><small>Dúvidas em palavras simples</small></button>
+                </div>
               </aside>
             </div>
           </div>
         ) : screen === "account" ? (
           <AccountSectionPage data={data} onStatement={() => openBanking("statement")} />
-        ) : screen === "pix" ? (<div className="bank-section-page"><header className="bank-section-heading"><span>TRANSFERÊNCIAS</span><h1>Área Pix</h1><p>Envie, agende e gerencie suas chaves em um só lugar.</p></header>      {pixStep === "details" && <div className="pix-page-layout">
-        <section className="pix-modal pix-page-form" aria-labelledby="pix-title">
-          <header><div><span>PIX RANBANK</span><h2 id="pix-title">Enviar um Pix</h2></div></header>
-          <div className="education-note"><b>i</b><p><strong>Transferência entre contas</strong><br/>O destinatário será localizado antes da autorização, e débito e crédito ocorrerão juntos.</p></div>
-          <form onSubmit={sendPix}>
-            <label>Chave Pix<input value={pixKey} onChange={(event) => setPixKey(event.target.value)} placeholder="E-mail, CPF, telefone ou chave aleatória" required /><small className="field-help">Use a chave de outra conta cadastrada no RanBank.</small></label>
-            <label>Valor disponível: {money.format(data.balance)}<input className="pix-cent-amount" value={amount} onChange={(event) => setAmount(formatMoneyFromDigits(event.target.value))} onFocus={(event) => event.currentTarget.select()} placeholder="0,00" inputMode="numeric" aria-label="Valor do Pix em reais e centavos" required /></label>
-            {pixStatus === "error" && <p className="form-error">{pixError}</p>}
-            <button className="confirm-pix" disabled={pixStatus === "sending"}>{pixStatus === "sending" ? "Localizando destinatário…" : pixStatus === "success" ? "Pix concluído ✓" : "Revisar Pix"}</button>
-          </form>
-        </section>
-<aside className="pix-page-help"><span>SEU PIX</span><h2>Transfira com tranquilidade</h2><p>Confira o nome de quem recebe antes de confirmar. A autorização usa seu PIN transacional.</p><button onClick={() => setPixKeysOpen(true)}>Gerenciar minhas chaves →</button><button onClick={() => openBanking("schedule")}>Agendar um Pix →</button><small>Disponível para transferir</small><strong>{money.format(data.balance)}</strong></aside></div>}
-      {pixStep === "review" && <div className="pix-review-page"><section className="pin-confirmation-modal"  aria-labelledby="pin-confirmation-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CONFIRMAÇÃO SEGURA</span><h2 id="pin-confirmation-title">Revise sua transferência</h2></div><button onClick={() => { setPixStep("details"); setTransactionPin(""); }} aria-label="Fechar">×</button></header><div className="transfer-review"><article><span>DESTINATÁRIO</span><strong>{pixRecipient?.name ?? "Destinatário validado"}</strong><small>{pixRecipient?.maskedKey} · conta {pixRecipient?.accountNumber}</small></article><article><span>VALOR</span><strong>{money.format(parseMoneyInput(amount))}</strong></article></div><div className="transaction-security-note"><b>4</b><p><strong>Segunda camada de proteção</strong><br/>Digite a senha de quatro dígitos do cartão para autorizar.</p></div><form onSubmit={sendPix}><label className="transaction-pin-field"><span>Senha do cartão</span><input type="password" value={transactionPin} onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, "").slice(0,4))} inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={4} placeholder="••••" aria-label="Senha de quatro dígitos do cartão"/></label><div className="transaction-pin-dots" aria-label={`${transactionPin.length} de 4 dígitos informados`}>{[0,1,2,3].map((index) => <i key={index} className={index < transactionPin.length ? "filled" : ""}/>)}</div><div className="numeric-keypad transaction-keypad" aria-label="Teclado da senha do cartão">{["1","2","3","4","5","6","7","8","9"].map((digit) => <button key={digit} type="button" onClick={() => appendTransactionDigit(digit)}>{digit}</button>)}<span aria-hidden="true"/><button type="button" onClick={() => appendTransactionDigit("0")}>0</button><button className="erase-key" type="button" onClick={() => setTransactionPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito da senha">⌫</button></div>{pixStatus === "error" && <p className="form-error" role="alert">{pixError}</p>}{pixStatus === "success" && <p className="transfer-success">Transferência concluída nas duas contas ✓</p>}<div className="pin-confirmation-actions"><button type="button" onClick={() => { setPixStep("details"); setTransactionPin(""); setPixError(""); setPixStatus("idle"); }}>← Corrigir dados</button><button type="submit" className="authorize-transfer" disabled={pixStatus === "sending" || transactionPin.length !== 4}>{pixStatus === "sending" ? "Autorizando…" : pixStatus === "success" ? "Concluída ✓" : "Autorizar transferência"}</button></div></form><footer>Conta demo: PIN transacional <b>7314</b></footer></section></div>}
-</div>
+        ) : screen === "pix" ? (
+          <div className="bk-page bk-pix">
+            <header className="bk-page-head"><h1>Pix</h1><p>Envie dinheiro na hora para outra conta RanBank.</p></header>
+            <div className="bk-pix-grid">
+              <div className="bk-pix-main">
+                {pixStep === "details" && <>
+                  <section className="bk-panel" aria-labelledby="pix-title">
+                    <h2 id="pix-title" className="bk-panel-title">Enviar um Pix</h2>
+                    <form className="bk-form" onSubmit={sendPix}>
+                      <label>Chave Pix de quem vai receber<input value={pixKey} onChange={(event) => setPixKey(event.target.value)} placeholder="E-mail, CPF, celular ou chave aleatória" required /></label>
+                      <label>Valor<span className="bk-money"><b>R$</b><input className="pix-cent-amount" value={amount} onChange={(event) => setAmount(formatMoneyFromDigits(event.target.value))} onFocus={(event) => event.currentTarget.select()} placeholder="0,00" inputMode="numeric" aria-label="Valor do Pix em reais e centavos" required /></span><small>Disponível: {shown(data.balance)}</small></label>
+                      {pixStatus === "error" && <p className="bk-error" role="alert">{pixError}</p>}
+                      <button className="bk-btn bk-btn-primary" disabled={pixStatus === "sending"}>{pixStatus === "sending" ? "Procurando quem vai receber…" : "Continuar"}</button>
+                    </form>
+                  </section>
+                </>}
+                {pixStep === "review" && (
+                  <section className="bk-panel bk-review" aria-labelledby="pin-confirmation-title">
+                    <h2 id="pin-confirmation-title" className="bk-panel-title">Revise sua transferência</h2>
+                    <dl>
+                      <div><dt>Para</dt><dd><strong>{pixRecipient?.name ?? "Destinatário validado"}</strong><small>{pixRecipient?.maskedKey} · conta {pixRecipient?.accountNumber}</small></dd></div>
+                      <div><dt>Valor</dt><dd><strong className="bk-amount">{money.format(parseMoneyInput(amount))}</strong></dd></div>
+                    </dl>
+                    <form className="bk-form" onSubmit={sendPix}>
+                      <label className="bk-pin-field">Digite a senha de 4 dígitos do cartão para autorizar
+                        <input type="password" value={transactionPin} onChange={(event) => setTransactionPin(event.target.value.replace(/\D/g, "").slice(0,4))} inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={4} placeholder="••••" aria-label="Senha de quatro dígitos do cartão" />
+                      </label>
+                      <div className="bk-keypad" aria-label="Teclado da senha do cartão">{["1","2","3","4","5","6","7","8","9"].map((digit) => <button key={digit} type="button" onClick={() => appendTransactionDigit(digit)}>{digit}</button>)}<span aria-hidden="true" /><button type="button" onClick={() => appendTransactionDigit("0")}>0</button><button type="button" onClick={() => setTransactionPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito da senha">⌫</button></div>
+                      {pixStatus === "error" && <p className="bk-error" role="alert">{pixError}</p>}
+                      {pixStatus === "success" && <p className="bk-success">Transferência concluída ✓</p>}
+                      <div className="bk-form-actions">
+                        <button type="button" className="bk-btn bk-btn-ghost" onClick={() => { setPixStep("details"); setTransactionPin(""); setPixError(""); setPixStatus("idle"); }}>Voltar</button>
+                        <button type="submit" className="bk-btn bk-btn-primary" disabled={pixStatus === "sending" || transactionPin.length !== 4}>{pixStatus === "sending" ? "Autorizando…" : pixStatus === "success" ? "Concluída ✓" : "Autorizar transferência"}</button>
+                      </div>
+                    </form>
+                  </section>
+                )}
+              </div>
+              <aside className="bk-pix-side" aria-label="Informações do Pix">
+                <section className="bk-panel bk-pix-balance"><small className="bk-muted">Disponível para Pix</small><strong className="bk-balance">{shown(data.balance)}</strong></section>
+                  <div className="bk-links">
+                    <button onClick={() => setPixKeysOpen(true)}><BankIcon name="key" /> Minhas chaves Pix <BankIcon name="chevron" size={16} /></button>
+                    <button onClick={() => openBanking("schedule")}><BankIcon name="schedule" /> Agendar um Pix <BankIcon name="chevron" size={16} /></button>
+                  </div>
+                <section className="bk-panel">
+                  <h2 className="bk-panel-title">Como seu Pix é protegido</h2>
+                  <ul className="bk-checks">
+                    <li><span aria-hidden="true">✓</span><div><strong>Confira quem recebe</strong><small>O nome aparece antes de você confirmar.</small></div></li>
+                    <li><span aria-hidden="true">✓</span><div><strong>Senha só para movimentar</strong><small>Diferente da senha de entrar no app.</small></div></li>
+                    <li><span aria-hidden="true">✓</span><div><strong>Sem envio repetido</strong><small>Um clique duplo não manda o Pix duas vezes.</small></div></li>
+                  </ul>
+                </section>
+                <section className="bk-panel">
+                  <h2 className="bk-panel-title">Últimos Pix</h2>
+                  {data.transactions.filter((transaction) => /pix|transfer/i.test(transaction.title)).length ? (
+                    <ul className="bk-list">
+                      {data.transactions.filter((transaction) => /pix|transfer/i.test(transaction.title)).slice(0, 4).map((transaction) => (
+                        <li key={transaction.id}><div>
+                          <span className={`bk-tx-icon ${transaction.type}`} aria-hidden="true">{transaction.type === "credit" ? "↓" : "↑"}</span>
+                          <span className="bk-tx-copy"><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></span>
+                          <b className={transaction.type}>{balanceVisible ? `${transaction.amount > 0 ? "+ " : "- "}${money.format(Math.abs(transaction.amount))}` : "••••"}</b>
+                        </div></li>
+                      ))}
+                    </ul>
+                  ) : <p className="bk-muted">Nenhum Pix ainda.</p>}
+                </section>
+              </aside>
+            </div>
+          </div>
         ) : screen === "cards" || screen === "statement" ? (
-          <div className="bank-section-page"><header className="bank-section-heading"><span>{screen === "cards" ? "ECOCARD RANBANK" : "SUA CONTA"}</span><h1>{screen === "cards" ? "Meus cartões" : "Extrato"}</h1><p>{screen === "cards" ? "Acompanhe seus gastos e gerencie seu cartão." : "Consulte e encontre suas movimentações."}</p></header><Suspense fallback={<p>Carregando…</p>}><BankingSuite key={screen} open embedded initialTab={screen === "cards" ? "card" : "statement"} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
-        ) : screen === "services" ? (<div className="bank-section-page"><header className="bank-section-heading"><span>DIA A DIA</span><h1>Pagamentos e reservas</h1><p>Organize seus pagamentos, agendamentos e cofrinho.</p></header><Suspense fallback={<p>Carregando…</p>}><BankingSuite open embedded initialTab={bankingTab} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
+          <div className="bk-page"><header className="bk-page-head"><h1>{screen === "cards" ? "Cartão" : "Extrato"}</h1><p>{screen === "cards" ? "Fatura, limite e bloqueio do seu Ecocard." : "Todas as entradas e saídas da sua conta."}</p></header><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={screen} open embedded initialTab={screen === "cards" ? "card" : "statement"} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
+        ) : screen === "services" ? (
+          <div className="bk-page"><header className="bk-page-head"><h1>Pagar e guardar</h1><p>Boletos, agendamentos e o seu cofrinho.</p></header><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={bankingTab} open embedded initialTab={bankingTab === "statement" || bankingTab === "card" ? "bill" : bankingTab} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
         ) : screen === "security" ? (
           <SecuritySectionPage
-            onAuthentication={() => { setScreen("lab"); void simulateAuthentication(); }}
-            onThreat={() => { setScreen("lab"); void simulateThreat(); }}
-            onDevices={() => { setScreen("lab"); void loadDevices(); }}
+            transactions={data.transactions}
+            onAuthentication={() => setLab("login")}
+            onThreat={() => setLab("scam")}
+            onDevices={() => { void loadDevices(); }}
           />
         ) : (
-          <div className="bank-technology-v2">
-            <header className="bank-technology-hero-v2">
-              <div><span><BankIcon name="spark" size={16}/> DEMONSTRAÇÃO EDUCACIONAL</span><h1>Como o banco funciona por dentro.</h1><p>Veja como o RanBank protege as pessoas, mantém os serviços disponíveis e usa dados com responsabilidade.</p><div><button onClick={analyzeSuspiciousTransaction}>Ver um caso de fraude</button><button className="reset-demo" disabled={resettingDemo} onClick={resetDemo}>{resettingDemo ? "Restaurando…" : "Recomeçar demonstração"}</button></div></div>
-              <aside><small>ASSUNTOS DESTA ÁREA</small>{officialTopics.map((topic, index) => <span key={topic}><b>{String(index + 1).padStart(2,"0")}</b>{topic}</span>)}</aside>
-            </header>
+          <div className="bk-page bk-tech">
+            <header className="bk-page-head"><h1>Como o banco funciona</h1><p>Escolha um assunto e mexa à vontade: cada resultado é calculado na hora, a partir do que você muda.</p></header>
 
-            <section className="bank-fraud-case-v2">
-              <div className="bank-fraud-copy-v2"><span>CENÁRIO AO VIVO</span><h2>Uma compra foge do padrão da cliente.</h2><p>O sistema cruza valor, localização, horário e dispositivo para calcular risco antes de autorizar.</p><dl><div><dt>Valor</dt><dd>R$ 2.950,00</dd></div><div><dt>Origem</dt><dd>Novo dispositivo</dd></div><div><dt>Local</dt><dd>Manaus, AM</dd></div></dl><button onClick={analyzeSuspiciousTransaction}><BankIcon name="brain" size={18}/> Analisar com IA explicável</button></div>
-              <div className="bank-risk-visual-v2"><div><span>RISCO CALCULADO</span><strong>68<small>/100</small></strong><b>Validação adicional</b></div><ul><li><i className="high"/>Localização incomum <b>+28</b></li><li><i className="medium"/>Novo dispositivo <b>+24</b></li><li><i/>Horário habitual <b>+08</b></li></ul></div>
+            <section className="bk-panel bk-fraud">
+              <div>
+                <span className="bk-tag">Destaque</span>
+                <h2>Fluxo antifraude com gatilhos</h2>
+                <p>Monte uma transação, ajuste as regras e veja o fluxo decidir sozinho se aprova, pede confirmação ou bloqueia.</p>
+                <button className="bk-btn bk-btn-primary" onClick={() => setScreen("security")}>Abrir o fluxo antifraude</button>
+              </div>
+              <ul aria-label="O que o fluxo confere">
+                <li>Valor alto <b>+30</b></li>
+                <li>Aparelho novo <b>+25</b></li>
+                <li>Cidade diferente <b>+25</b></li>
+                <li className="is-total">Você define as regras <b>0 a 100</b></li>
+              </ul>
             </section>
 
-            <div className="bank-tech-section-title-v2"><div><span>SOLUÇÕES DO BANCO</span><h2>Escolha o que deseja conhecer</h2></div><p>Cada opção mostra, de forma simples, uma parte do funcionamento do banco.</p></div>
-            <section className="bank-tech-grid-v2">
-              <button onClick={openAnalytics}><span><BankIcon name="chart"/></span><div><small>MOVIMENTAÇÕES</small><h3>Análise financeira</h3><p>O banco organiza movimentações para ajudar nas decisões.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={loadDevices}><span><BankIcon name="device"/></span><div><small>ACESSOS</small><h3>Dispositivos reconhecidos</h3><p>O banco identifica aparelhos confiáveis e acessos incomuns.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={openCloud}><span><BankIcon name="cloud"/></span><div><small>DISPONIBILIDADE</small><h3>Banco sempre disponível</h3><p>Cópias e regiões de apoio mantêm o serviço funcionando.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={runAutomation}><span><BankIcon name="automation"/></span><div><small>RESPOSTA RÁPIDA</small><h3>Proteção em etapas</h3><p>Tarefas automáticas ajudam a equipe, que mantém a decisão final.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={() => openInnovation("open-finance")}><span><BankIcon name="transfer"/></span><div><small>AUTORIZAÇÃO</small><h3>Compartilhamento de dados</h3><p>Informações só são compartilhadas com permissão do cliente.</p></div><BankIcon name="chevron"/></button>
-              <button onClick={openSustainability}><span><BankIcon name="leaf"/></span><div><small>MEIO AMBIENTE</small><h3>Operação sustentável</h3><p>Energia limpa e sistemas eficientes ajudam a reduzir impactos.</p></div><BankIcon name="chevron"/></button>
+            <h2 className="bk-section-title">Escolha um assunto</h2>
+            <div className="bk-topics">
+              <button onClick={() => setLab("scam")}><span><BankIcon name="shield" /></span><strong>Isso é golpe?</strong><small>Escreva uma mensagem e veja os sinais de golpe.</small></button>
+              <button onClick={() => setLab("login")}><span><BankIcon name="lock" /></span><strong>Entrada suspeita?</strong><small>Monte um acesso e veja o banco decidir.</small></button>
+              <button onClick={() => setLab("chain")}><span><BankIcon name="key" /></span><strong>Registro que não se altera</strong><small>Mude um registro e veja a corrente quebrar.</small></button>
+              <button onClick={() => setLab("cloud")}><span><BankIcon name="cloud" /></span><strong>Banco sempre no ar</strong><small>Desligue servidores e veja o que acontece.</small></button>
+              <button onClick={() => setLab("energy")}><span><BankIcon name="leaf" /></span><strong>Banco sustentável</strong><small>Ajuste as escolhas e veja energia e poluição.</small></button>
+              <button onClick={() => setLab("compare")}><span><BankIcon name="brain" /></span><strong>Comparar tecnologias</strong><small>Defina prioridades e veja o ranking mudar.</small></button>
+              <button onClick={openAnalytics}><span><BankIcon name="chart" /></span><strong>Análise das movimentações</strong><small>Resumo calculado com os dados da sua conta.</small></button>
+              <button onClick={loadDevices}><span><BankIcon name="device" /></span><strong>Aparelhos conectados</strong><small>Bloqueie e libere aparelhos da conta.</small></button>
+              <button onClick={() => openInnovation("open-finance")}><span><BankIcon name="transfer" /></span><strong>Compartilhar dados</strong><small>Conecte ou cancele outros bancos.</small></button>
+            </div>
+
+            <section className="bk-tools">
+              <h2 className="bk-section-title">Ferramentas da demonstração</h2>
+              <div>
+                <button onClick={openFlowHistory}>Histórico de automações</button>
+                {data.role === "ADMIN" && <button onClick={openAdminInsights}>Indicadores da operação</button>}
+                {data.role === "ADMIN" && <button onClick={() => setAccountManagementOpen(true)}>Gerenciar contas demo</button>}
+                <button disabled={resettingDemo} onClick={resetDemo}>{resettingDemo ? "Restaurando…" : "Recomeçar demonstração"}</button>
+              </div>
             </section>
-
-            <section className="bank-future-experiments-v2"><header><div><span>EXPERIMENTOS DE FUTURO</span><h2>Além do aplicativo bancário</h2></div><p>Protótipos para atendimento, capacitação e agências inteligentes.</p></header><div><button onClick={() => loadImmersive("ar")}><b>RA</b><span><strong>Realidade aumentada</strong><small>Orientação contextual</small></span></button><button onClick={() => loadImmersive("vr")}><b>VR</b><span><strong>Treinamento imersivo</strong><small>Ambiente seguro de prática</small></span></button><button onClick={() => loadRobotMission()}><b>R2</b><span><strong>Robótica assistiva</strong><small>Atendimento com supervisão</small></span></button><button onClick={() => loadComparison()}><b>≋</b><span><strong>Comparar tecnologias</strong><small>Escolha por objetivo</small></span></button></div></section>
-
-            <section className="bank-operations-v2"><div><span>OPERAÇÃO DA DEMONSTRAÇÃO</span><h2>Ferramentas administrativas</h2></div><div><button onClick={openFlowHistory}>Histórico de automações</button>{data.role === "ADMIN" && <button onClick={openAdminInsights}>Indicadores da operação</button>}{data.role === "ADMIN" && <button onClick={() => setAccountManagementOpen(true)}>Gerenciar contas demo</button>}<button onClick={() => simulateThreat()}>Simular defesa cibernética</button></div></section>
           </div>
         )}
       </section>
 
-      <button className="assistant-button ran-assistant-button" onClick={() => setAssistantOpen(!assistantOpen)} aria-label={assistantOpen ? "Fechar conversa com a Ran" : "Falar com a Ran"} aria-expanded={assistantOpen}><span className="ran-assistant-avatar"><img src="/images/ran-assistente-humana.png" alt="" /></span><span className="ran-assistant-label"><strong>Fale com a Ran</strong><small>Assistente do RanBank</small></span></button>
-      {assistantOpen && <aside className="assistant-panel ran-assistant-panel" aria-label="Conversa com a Ran, assistente educacional do RanBank"><div className="assistant-header"><span className="assistant-icon ran-assistant-header-avatar"><img src="/images/ran-assistente-humana.png" alt="" /></span><div><strong>Ran</strong><small className={`assistant-mode mode-${chatMode.toLowerCase()}`}>{chatMode === "OPENAI" ? "Assistente conectada" : chatMode === "LOCAL_FALLBACK" ? "Modo de ajuda local" : "Ajuda do RanBank"}</small></div><button onClick={() => setAssistantOpen(false)} aria-label="Fechar conversa com a Ran">×</button></div><div className="chat-messages" aria-live="polite">{chatMessages.map((message,index) => <article key={index} className={`chat-${message.role}`}>{message.topic && <span>{message.topic}</span>}<p>{message.text}</p></article>)}{chatLoading && <article className="chat-assistant chat-typing" aria-label="Ran está digitando"><i/><i/><i/></article>}</div><div className="chat-suggestions"><button onClick={() => sendChatMessage("Como faço um Pix?")}>Como fazer um Pix</button><button onClick={() => sendChatMessage("Como o RanBank protege minha conta?")}>Segurança da conta</button><button onClick={() => sendChatMessage("O RanBank é um banco real?")}>Sobre o projeto</button></div><form className="chat-form" onSubmit={(event) => { event.preventDefault(); sendChatMessage(); }}><input value={chatInput} maxLength={300} onChange={(event) => setChatInput(event.target.value)} placeholder="Pergunte à Ran…" aria-label="Pergunta para a Ran"/><button type="submit" disabled={chatLoading || !chatInput.trim()} aria-label="Enviar pergunta para a Ran">→</button></form><footer>Ran · ajuda educacional, sem movimentar dinheiro real</footer></aside>}
-      {analysisOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalysisOpen(false)}><section className="analysis-modal" role="dialog" aria-modal="true" aria-labelledby="analysis-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>SEGURANÇA EXPLICÁVEL</span><h2 id="analysis-title">Resultado da análise</h2></div><button onClick={() => setAnalysisOpen(false)} aria-label="Fechar">×</button></header>{analysisLoading ? <div className="analysis-loading"><i/><p>Analisando sinais da transação…</p></div> : analysis ? <><div className={`analysis-summary level-${analysis.level.toLowerCase()}`}><div><strong>{analysis.score}</strong><small>/100</small></div><span>Risco {analysis.level}</span></div><div className="method-label">{analysis.method} · resultado demonstrativo</div><div className="signal-list">{analysis.signals.map((signal) => <article key={signal.name}><b>{signal.weight}</b><div><strong>{signal.name}</strong><p>{signal.explanation}</p></div></article>)}</div><div className="recommendation"><span>Recomendação do sistema</span><strong>{analysis.recommendation}</strong></div></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar o simulador.</p></div>}</section></div>}
-      {analyticsOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAnalyticsOpen(false)}><section className="analytics-modal" role="dialog" aria-modal="true" aria-labelledby="analytics-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>BIG DATA · DADOS DO H2</span><h2 id="analytics-title">Inteligência de movimentações</h2></div><button onClick={() => setAnalyticsOpen(false)} aria-label="Fechar">×</button></header>{analyticsLoading ? <div className="analysis-loading"><i/><p>Agregando movimentações…</p></div> : analytics ? <><div className="metric-grid"><article><span>Eventos analisados</span><strong>{analytics.totalTransactions}</strong><small>{analytics.creditCount} entradas · {analytics.debitCount} saídas</small></article><article><span>Total de entradas</span><strong className="metric-positive">{money.format(analytics.totalIn)}</strong><small>Valores creditados</small></article><article><span>Total de saídas</span><strong>{money.format(analytics.totalOut)}</strong><small>Valores debitados</small></article><article><span>Média por saída</span><strong>{money.format(analytics.averageOut)}</strong><small>Maior: {money.format(analytics.largestOut)}</small></article></div><div className="data-chart"><div><span>VOLUME RELATIVO</span><small>Cada barra representa uma movimentação armazenada</small></div><div className="data-bars">{analytics.series.map((value,index) => { const max = Math.max(...analytics.series.map(Math.abs),1); return <i key={index} className={value >= 0 ? "bar-credit" : "bar-debit"} style={{height:`${Math.max(12, Math.abs(value)/max*100)}%`}} title={money.format(value)}/>; })}</div><div className="chart-legend"><span><i className="legend-credit"/>Entrada</span><span><i className="legend-debit"/>Saída</span></div></div><div className="data-pipeline"><div><b>1</b><span><strong>Coleta</strong><small>Pix e movimentações</small></span></div><i>→</i><div><b>2</b><span><strong>Armazenamento</strong><small>Banco H2</small></span></div><i>→</i><div><b>3</b><span><strong>Agregação</strong><small>API Java</small></span></div><i>→</i><div><b>4</b><span><strong>Visualização</strong><small>Painel React</small></span></div></div><p className="analytics-caption">Em um banco real, esse fluxo processaria volumes muito maiores e exigiria infraestrutura distribuída. Aqui ele foi reduzido para fins didáticos.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar as estatísticas.</p></div>}</section></div>}
-      {devicesOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setDevicesOpen(false)}><section className="devices-modal" role="dialog" aria-modal="true" aria-labelledby="devices-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>IOT · TELEMETRIA DEMONSTRATIVA</span><h2 id="devices-title">Dispositivos conectados</h2></div><button onClick={() => setDevicesOpen(false)} aria-label="Fechar">×</button></header><div className="iot-summary"><div><strong>{devices.filter((device) => !device.blocked).length}</strong><small>ativos</small></div><div><strong>{devices.filter((device) => device.trusted).length}</strong><small>confiáveis</small></div><div><strong>{devices.filter((device) => device.blocked).length}</strong><small>bloqueados</small></div><p>O banco recebe sinais dos aparelhos e reage quando encontra comportamento fora do padrão.</p></div>{devicesLoading ? <div className="analysis-loading"><i/><p>Consultando dispositivos…</p></div> : devices.length ? <div className="device-list">{devices.map((device) => <article key={device.id} className={!device.trusted ? "device-alert" : ""}><span className="device-icon">{device.type === "Celular" ? "▯" : device.type === "Computador" ? "▱" : "IoT"}</span><div><div className="device-name"><strong>{device.name}</strong>{device.blocked ? <b className="blocked-pill">Bloqueado</b> : device.trusted ? <b className="trusted-pill">Confiável</b> : <b className="alert-pill">Revisar</b>}</div><p>{device.type} · {device.location}</p><small>Último sinal: {device.lastAccess}</small></div><button className={device.blocked ? "unblock-button" : "block-button"} onClick={() => toggleDevice(device.id)}>{device.blocked ? "Reativar" : "Bloquear"}</button></article>)}</div> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar os dispositivos.</p></div>}<div className="iot-flow"><span>Dispositivo</span><i>envia telemetria →</i><span>API Java</span><i>avalia confiança →</i><span>Resposta</span></div><p className="analytics-caption">Acompanhe telemetria, confiança e respostas de segurança dos dispositivos conectados.</p></section></div>}
-      {cloudOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setCloudOpen(false)}><section className="cloud-modal" role="dialog" aria-modal="true" aria-labelledby="cloud-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>COMPUTAÇÃO EM NUVEM · REDUNDÂNCIA</span><h2 id="cloud-title">Continuidade do RanBank</h2></div><button onClick={() => setCloudOpen(false)} aria-label="Fechar">×</button></header>{cloudLoading && !cloud ? <div className="analysis-loading"><i/><p>Consultando regiões…</p></div> : cloud ? <><div className={`cloud-overview ${cloud.failureActive ? "cloud-degraded" : ""}`}><div><span>Status do sistema</span><strong>{cloud.systemStatus}</strong></div><div><span>Disponibilidade</span><strong>{cloud.availability}</strong></div><div><span>Região principal</span><strong>{cloud.activeRegion}</strong></div><button disabled={cloudLoading} onClick={() => requestCloudStatus(cloud.failureActive ? "/restore" : "/simulate-failure", "POST")}>{cloudLoading ? "Processando…" : cloud.failureActive ? "Restaurar operação" : "Simular falha"}</button></div><div className="region-grid">{cloud.regions.map((region) => <article key={region.code} className={`region-${region.status.toLowerCase()}`}><div><span className="region-dot"/><small>{region.code}</small></div><h3>{region.name}</h3><b>{region.status}</b><div className="traffic"><span><i style={{width:`${region.trafficPercent}%`}}/></span><small>{region.trafficPercent}% do tráfego</small></div><p>Latência: {region.latencyMs || "—"} ms</p></article>)}</div><div className="recovery-panel"><span>Linha do tempo de resposta</span>{cloud.timeline.map((step,index) => <article key={`${step.time}-${index}`}><b>{step.time}</b><i/><div><strong>{step.title}</strong><p>{step.description}</p></div></article>)}</div><p className="analytics-caption">Simulação local: nenhuma infraestrutura de nuvem real é acionada. O objetivo é demonstrar failover, health checks e distribuição de tráfego.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar a simulação.</p></div>}</section></div>}
-      {automationOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAutomationOpen(false)}><section className="automation-modal" role="dialog" aria-modal="true" aria-labelledby="automation-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>AUTOMAÇÃO · FLUXO INSPIRADO NO N8N</span><h2 id="automation-title">Resposta a incidente</h2></div><button onClick={() => setAutomationOpen(false)} aria-label="Fechar">×</button></header>{automation ? <><div className="automation-run-header"><div><span>INCIDENTE</span><strong>{automation.incidentId}</strong></div><div><span>STATUS</span><strong>{automationRunning ? "EM EXECUÇÃO" : automation.status}</strong></div><button disabled={automationRunning} onClick={runAutomation}>{automationRunning ? "Executando…" : "Executar novamente"}</button></div><div className="workflow-canvas">{automation.steps.map((step,index) => <article key={step.order} className={index < visibleAutomationSteps ? "step-visible" : "step-waiting"}><div className="workflow-node"><span>{step.order}</span><div><strong>{step.title}</strong><small>{step.responsibility}</small></div><b>{index < visibleAutomationSteps ? "✓" : "…"}</b></div><p>{step.description}</p><footer><span>{step.duration}</span><i>{step.responsibility === "Humano" ? "Ponto de decisão humana" : "Etapa automática"}</i></footer></article>)}</div><div className="automation-limit"><b>!</b><p><strong>Limite da automação</strong><br/>{automation.limitation}</p></div></> : automationRunning ? <div className="analysis-loading"><i/><p>Iniciando workflow…</p></div> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar a automação.</p></div>}</section></div>}
-      {sustainabilityOpen && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setSustainabilityOpen(false)}>
-          <section className="sustainability-modal" role="dialog" aria-modal="true" aria-labelledby="sustainability-title" onMouseDown={(event) => event.stopPropagation()}>
-            <header>
-              <div><span>TECNOLOGIAS SUSTENTÁVEIS · GREEN IT</span><h2 id="sustainability-title">Como um banco reduz seu impacto?</h2></div>
-              <button onClick={() => setSustainabilityOpen(false)} aria-label="Fechar">×</button>
-            </header>
-            <div className="green-definition">
-              <span>IDEIA PRINCIPAL</span>
-              <h3>Tecnologia sustentável usa inovação para consumir menos recursos e gerar menos impacto ambiental.</h3>
-              <p>No banco, isso envolve a energia dos data centers, a eficiência da nuvem, a frota de atendimento e o destino de cartões e equipamentos.</p>
+      <nav className="bk-tabbar" aria-label="Navegação rápida">
+        <button className={screen === "dashboard" ? "active" : ""} onClick={() => setScreen("dashboard")}><BankIcon name="home" /><span>Início</span></button>
+        <button className={screen === "pix" ? "active" : ""} onClick={openPix}><BankIcon name="pix" /><span>Pix</span></button>
+        <button className={screen === "statement" ? "active" : ""} onClick={() => openBanking("statement")}><BankIcon name="statement" /><span>Extrato</span></button>
+        <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><BankIcon name="card" /><span>Cartão</span></button>
+        <button className={screen === "security" || screen === "lab" ? "active" : ""} onClick={() => setScreen("security")}><BankIcon name="shield" /><span>Segurança</span></button>
+      </nav>
+
+      <button className="bk-ran-button" onClick={() => setAssistantOpen(!assistantOpen)} aria-label={assistantOpen ? "Fechar conversa com a Ran" : "Fale com a Ran"} aria-expanded={assistantOpen}><img src="/images/ran-assistente-humana.png" alt="" /><span>Fale com a Ran</span></button>
+      {assistantOpen && <aside className="bk-ran-panel" aria-label="Conversa com a Ran, assistente educacional do RanBank"><header><img src="/images/ran-assistente-humana.png" alt="" /><div><strong>Ran</strong><small>{chatMode === "OPENAI" ? "Assistente conectada" : "Assistente do RanBank"}</small></div><button onClick={() => setAssistantOpen(false)} aria-label="Fechar conversa com a Ran">×</button></header><div className="bk-chat" aria-live="polite">{chatMessages.map((message,index) => <p key={index} className={`bk-bubble ${message.role === "user" ? "is-user" : ""}`}>{message.text}</p>)}{chatLoading && <p className="bk-bubble bk-typing" aria-label="Ran está digitando"><i/><i/><i/></p>}</div><div className="bk-chat-suggestions"><button onClick={() => sendChatMessage("Como faço um Pix?")}>Como fazer um Pix</button><button onClick={() => sendChatMessage("Como o RanBank protege minha conta?")}>Segurança da conta</button><button onClick={() => sendChatMessage("O RanBank é um banco real?")}>Sobre o projeto</button></div><form className="bk-chat-form" onSubmit={(event) => { event.preventDefault(); sendChatMessage(); }}><input value={chatInput} maxLength={300} onChange={(event) => setChatInput(event.target.value)} placeholder="Pergunte para a Ran…" aria-label="Pergunta para a Ran"/><button type="submit" disabled={chatLoading || !chatInput.trim()} aria-label="Enviar pergunta para a Ran">→</button></form></aside>}
+      {analyticsOpen && (
+        <BkSheet label="Dados" title="Análise das movimentações" onClose={() => setAnalyticsOpen(false)}>
+          {analyticsLoading ? <BkLoading text="Organizando as movimentações…" /> : analytics ? <>
+            <div className="bk-stats">
+              <article><span>Movimentações</span><strong>{analytics.totalTransactions}</strong><small>{analytics.creditCount} entradas · {analytics.debitCount} saídas</small></article>
+              <article><span>Entrou</span><strong className="is-good">{money.format(analytics.totalIn)}</strong></article>
+              <article><span>Saiu</span><strong>{money.format(analytics.totalOut)}</strong></article>
+              <article><span>Média por saída</span><strong>{money.format(analytics.averageOut)}</strong><small>Maior: {money.format(analytics.largestOut)}</small></article>
             </div>
-            <div className="green-use-cases" aria-label="Exemplos de sustentabilidade no banco">
-              <article><b>☀</b><div><strong>Energia renovável</strong><p>Solar e eólica abastecem data centers, agências e caixas eletrônicos.</p></div></article>
-              <article><b>☁</b><div><strong>Nuvem eficiente</strong><p>Servidores ociosos são consolidados para gastar menos energia.</p></div></article>
-              <article><b>EV</b><div><strong>Mobilidade elétrica</strong><p>Frotas elétricas e crédito verde apoiam transportes menos poluentes.</p></div></article>
-              <article><b>↻</b><div><strong>Reciclagem inteligente</strong><p>Cartões, baterias e eletrônicos são rastreados até o descarte correto.</p></div></article>
-            </div>
-            <div className="green-lesson-flow">
-              <div><b>1</b><span><strong>MEDIR</strong><small>Consumo e emissões</small></span></div><i>→</i>
-              <div><b>2</b><span><strong>ANALISAR</strong><small>Encontrar desperdícios</small></span></div><i>→</i>
-              <div><b>3</b><span><strong>OTIMIZAR</strong><small>Ajustar nuvem e energia</small></span></div><i>→</i>
-              <div><b>4</b><span><strong>ACOMPANHAR</strong><small>Comparar o resultado</small></span></div>
-            </div>
-            {sustainabilityLoading && !sustainability ? <div className="analysis-loading"><i/><p>Medindo consumo…</p></div> : sustainability ? <>
-              <div className={`green-status ${sustainability.optimized ? "green-optimized" : ""}`}>
-                <div><span>Cenário atual</span><strong>{sustainability.optimized ? "INFRAESTRUTURA OTIMIZADA" : "MELHORIAS IDENTIFICADAS"}</strong></div>
-                <div><span>Redução de consumo</span><strong>{sustainability.savingsPercent}%</strong></div>
-                <button disabled={sustainabilityLoading} onClick={() => requestSustainability(true)}>{sustainabilityLoading ? "Calculando…" : sustainability.optimized ? "Restaurar cenário inicial" : "Aplicar otimização"}</button>
-              </div>
-              <div className="green-metrics">
-                <article><span>Consumo elétrico</span><strong>{sustainability.powerKw.toFixed(1)} kW</strong><small>Menor é mais eficiente</small></article>
-                <article><span>Energia renovável</span><strong>{sustainability.renewablePercent}%</strong><small>Maior reduz fontes poluentes</small></article>
-                <article><span>Emissões</span><strong>{sustainability.carbonKgHour.toFixed(1)} kg</strong><small>CO₂ equivalente por hora</small></article>
-                <article><span>Eficiência PUE</span><strong>{sustainability.pue.toFixed(2)}</strong><small>Quanto mais perto de 1, melhor</small></article>
-              </div>
-              <div className={`green-result ${sustainability.optimized ? "is-visible" : ""}`}>
-                <div><span>ANTES</span><strong>58,4 kW</strong><small>54% renovável · 14,2 kg CO₂/h</small></div>
-                <b>→</b>
-                <div><span>DEPOIS</span><strong>42,6 kW</strong><small>78% renovável · 8,7 kg CO₂/h</small></div>
-                <p><strong>O que mudou?</strong> Serviços não essenciais foram reorganizados, servidores ociosos foram consolidados e a participação de energia renovável aumentou.</p>
-              </div>
-              <div className="energy-sources"><div><span>DE ONDE VEM A ENERGIA?</span><small>A soma representa toda a matriz utilizada</small></div>{sustainability.sources.map((source) => <article key={source.name}><div><strong>{source.name}</strong><small>{source.type}</small></div><span><i style={{width:`${source.percentage}%`}}/></span><b>{source.percentage}%</b></article>)}</div>
-              <div className="green-actions">{sustainability.actions.map((action) => <span key={action}><b>{sustainability.optimized ? "✓" : "!"}</b>{action}</span>)}</div>
-              <div className="green-speaker-tip"><b>DICA PARA APRESENTAR</b><p>“Um banco digital não usa papel em todas as operações, mas ainda consome energia e equipamentos. O sistema mede esse impacto, encontra desperdícios e aplica melhorias. Clique em <strong>Aplicar otimização</strong> e compare o antes e o depois.”</p></div>
-            </> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Aguarde alguns segundos e tente abrir o painel novamente.</p></div>}
-          </section>
-        </div>
+            <h3 className="bk-sheet-title">Cada barra é uma movimentação</h3>
+            <div className="bk-bars">{analytics.series.map((value, index) => { const max = Math.max(...analytics.series.map(Math.abs), 1); return <i key={index} className={value >= 0 ? "is-in" : "is-out"} style={{ height: `${Math.max(8, Math.abs(value) / max * 100)}%` }} title={money.format(value)} />; })}</div>
+            <div className="bk-legend"><span><i className="is-in" />Entrada</span><span><i className="is-out" />Saída</span></div>
+            <ol className="bk-flow"><li>Pix e compras</li><li>Banco de dados</li><li>Resumo automático</li><li>Gráfico na tela</li></ol>
+            <p className="bk-note">Um banco de verdade faz isso com milhões de movimentações para achar padrões e gastos fora do normal.</p>
+          </> : <BkUnavailable />}
+        </BkSheet>
       )}
-      {comparisonOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setComparisonOpen(false)}><section className="comparison-modal" role="dialog" aria-modal="true" aria-labelledby="comparison-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>DECISÃO TECNOLÓGICA · CENÁRIO DIDÁTICO</span><h2 id="comparison-title">Qual tecnologia usar?</h2></div><button onClick={() => setComparisonOpen(false)} aria-label="Fechar">×</button></header><div className="goal-tabs" aria-label="Objetivo da comparação"><button className={comparison?.goal === "seguranca" ? "active" : ""} onClick={() => loadComparison("seguranca")}>Segurança</button><button className={comparison?.goal === "escala" ? "active" : ""} onClick={() => loadComparison("escala")}>Escala</button><button className={comparison?.goal === "eficiencia" ? "active" : ""} onClick={() => loadComparison("eficiencia")}>Eficiência</button></div>{comparisonLoading && !comparison ? <div className="analysis-loading"><i/><p>Comparando alternativas…</p></div> : comparison ? <><div className="comparison-heading"><div><span>OBJETIVO SELECIONADO</span><strong>{comparison.goalLabel}</strong></div><small>Ranking contextual, não uma regra universal</small></div><div className="comparison-list">{comparison.results.map((technology,index) => <article key={technology.name}><div className="comparison-rank"><b>{index + 1}</b><span className="score-ring" style={{background:`conic-gradient(#20c9ef ${technology.score}%, #18365f 0)`}}><i>{technology.score}</i></span></div><div className="comparison-copy"><h3>{technology.name}</h3><p>{technology.bestUse}</p><div><span>Custo <b>{technology.cost}</b></span><span>Maturidade <b>{technology.maturity}</b></span></div></div><div className="comparison-limit"><span>ATENÇÃO</span><p>{technology.limitation}</p></div></article>)}</div><div className="comparison-disclaimer"><b>i</b><p>{comparison.disclaimer}</p></div></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar a comparação.</p></div>}</section></div>}
-      {securityOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setSecurityOpen(false)}><section className="security-modal" role="dialog" aria-modal="true" aria-labelledby="security-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>LABORATÓRIO SEGURO · SIMULAÇÃO</span><h2 id="security-title">Central de Cibersegurança</h2></div><button onClick={() => setSecurityOpen(false)} aria-label="Fechar">×</button></header><div className="threat-tabs"><button className={threat?.name === "Phishing" ? "active" : ""} onClick={() => simulateThreat("phishing")}>Phishing</button><button className={threat?.name === "Ransomware" ? "active" : ""} onClick={() => simulateThreat("ransomware")}>Ransomware</button><button className={threat?.name === "Trojan bancário" ? "active" : ""} onClick={() => simulateThreat("trojan")}>Trojan</button></div>{securityLoading && !threat ? <div className="analysis-loading"><i/><p>Executando cenário controlado…</p></div> : threat ? <><div className="threat-overview"><div className="threat-score"><span>RISCO</span><strong>{threat.risk}</strong><small>/100</small></div><div><span>{threat.category}</span><h3>{threat.name}</h3><p>{threat.description}</p></div><b>AMEAÇA CONTIDA</b></div><div className="security-columns"><section><div className="security-section-title"><span>1</span><div><b>Sinais detectados</b><small>O que o sistema observa</small></div></div><div className="indicator-list">{threat.indicators.map((indicator) => <article key={indicator}><span>!</span><p>{indicator}</p></article>)}</div></section><section><div className="security-section-title"><span>2</span><div><b>Resposta em camadas</b><small>Como a defesa reduz o risco</small></div></div><div className="defense-list">{threat.defenses.map((defense,index) => <article key={defense.name}><div><span>{index + 1}</span><i/></div><section><b>{defense.name}</b><p>{defense.result}</p><small className={defense.responsibility}>{defense.responsibility === "humana" ? "Decisão humana" : "Resposta automática"}</small></section></article>)}</div></section></div><div className="security-note"><b>Importante</b><p>Nenhuma defesa isolada resolve tudo. Segurança real combina pessoas, processos, atualizações, autenticação e monitoramento contínuo.</p></div></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para executar os cenários.</p></div>}</section></div>}
-      {immersiveOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setImmersiveOpen(false)}><section className="immersive-modal" role="dialog" aria-modal="true" aria-labelledby="immersive-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>TECNOLOGIAS IMERSIVAS · DEMONSTRAÇÃO</span><h2 id="immersive-title">Realidade aumentada ou virtual?</h2></div><button onClick={() => setImmersiveOpen(false)} aria-label="Fechar">×</button></header><div className="immersive-tabs"><button className={immersive?.code === "RA" ? "active" : ""} onClick={() => loadImmersive("ar")}><b>RA</b><span>Mundo real + informação</span></button><button className={immersive?.code === "VR" ? "active" : ""} onClick={() => loadImmersive("vr")}><b>VR</b><span>Ambiente totalmente digital</span></button></div>{immersiveLoading && !immersive ? <div className="analysis-loading"><i/><p>Preparando experiência…</p></div> : immersive ? <><div className={`immersive-stage mode-${immersive.code.toLowerCase()}`}><div className="immersive-visual" aria-hidden="true"><div className="scene-building"><span>R</span><i/><i/><i/></div><div className="scene-target"><span>{immersive.code}</span><b>{immersive.code === "RA" ? "Orientação ativa" : "Ambiente simulado"}</b></div><div className="scan-line"/></div><div className="immersive-intro"><span>{immersive.name}</span><h3>{immersive.title}</h3><p>{immersive.definition}</p></div></div><div className="immersive-journey"><span>COMO FUNCIONA NESTE CENÁRIO</span><div>{immersive.steps.map((step,index) => <article key={step}><b>{index + 1}</b><p>{step}</p>{index < immersive.steps.length - 1 && <i>→</i>}</article>)}</div></div><div className="immersive-facts"><article><span>EQUIPAMENTO</span><strong>{immersive.equipment}</strong></article><article><span>PONTO FORTE</span><strong>{immersive.strength}</strong></article><article className="immersive-warning"><span>LIMITAÇÃO</span><strong>{immersive.limitation}</strong></article></div><p className="immersive-caption">Esta tela representa o conceito sem acessar câmera, sensores ou óculos. Em uma aplicação real, permissões, acessibilidade e proteção dos dados do ambiente seriam essenciais.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para carregar a experiência.</p></div>}</section></div>}
-      {roboticsOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setRoboticsOpen(false)}><section className="robotics-modal" role="dialog" aria-modal="true" aria-labelledby="robotics-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>ROBÓTICA · INTERAÇÃO FÍSICA E DIGITAL</span><h2 id="robotics-title">Robô assistente da agência</h2></div><button onClick={() => setRoboticsOpen(false)} aria-label="Fechar">×</button></header><div className="robot-missions"><button onClick={() => loadRobotMission("reception")} className={robotMission?.name === "Recepção inteligente" ? "active" : ""}>Recepção</button><button onClick={() => loadRobotMission("accessibility")} className={robotMission?.name === "Apoio à acessibilidade" ? "active" : ""}>Acessibilidade</button><button onClick={() => loadRobotMission("security")} className={robotMission?.name === "Alerta de segurança" ? "active" : ""}>Segurança</button></div>{roboticsLoading && !robotMission ? <div className="analysis-loading"><i/><p>Carregando missão…</p></div> : robotMission ? <><div className="robot-command"><div className="robot-figure" aria-hidden="true"><div className="robot-head"><i/><i/><span/></div><div className="robot-body"><b>R</b><span/></div><div className="robot-base"/></div><div className="robot-brief"><span>MISSÃO ATUAL</span><h3>{robotMission.name}</h3><p>{robotMission.objective}</p><div><span>Autonomia programada</span><b>{robotMission.autonomy}%</b><i><em style={{width:`${robotMission.autonomy}%`}}/></i></div></div><div className="robot-status"><i/> ONLINE<small>Sensores simulados</small></div></div><div className="robot-process"><span>PERCEPÇÃO → DECISÃO → AÇÃO</span><div>{robotMission.steps.map((step,index) => <article key={step.title}><div className={`robot-step-icon tech-${step.technology}`}><b>{index + 1}</b><span>{step.technology === "sensor" ? "SENSOR" : step.technology === "ia" ? "IA" : step.technology === "humano" ? "PESSOA" : "AÇÃO"}</span></div><section><strong>{step.title}</strong><p>{step.result}</p></section>{index < robotMission.steps.length - 1 && <i>›</i>}</article>)}</div></div><div className="human-handoff"><span>H</span><p><strong>Onde entra o ser humano?</strong><br/>{robotMission.humanRole}</p></div></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para iniciar o robô.</p></div>}</section></div>}
-      {authenticationOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAuthenticationOpen(false)}><section className="authentication-modal" role="dialog" aria-modal="true" aria-labelledby="authentication-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>IDENTIDADE DIGITAL · DEFESA EM CAMADAS</span><h2 id="authentication-title">Autenticação moderna</h2></div><button onClick={() => setAuthenticationOpen(false)} aria-label="Fechar">×</button></header><div className="auth-scenarios"><button className={authentication?.risk === 14 ? "active" : ""} onClick={() => simulateAuthentication("trusted")}><b>✓</b><span>Acesso habitual<small>Aparelho conhecido</small></span></button><button className={authentication?.risk === 82 ? "active danger" : ""} onClick={() => simulateAuthentication("suspicious")}><b>!</b><span>Acesso suspeito<small>Novo contexto</small></span></button></div>{authenticationLoading && !authentication ? <div className="analysis-loading"><i/><p>Verificando identidade…</p></div> : authentication ? <><div className={`auth-context ${authentication.risk > 50 ? "auth-danger" : ""}`}><div><span>CONTEXTO OBSERVADO</span><strong>{authentication.context}</strong></div><div className="auth-risk"><span>RISCO</span><b>{authentication.risk}</b><small>/100</small></div></div><div className="auth-factors"><div className="auth-factor-heading"><span>FATORES DE AUTENTICAÇÃO</span><small>Mais de uma evidência protege melhor que apenas uma senha</small></div>{authentication.factors.map((factor,index) => <article key={factor.name} className={`factor-${factor.status}`}><div><b>{index + 1}</b>{index < authentication.factors.length - 1 && <i/>}</div><section><span>{factor.category}</span><strong>{factor.name}</strong></section><em>{factor.status === "aprovado" ? "APROVADO ✓" : factor.status === "revisar" ? "REVISAR" : "BLOQUEADO"}</em></article>)}</div><div className={`auth-decision ${authentication.risk > 50 ? "decision-blocked" : ""}`}><span>{authentication.risk > 50 ? "×" : "✓"}</span><div><small>DECISÃO ADAPTATIVA</small><strong>{authentication.decision}</strong><p>{authentication.explanation}</p></div></div><p className="auth-caption">A autenticação combina fatores de identidade, dispositivo e comportamento para avaliar o acesso.</p></> : <div className="analysis-error"><strong>Backend não disponível</strong><p>Reinicie o Spring Boot para executar a autenticação.</p></div>}</section></div>}
-      {utilityPanel === "account" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal account-utility" role="dialog" aria-modal="true" aria-labelledby="account-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CONTA DIGITAL</span><h2 id="account-title">Minha conta</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="account-summary"><div><span>Saldo disponível</span><strong>{money.format(data.balance)}</strong><small>Conta corrente · Ag. 0001</small></div><b>•••• {data.account}</b></div><div className="account-details"><article><span>Titular</span><strong>{data.customerName}</strong></article><article><span>Tipo de conta</span><strong>Conta digital</strong></article><article><span>Status</span><strong className="status-safe">Ativa e protegida</strong></article><article><span>Instituição</span><strong>RanBank Digital</strong></article></div><div className="utility-section-title"><span>ÚLTIMAS MOVIMENTAÇÕES</span><button onClick={() => { setUtilityPanel(null); setScreen("dashboard"); }}>Ver na tela inicial</button></div><div className="compact-transactions">{data.transactions.slice(0,4).map((transaction) => <article key={transaction.id}><span>{transaction.type === "credit" ? "↓" : "↑"}</span><div><strong>{transaction.title}</strong><small>{transaction.detail}</small></div><b className={transaction.type}>{transaction.amount > 0 ? "+ " : "- "}{money.format(Math.abs(transaction.amount))}</b></article>)}</div><p className="utility-caption">Movimentações organizadas por data, categoria e valor.</p></section></div>}
-      {utilityPanel === "cards" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal cards-utility" role="dialog" aria-modal="true" aria-labelledby="cards-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>ECOCARD · FÍSICO E VIRTUAL</span><h2 id="cards-title">Meus cartões</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className={`bank-card ecocard-bank-card ${data.card.blocked ? "card-is-blocked" : ""}`}><div className="ecocard-asset"><img src="/images/ranbank-ecocard-reference.jpeg" alt="Ecocard RanBank sustentável"/></div>{data.card.blocked && <em>BLOQUEADO</em>}</div><div className="card-metrics"><article><span>Fatura atual</span><strong>{money.format(data.card.spent)}</strong><small>Valores da conta autenticada</small></article><article><span>Limite disponível</span><strong>{money.format(data.card.available)}</strong><small>de {money.format(data.card.limit)}</small></article></div><button className={`card-toggle ${data.card.blocked ? "unlock" : ""}`} onClick={toggleUtilityCard}><span>{data.card.blocked ? "✓" : "×"}</span><div><strong>{data.card.blocked ? "Desbloquear cartão" : "Bloquear temporariamente"}</strong><small>{data.card.blocked ? "Voltar a permitir compras" : "Impede novas compras até o desbloqueio"}</small></div></button><div className="card-actions"><button onClick={() => window.alert(`Cartão final ${data.card.lastFour} · validade 08/31 · CVV oculto`)}>▣ <span>Ver dados</span></button><button onClick={() => window.alert(`Fatura atual de ${money.format(data.card.spent)}`)}>▤ <span>Ver fatura</span></button><button onClick={() => { setUtilityPanel(null); openBanking("card"); }}>↕ <span>Ajustar limite</span></button></div><p className="utility-caption">O mesmo Ecocard, com controle completo no cartão físico e virtual.</p></section></div>}
-      {utilityPanel === "security" && <div className="modal-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal security-utility" role="dialog" aria-modal="true" aria-labelledby="security-hub-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CENTRAL DE PROTEÇÃO</span><h2 id="security-hub-title">Segurança da conta</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="security-health"><div className="security-shield">✓</div><div><span>NÍVEL DE PROTEÇÃO</span><strong>Conta protegida</strong><p>As principais camadas de segurança estão ativas.</p></div><b>92<small>/100</small></b></div><div className="security-settings"><article><span>Biometria por passkey</span><strong className="setting-label-off">Não cadastrada</strong><i className="setting-off"/></article><article><span>PIN transacional</span><strong>Ativado</strong><i className="setting-on"/></article><article><span>Avisos de movimentação</span><strong>Ativados</strong><i className="setting-on"/></article><article><span>Dispositivo atual</span><strong>Confiável</strong><i className="setting-on"/></article></div><div className="security-shortcuts"><button onClick={() => { setUtilityPanel(null); setScreen("lab"); simulateAuthentication(); }}><b>ID</b><span><strong>Testar autenticação</strong><small>Compare acesso habitual e suspeito</small></span><i>→</i></button><button onClick={() => { setUtilityPanel(null); setScreen("lab"); simulateThreat(); }}><b>!</b><span><strong>Simular malware</strong><small>Phishing, ransomware e trojan</small></span><i>→</i></button><button onClick={() => { setUtilityPanel(null); setScreen("lab"); loadDevices(); }}><b>IoT</b><span><strong>Gerenciar dispositivos</strong><small>Confiança, telemetria e bloqueios</small></span><i>→</i></button></div></section></div>}
-      {utilityPanel === "notifications" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal notifications-utility" role="dialog" aria-modal="true" aria-labelledby="notifications-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>CENTRAL DE ALERTAS · TEMPO REAL</span><h2 id="notifications-title">Notificações</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="notification-list">{notifications.length ? notifications.map((item) => <article key={item.id} className={!item.read ? "unread" : ""}><b>{item.type === "PIX_RECEIVED" ? "↓" : "✓"}</b><div><strong>{item.title}</strong><p>{item.message}</p><small>{new Date(item.createdAt).toLocaleString("pt-BR")}</small></div></article>) : <div className="empty-notifications"><strong>Nenhum alerta por aqui</strong><p>Novos Pix e eventos de segurança aparecerão em tempo real.</p></div>}</div><button className="read-all" onClick={markAllNotificationsRead} disabled={!notifications.some((item) => !item.read)}>{notifications.some((item) => !item.read) ? "Marcar todas como lidas" : "Tudo lido ✓"}</button></section></div>}
-      {utilityPanel === "profile" && <div className="modal-backdrop utility-side-backdrop" role="presentation" onMouseDown={() => setUtilityPanel(null)}><section className="utility-modal profile-utility" role="dialog" aria-modal="true" aria-labelledby="profile-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>PERFIL RANBANK</span><h2 id="profile-title">Dados da conta</h2></div><button onClick={() => setUtilityPanel(null)} aria-label="Fechar">×</button></header><div className="profile-hero"><span>{data.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase()}</span><div><strong>{data.customerName}</strong><small>Cliente RanBank Future</small></div><b>{data.role === "ADMIN" ? "ADMIN" : "CONTA ATIVA"}</b></div><div className="profile-fields"><article><span>E-mail e chave Pix</span><strong>{data.email || "Não informado"}</strong></article><article><span>Telefone e chave Pix</span><strong>{data.phoneNumber || "Cadastre uma chave telefone na área Pix"}</strong></article><article><span>CPF e chave Pix</span><strong>{data.maskedDocument}</strong></article><article><span>Conta</span><strong>Ag. 0001 · {data.account}</strong></article><article><span>Cliente desde</span><strong>{data.createdAt ? new Date(data.createdAt).toLocaleDateString("pt-BR") : "Hoje"}</strong></article></div><div className="profile-notice"><b>i</b><p>Os dados exibidos pertencem à conta autenticada e estão isolados dos demais clientes.</p></div><div className="profile-actions"><button className="profile-action profile-keys" onClick={() => { setUtilityPanel(null); setPixKeysOpen(true); }}><span>◆</span><div><strong>Gerenciar chaves Pix</strong><small>E-mail, CPF, telefone e chave aleatória</small></div><b>›</b></button><button className="profile-action profile-logout" onClick={logout}><span>↪</span><div><strong>Sair da conta</strong><small>Encerrar esta sessão com segurança</small></div><b>›</b></button></div><button className="profile-home" onClick={() => { setUtilityPanel(null); setScreen("dashboard"); }}>Voltar para minha conta</button></section></div>}
-      {pixReceipt && <div className="modal-backdrop receipt-result-backdrop" role="presentation" onMouseDown={() => setPixReceipt(null)}><section className="receipt-result-modal" role="dialog" aria-modal="true" aria-labelledby="pix-receipt-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>COMPROVANTE PIX</span><h2 id="pix-receipt-title">Transferência concluída</h2></div><button onClick={() => setPixReceipt(null)} aria-label="Fechar comprovante">×</button></header><div className="receipt-success-mark">✓</div><strong className="receipt-result-amount">{money.format(pixReceipt.amount)}</strong><p>Enviado para <b>{pixReceipt.recipientName}</b></p><dl><div><dt>Conta de destino</dt><dd>{pixReceipt.recipientAccount}</dd></div><div><dt>Chave Pix</dt><dd>{pixReceipt.maskedPixKey}</dd></div><div><dt>Data e hora</dt><dd>{new Date(pixReceipt.timestamp).toLocaleString("pt-BR")}</dd></div><div><dt>Identificador</dt><dd>{pixReceipt.transferId}</dd></div><div><dt>Idempotência</dt><dd>{pixReceipt.idempotencyKey}</dd></div><div><dt>Status</dt><dd>{pixReceipt.status === "COMPLETED" ? "Concluído" : pixReceipt.status}</dd></div></dl><button className="receipt-result-done" onClick={() => setPixReceipt(null)}>Concluir</button></section></div>}
-      {flowHistoryOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setFlowHistoryOpen(false)}><section className="flow-history-modal" role="dialog" aria-modal="true" aria-labelledby="flow-history-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>RANFLOW · EXECUÇÕES PERSISTIDAS</span><h2 id="flow-history-title">Histórico de automações</h2></div><button onClick={() => setFlowHistoryOpen(false)} aria-label="Fechar histórico">×</button></header>{flowHistoryLoading ? <div className="analysis-loading"><i/><p>Carregando execuções…</p></div> : flowHistory.length ? <div className="flow-history-list">{flowHistory.map((flow) => <article key={flow.id}><div><span>{flow.flowType === "PIX_SETTLEMENT" ? "PIX" : "INCIDENTE"}</span><strong>{flow.flowType === "PIX_SETTLEMENT" ? "Liquidação Pix" : "Resposta a incidente"}</strong><small>{new Date(flow.startedAt).toLocaleString("pt-BR")}</small></div><b>{flow.status === "COMPLETED" ? "CONCLUÍDO" : flow.status}</b><p>{flow.steps.length} etapas · gatilho {flow.triggerType}{flow.referenceId ? ` · ref. ${flow.referenceId.slice(0,8)}` : ""}</p></article>)}</div> : <div className="empty-notifications"><strong>Nenhuma execução registrada</strong><p>Execute uma automação ou faça um Pix para alimentar o histórico.</p></div>}</section></div>}
-      {adminInsightsOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setAdminInsightsOpen(false)}><section className="admin-insights-modal" role="dialog" aria-modal="true" aria-labelledby="admin-insights-title" onMouseDown={(event) => event.stopPropagation()}><header><div><span>RANBANK BI · ACESSO ADMINISTRATIVO</span><h2 id="admin-insights-title">Insights da operação</h2></div><button onClick={() => setAdminInsightsOpen(false)} aria-label="Fechar insights">×</button></header>{adminInsightsLoading ? <div className="analysis-loading"><i/><p>Agregando dados do banco…</p></div> : adminInsights ? <><div className="admin-insights-grid"><article><span>Contas ativas</span><strong>{adminInsights.activeAccounts}</strong><small>{adminInsights.totalAccounts} registros preservados</small></article><article><span>Depósitos</span><strong>{money.format(adminInsights.totalDeposits)}</strong><small>saldo agregado</small></article><article><span>Pix</span><strong>{adminInsights.pixTransfers}</strong><small>transferências concluídas</small></article><article><span>Movimentações</span><strong>{adminInsights.totalTransactions}</strong><small>{money.format(adminInsights.transactionVolume)} em volume</small></article><article><span>Alertas pendentes</span><strong>{adminInsights.unreadNotifications}</strong><small>notificações não lidas</small></article><article><span>RanFlow</span><strong>{adminInsights.flowExecutions}</strong><small>execuções persistidas</small></article></div><p className="admin-generated">Atualizado em {new Date(adminInsights.generatedAt).toLocaleString("pt-BR")}</p></> : <div className="analysis-error"><strong>Acesso indisponível</strong><p>Este painel exige uma conta administradora.</p></div>}</section></div>}
+      {devicesOpen && (
+        <BkSheet label="Acessos" title="Aparelhos conectados" onClose={() => setDevicesOpen(false)}>
+          <div className="bk-stats is-three">
+            <article><span>Ativos</span><strong>{devices.filter((device) => !device.blocked).length}</strong></article>
+            <article><span>Confiáveis</span><strong className="is-good">{devices.filter((device) => device.trusted).length}</strong></article>
+            <article><span>Bloqueados</span><strong className="is-bad">{devices.filter((device) => device.blocked).length}</strong></article>
+          </div>
+          {devicesLoading ? <BkLoading text="Buscando aparelhos…" /> : devices.length ? (
+            <ul className="bk-rows">{devices.map((device) => (
+              <li key={device.id}>
+                <div><strong>{device.name} <b className={`bk-pill ${device.blocked ? "is-bad" : device.trusted ? "is-ok" : "is-warn"}`}>{device.blocked ? "Bloqueado" : device.trusted ? "Confiável" : "Revisar"}</b></strong><small>{device.type} · {device.location} · último acesso {device.lastAccess}</small></div>
+                <button className="bk-mini-btn" type="button" onClick={() => toggleDevice(device.id)}>{device.blocked ? "Reativar" : "Bloquear"}</button>
+              </li>
+            ))}</ul>
+          ) : <BkUnavailable />}
+          <p className="bk-note">Quando um aparelho desconhecido tenta entrar, o banco pode pedir uma confirmação extra ou bloquear o acesso.</p>
+        </BkSheet>
+      )}
+      {utilityPanel === "notifications" && (
+        <BkSheet title="Notificações" onClose={() => setUtilityPanel(null)}>
+          {notifications.length ? <ul className="bk-rows">{notifications.map((item) => <li key={item.id} className={item.read ? "" : "is-unread"}><div><strong>{item.title}</strong><small>{item.message}</small><small>{new Date(item.createdAt).toLocaleString("pt-BR")}</small></div></li>)}</ul> : <div className="bk-loading"><strong>Nenhum aviso por aqui</strong><p>Pix recebidos e alertas de segurança aparecem nesta lista.</p></div>}
+          <button className="bk-btn bk-btn-ghost bk-sheet-action" onClick={markAllNotificationsRead} disabled={!notifications.some((item) => !item.read)}>{notifications.some((item) => !item.read) ? "Marcar todas como lidas" : "Tudo lido ✓"}</button>
+        </BkSheet>
+      )}
+      {utilityPanel === "profile" && (
+        <BkSheet title="Meu perfil" onClose={() => setUtilityPanel(null)}>
+          <div className="bk-profile"><span>{data.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase()}</span><div><strong>{data.customerName}</strong><small>{data.role === "ADMIN" ? "Administradora da demonstração" : "Cliente RanBank"}</small></div></div>
+          <dl className="bk-details">
+            <div><dt>E-mail</dt><dd>{data.email || "Não informado"}</dd></div>
+            <div><dt>Telefone</dt><dd>{data.phoneNumber || "Não informado"}</dd></div>
+            <div><dt>CPF</dt><dd>{data.maskedDocument}</dd></div>
+            <div><dt>Conta</dt><dd>Ag. 0001 · {data.account}</dd></div>
+          </dl>
+          <div className="bk-links">
+            <button onClick={() => { setUtilityPanel(null); setScreen("account"); }}><BankIcon name="user" /> Dados da conta <BankIcon name="chevron" size={16} /></button>
+            <button onClick={() => { setUtilityPanel(null); setPixKeysOpen(true); }}><BankIcon name="key" /> Gerenciar chaves Pix <BankIcon name="chevron" size={16} /></button>
+            <button onClick={logout}><BankIcon name="logout" /> Sair da conta <BankIcon name="chevron" size={16} /></button>
+          </div>
+        </BkSheet>
+      )}
+      {pixReceipt && <div className="bk-modal-backdrop" role="presentation" onMouseDown={() => setPixReceipt(null)}><section className="bk-modal bk-receipt" role="dialog" aria-modal="true" aria-labelledby="pix-receipt-title" onMouseDown={(event) => event.stopPropagation()}><button className="bk-modal-close" onClick={() => setPixReceipt(null)} aria-label="Fechar comprovante">×</button><span className="bk-receipt-check" aria-hidden="true">✓</span><h2 id="pix-receipt-title">Pix enviado</h2><strong className="bk-balance">{money.format(pixReceipt.amount)}</strong><p>para <b>{pixReceipt.recipientName}</b></p><dl className="bk-details"><div><dt>Conta de destino</dt><dd>{pixReceipt.recipientAccount}</dd></div><div><dt>Chave Pix</dt><dd>{pixReceipt.maskedPixKey}</dd></div><div><dt>Data e hora</dt><dd>{new Date(pixReceipt.timestamp).toLocaleString("pt-BR")}</dd></div><div><dt>Situação</dt><dd>{pixReceipt.status === "COMPLETED" ? "Concluído" : pixReceipt.status}</dd></div><div><dt>Código da transação</dt><dd className="bk-code">{pixReceipt.transferId}</dd></div></dl><button className="bk-btn bk-btn-primary" onClick={() => setPixReceipt(null)}>Concluir</button></section></div>}
+      {lab && <LabSheet id={lab} onClose={() => setLab(null)} />}
+      {flowHistoryOpen && (
+        <BkSheet label="Servidor" title="Histórico de automações" onClose={() => setFlowHistoryOpen(false)}>
+          {flowHistoryLoading ? <BkLoading text="Carregando…" /> : flowHistory.length ? <ul className="bk-rows">{flowHistory.map((flow) => <li key={flow.id}><div><strong>{flow.flowType === "PIX_SETTLEMENT" ? "Pix processado" : "Resposta a incidente"}</strong><small>{new Date(flow.startedAt).toLocaleString("pt-BR")} · {flow.steps.length} etapas</small></div><b className={`bk-pill ${flow.status === "COMPLETED" ? "is-ok" : "is-warn"}`}>{flow.status === "COMPLETED" ? "Concluído" : flow.status}</b></li>)}</ul> : <div className="bk-loading"><strong>Nada registrado ainda</strong><p>Faça um Pix para aparecer aqui.</p></div>}
+        </BkSheet>
+      )}
+      {adminInsightsOpen && (
+        <BkSheet label="Administração" title="Indicadores da operação" onClose={() => setAdminInsightsOpen(false)}>
+          {adminInsightsLoading ? <BkLoading text="Somando os dados…" /> : adminInsights ? <>
+            <div className="bk-stats">
+              <article><span>Contas ativas</span><strong>{adminInsights.activeAccounts}</strong><small>{adminInsights.totalAccounts} no total</small></article>
+              <article><span>Dinheiro nas contas</span><strong>{money.format(adminInsights.totalDeposits)}</strong></article>
+              <article><span>Pix feitos</span><strong>{adminInsights.pixTransfers}</strong></article>
+              <article><span>Movimentações</span><strong>{adminInsights.totalTransactions}</strong><small>{money.format(adminInsights.transactionVolume)}</small></article>
+              <article><span>Avisos não lidos</span><strong>{adminInsights.unreadNotifications}</strong></article>
+              <article><span>Automações</span><strong>{adminInsights.flowExecutions}</strong></article>
+            </div>
+            <p className="bk-note">Atualizado em {new Date(adminInsights.generatedAt).toLocaleString("pt-BR")}. Valores fictícios da demonstração.</p>
+          </> : <BkUnavailable />}
+        </BkSheet>
+      )}
       {bankingOpen && <Suspense fallback={null}><BankingSuite open initialTab={bankingTab} onClose={() => setBankingOpen(false)} onChanged={loadDashboard} /></Suspense>}
       {innovationOpen && <Suspense fallback={null}><InnovationHub open initialTab={innovationTab} onClose={() => setInnovationOpen(false)} /></Suspense>}
       {accountManagementOpen && <Suspense fallback={null}><AccountManagementModal open onClose={() => setAccountManagementOpen(false)} /></Suspense>}

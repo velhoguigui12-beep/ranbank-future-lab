@@ -99,7 +99,7 @@ export default function OrganizationPublicPage() {
   };
 
   return (
-    <div className="rb-public-shell rb-org-page">
+    <div className="rs rb-public-shell rb-org-page">
       <PublicHeader />
       <main>
         {selected ? (
@@ -128,9 +128,9 @@ export default function OrganizationPublicPage() {
           <>
             <section className="org-hero" aria-labelledby="org-title">
               <span>ESTRUTURA ORGANIZACIONAL</span>
-              <h1 id="org-title">Pessoas que conectam estratégia e futuro.</h1>
-              <p>Conheça a estrutura do RanBank. Selecione um cargo para ver quem está à frente e como essa função contribui para o projeto.</p>
-              <div><b>16</b><span>cargos<br/>apresentados</span><i/><b>4</b><span>áreas<br/>integradas</span></div>
+              <h1 id="org-title">Quem faz o RanBank.</h1>
+              <p>Presidência, ouvidoria e quatro áreas de trabalho. Toque em um cargo para ver quem está à frente e o que essa pessoa faz.</p>
+              <div><b>16</b><span>pessoas</span><i/><b>4</b><span>áreas</span></div>
             </section>
             <section className="org-chart-section" aria-label="Organograma do RanBank">
               <div className="org-chart-instruction"><span>ORGANOGRAMA INTERATIVO</span><p>Selecione qualquer cargo para abrir os detalhes.</p></div>

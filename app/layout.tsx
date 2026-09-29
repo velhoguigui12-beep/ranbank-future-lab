@@ -20,12 +20,14 @@ import "./bank-theme.css";
 import "./bank-v2.css";
 import "./bank-section-pages.css";
 import "./clarity-refresh.css";
+import "./site.css";
+import "./bank-clean.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "RanBank | Banco digital de Brasília para o futuro",
-  description: "Conta digital RanBank com segurança em camadas, Pix, cartões, serviços e tecnologia com referência em Brasília - DF.",
+  title: "RanBank | Banco digital educacional",
+  description: "Banco digital educacional criado por jovens aprendizes: conta, Pix e cartão com proteção contra golpes e tecnologia explicada de forma simples.",
   icons: { icon: "/ranbank-logo.jpeg" },
   appleWebApp: { capable: true, title: "RanBank", statusBarStyle: "black-translucent" },
 };

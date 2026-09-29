@@ -1,5 +1,6 @@
 "use client";
 
+import RanFlow from "./RanFlow";
 import { sortTransactionsNewestFirst, transactionDescription, type TransactionView } from "./transactionFormatting";
 
 type AccountData = {
@@ -16,50 +17,83 @@ type AccountData = {
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function AccountSectionPage({ data, onStatement }: { data: AccountData; onStatement: () => void }) {
-  const transactions = sortTransactionsNewestFirst(data.transactions).slice(0, 8);
+  const transactions = sortTransactionsNewestFirst(data.transactions).slice(0, 5);
+  const details = [
+    ["Titular", data.customerName],
+    ["Agência", "0001"],
+    ["Conta", data.account],
+    ["CPF", data.maskedDocument],
+    ["E-mail", data.email || "Não informado"],
+    ["Telefone", data.phoneNumber || "Não informado"],
+    ["Cliente desde", data.createdAt ? new Date(data.createdAt).toLocaleDateString("pt-BR") : "Hoje"],
+  ];
   return (
-    <div className="bank-section-page account-section-page">
-      <header className="bank-section-heading"><span>CONTA DIGITAL</span><h1>Minha conta</h1><p>Dados, saldo e movimentações da conta autenticada.</p></header>
-      <section className="account-page-summary">
-        <div><span>Saldo disponível</span><strong>{money.format(data.balance)}</strong><small>Conta corrente · Agência 0001</small></div>
-        <b>Conta {data.account}</b>
+    <div className="bk-page account-section-page">
+      <header className="bk-page-head"><h1>Minha conta</h1><p>Seus dados e o saldo da conta.</p></header>
+      <section className="bk-panel">
+        <small className="bk-muted">Saldo disponível</small>
+        <strong className="bk-balance">{money.format(data.balance)}</strong>
       </section>
-      <section className="account-page-details" aria-label="Dados da conta">
-        <article><span>Titular</span><strong>{data.customerName}</strong></article>
-        <article><span>CPF</span><strong>{data.maskedDocument}</strong></article>
-        <article><span>E-mail</span><strong>{data.email || "Não informado"}</strong></article>
-        <article><span>Telefone</span><strong>{data.phoneNumber || "Não informado"}</strong></article>
-        <article><span>Cliente desde</span><strong>{data.createdAt ? new Date(data.createdAt).toLocaleDateString("pt-BR") : "Hoje"}</strong></article>
-        <article><span>Status</span><strong className="account-page-safe">Ativa e protegida</strong></article>
+      <section className="bk-panel">
+        <h2 className="bk-panel-title">Dados da conta</h2>
+        <dl className="bk-details">
+          {details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+        </dl>
       </section>
-      <section className="account-page-transactions">
-        <header><div><span>MOVIMENTAÇÕES</span><h2>Mais recentes</h2></div><button onClick={onStatement}>Ver extrato completo</button></header>
-        <div>{transactions.map((transaction) => <article key={transaction.id}><i className={transaction.type}>{transaction.type === "credit" ? "↓" : "↑"}</i><div><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></div><b className={transaction.type}>{transaction.type === "credit" ? "+ " : "- "}{money.format(Math.abs(transaction.amount))}</b></article>)}</div>
+      <section className="bk-panel">
+        <button className="bk-row" onClick={onStatement}><span>Movimentações recentes</span><span className="bk-row-link">Ver extrato</span></button>
+        {transactions.length ? (
+          <ul className="bk-list">
+            {transactions.map((transaction) => (
+              <li key={transaction.id}>
+                <div>
+                  <span className={`bk-tx-icon ${transaction.type}`} aria-hidden="true">{transaction.type === "credit" ? "↓" : "↑"}</span>
+                  <span className="bk-tx-copy"><strong>{transaction.title}</strong><small>{transactionDescription(transaction)}</small></span>
+                  <b className={transaction.type}>{transaction.type === "credit" ? "+ " : "- "}{money.format(Math.abs(transaction.amount))}</b>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="bk-muted">Nenhuma movimentação ainda.</p>}
       </section>
     </div>
   );
 }
 
-export function SecuritySectionPage({ onAuthentication, onThreat, onDevices }: {
+const protections = [
+  ["Senha guardada embaralhada", "Nem a equipe do banco consegue ler a sua senha."],
+  ["Senha só para movimentar", "Pix e pagamentos pedem uma senha de 4 dígitos diferente da senha de entrar."],
+  ["Nome de quem recebe", "Antes de confirmar o Pix, você vê para quem o dinheiro vai."],
+  ["Acesso com prazo", "Depois de 30 minutos sem uso, é preciso entrar de novo."],
+  ["Cartão bloqueado em um toque", "Perdeu o cartão ou desconfiou de algo? Bloqueie na área Cartão."],
+];
+
+export function SecuritySectionPage({ transactions, onAuthentication, onThreat, onDevices }: {
+  transactions: TransactionView[];
   onAuthentication: () => void;
   onThreat: () => void;
   onDevices: () => void;
 }) {
   return (
-    <div className="bank-section-page security-section-page">
-      <header className="bank-section-heading"><span>CENTRAL DE PROTEÇÃO</span><h1>Segurança da conta</h1><p>Acompanhe as camadas que protegem seu acesso e suas movimentações.</p></header>
-      <section className="security-page-health"><div className="security-page-shield">✓</div><div><span>NÍVEL DE PROTEÇÃO</span><strong>Conta protegida</strong><p>As principais camadas de segurança estão ativas.</p></div><b>92<small>/100</small></b></section>
-      <section className="security-page-grid">
-        <article><span>PIN transacional</span><strong>Ativado</strong><i/></article>
-        <article><span>Avisos de movimentação</span><strong>Ativados</strong><i/></article>
-        <article><span>Dispositivo atual</span><strong>Confiável</strong><i/></article>
-        <article><span>Biometria por passkey</span><strong className="security-page-pending">Não cadastrada</strong><i className="pending"/></article>
+    <div className="bk-page security-section-page">
+      <header className="bk-page-head"><h1>Segurança</h1><p>O que protege a sua conta e como o banco decide o que é suspeito.</p></header>
+      <RanFlow transactions={transactions} />
+      <section className="bk-panel">
+        <h2 className="bk-panel-title">O que protege a sua conta</h2>
+        <ul className="bk-checks">
+          {protections.map(([title, text]) => <li key={title}><span aria-hidden="true">✓</span><div><strong>{title}</strong><small>{text}</small></div></li>)}
+        </ul>
       </section>
-      <section className="security-page-actions">
-        <button onClick={onAuthentication}><b>ID</b><span><strong>Testar autenticação</strong><small>Compare um acesso habitual com um suspeito.</small></span><i>→</i></button>
-        <button onClick={onThreat}><b>!</b><span><strong>Simular ameaça</strong><small>Entenda phishing, ransomware e trojan.</small></span><i>→</i></button>
-        <button onClick={onDevices}><b>IoT</b><span><strong>Gerenciar dispositivos</strong><small>Confira confiança, telemetria e bloqueios.</small></span><i>→</i></button>
+      <section className="bk-panel bk-tip">
+        <strong>O RanBank nunca pede sua senha por mensagem.</strong>
+        <p>Nem por SMS, WhatsApp, e-mail ou ligação. Se alguém pedir, é golpe.</p>
       </section>
+      <h2 className="bk-section-title">Aprenda na prática</h2>
+      <div className="bk-topics">
+        <button onClick={onAuthentication}><span aria-hidden="true">ID</span><strong>Entrada suspeita?</strong><small>Monte uma tentativa de acesso e veja o banco decidir.</small></button>
+        <button onClick={onThreat}><span aria-hidden="true">!</span><strong>Isso é golpe?</strong><small>Escreva uma mensagem e veja os sinais de golpe.</small></button>
+        <button onClick={onDevices}><span aria-hidden="true">▯</span><strong>Aparelhos conectados</strong><small>Veja quem acessa a conta e bloqueie o que não reconhecer.</small></button>
+      </div>
     </div>
   );
 }

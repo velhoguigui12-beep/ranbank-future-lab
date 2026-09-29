@@ -2,174 +2,167 @@
 /* eslint-disable @next/next/no-img-element -- Vinext serves the local RanBank brand image directly. */
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { AnchorHTMLAttributes } from "react";
+import type { AnchorHTMLAttributes, ReactNode } from "react";
+import { Icon } from "./SiteIcons";
+import type { IconName } from "./SiteIcons";
 
 function Link({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
   return <a href={href} {...props}>{children}</a>;
 }
 
-const products = [
-  {
-    icon: "◇",
-    title: "Conta digital",
-    text: "Pix, pagamentos e transferências com controle em tempo real.",
-    href: "/banco",
-  },
-  {
-    icon: "▭",
-    title: "Ecocard RanBank",
-    text: "Seu cartão sustentável, com controle físico e virtual em um só lugar.",
-    href: "#ecocard",
-  },
-  {
-    icon: "◎",
-    title: "Reserva para objetivos",
-    text: "Organize metas e acompanhe a evolução do seu dinheiro.",
-    href: "/banco",
-  },
-  {
-    icon: "↗",
-    title: "Pix RanBank",
-    text: "Envie, receba, agende e gerencie suas próprias chaves.",
-    href: "/banco",
-  },
-];
+/* ------------------------------------------------------------------ */
+/* Conteúdo                                                            */
+/* ------------------------------------------------------------------ */
 
-const services = [
-  ["▥", "Pagamentos", "Boletos e contas"],
-  ["◷", "Agendamentos", "Organize o mês"],
-  ["▭", "Cartões", "Controle completo"],
-  ["↕", "Extrato", "Movimentações"],
-  ["◎", "Metas", "Guarde para seus planos"],
-  ["⌾", "Segurança", "Proteção da conta"],
-];
-
-const motionStories = [
+const researchFacts = [
   {
-    eyebrow: "RANBANK EM MOVIMENTO",
-    title: "Tecnologia que participa da vida real.",
-    text: "Uma experiência digital presente nos momentos que importam, com simplicidade para usar e segurança para seguir.",
-    source: "/videos/ranbank-historia-2026.mp4",
-    href: "/banco?modo=criar-conta",
-    action: "Viver essa experiência",
+    value: "148 milhões",
+    text: "de pessoas usaram o Pix em 2025.",
+    source: "Banco Central, Relatório de Gestão do Pix (2026)",
+    href: "https://www.gov.br/fazenda/pt-br/composicao/orgaos/orgaos-colegiados/crsfn/acesso-a-informacao/noticias/2026/pix-consolida-lideranca-nos-pagamentos-digitais-e-projeta-novas-evolucoes-ate-2030",
   },
   {
-    eyebrow: "ATENDIMENTO DO FUTURO",
-    title: "Pessoas no centro. Inovação ao redor.",
-    text: "Um conceito de agência que combina acolhimento, inteligência e novos jeitos de cuidar da sua vida financeira.",
-    source: "/videos/ranbank-demonstracao-04.mp4",
-    href: "/instituto",
-    action: "Conhecer o Instituto RanBank",
+    value: "39%",
+    text: "dos brasileiros dizem já ter sofrido golpe ou tentativa de golpe na conta do banco.",
+    source: "Observatório Febraban, julho de 2025",
+    href: "https://febrabantech.febraban.org.br/temas/seguranca/quase-4-em-cada-10-brasileiros-ja-sofreram-golpe-aponta-pesquisa-da-febraban",
   },
-];
-
-const securityControls = [
-  [
-    "SESSÃO",
-    "Acesso protegido",
-    "A sessão é protegida e encerrada com segurança quando você sai da conta.",
-  ],
-  [
-    "ACESSO",
-    "Senha protegida",
-    "A senha não fica visível e tentativas repetidas causam bloqueio temporário.",
-  ],
-  [
-    "OPERAÇÕES",
-    "Segunda confirmação",
-    "Pix e operações importantes exigem uma senha diferente da usada para entrar.",
-  ],
-  [
-    "MONITORAMENTO",
-    "Avisos de segurança",
-    "Acessos e movimentações fora do padrão podem exigir uma nova confirmação.",
-  ],
-  [
-    "PRIVACIDADE",
-    "Dados sob controle",
-    "Coleta limitada ao necessário, sessões revogáveis e preferências de cookies transparentes.",
-  ],
-  [
-    "CONTINUIDADE",
-    "Proteção ponta a ponta",
-    "CORS restrito, respostas sem cache e movimentações registradas de forma consistente.",
-  ],
+  {
+    value: "55%",
+    text: "dizem entender pouco ou nada de educação financeira.",
+    source: "Observatório Febraban, julho de 2025",
+    href: "https://portal.febraban.org.br/noticia/4324/pt-br/",
+  },
 ];
 
 const institutionalValues = [
-  { number: "01", title: "Simplicidade", text: "Falamos de forma clara e tornamos as escolhas financeiras mais fáceis de entender." },
-  { number: "02", title: "Segurança", text: "Protegemos cada acesso e cada movimentação com responsabilidade." },
-  { number: "03", title: "Inclusão", text: "Criamos experiências acessíveis e respeitamos as diferentes realidades das pessoas." },
-  { number: "04", title: "Impacto positivo", text: "Pensamos no efeito social e ambiental de cada decisão do banco." },
+  { title: "Simplicidade", text: "Falar claro. Se precisa de manual, está complicado demais." },
+  { title: "Segurança", text: "Proteger cada acesso e cada centavo como se fossem nossos." },
+  { title: "Inclusão", text: "Funcionar bem para quem tem pouca experiência com banco." },
+  { title: "Impacto positivo", text: "Medir o sucesso também pelo bem que o banco faz fora dele." },
+];
+
+const productFeatures: Array<{ icon: IconName; title: string; text: string }> = [
+  { icon: "list", title: "Extrato fácil de ler", text: "Nome, data e valor de cada movimentação, da mais nova para a mais antiga." },
+  { icon: "vault", title: "Cofrinho", text: "Separe dinheiro para um objetivo sem misturar com o saldo do dia a dia." },
+  { icon: "calendar", title: "Agendamentos", text: "Programe pagamentos e não perca vencimentos." },
+  { icon: "key", title: "Chaves Pix", text: "Cadastre ou apague CPF, e-mail, celular ou chave aleatória." },
+];
+
+const pixSteps = [
+  { title: "Entrar", text: "Com CPF, conta ou e-mail e a sua senha de acesso." },
+  { title: "Conferir", text: "Antes de enviar, o app mostra o nome de quem vai receber." },
+  { title: "Confirmar", text: "Uma segunda senha, de 4 dígitos, usada só para movimentar dinheiro." },
+  { title: "Comprovar", text: "Comprovante na hora e a movimentação aparece no extrato." },
+];
+
+const impactDestinations: Array<{ icon: IconName; title: string; text: string; status: string }> = [
+  { icon: "book", title: "Educação financeira", text: "Oficinas sobre orçamento, Pix e golpes para jovens aprendizes e escolas, usando o próprio RanBank para praticar.", status: "Próximo passo" },
+  { icon: "sprout", title: "Crédito com propósito", text: "Condições melhores para pequenos negócios e projetos que geram renda ou reduzem impacto ambiental.", status: "Ideia" },
+  { icon: "users", title: "Comunidades e territórios", text: "Educação financeira e acesso digital em comunidades, inclusive indígenas, construídos junto com elas.", status: "Em estudo" },
+];
+
+const roadmap = [
+  { status: "Pronto", tone: "done", title: "Protótipo funcionando", text: "Site, conta de teste, Pix com senha, cartão, extrato, cofrinho e a assistente Ran, rodando na internet." },
+  { status: "Próximo passo", tone: "next", title: "Piloto educativo", text: "Usar o RanBank em oficinas com jovens para praticar Pix, orçamento e prevenção a golpes, sem dinheiro real." },
+  { status: "Em estudo", tone: "study", title: "Comunidades", text: "Levar educação financeira a comunidades, ouvindo cada uma antes de propor qualquer coisa." },
+  { status: "Futuro", tone: "future", title: "Crescer com apoio", text: "Encontrar mentores e apoiadores para transformar o piloto em um programa contínuo." },
+];
+
+const reasonsToBack: Array<{ icon: IconName; title: string; text: string }> = [
+  { icon: "check", title: "Já funciona", text: "Não é só apresentação: dá para entrar, fazer um Pix de teste e ver o comprovante agora." },
+  { icon: "alert", title: "Ataca um problema real", text: "Golpes e falta de informação atingem milhões de brasileiros todos os anos." },
+  { icon: "cloud", title: "Custa pouco para testar", text: "Hoje roda em serviços de nuvem gratuitos. Um piloto educativo não movimenta dinheiro real." },
+];
+
+const teamHighlights = [
+  { name: "Guilherme", role: "Presidente e CEO" },
+  { name: "Giulianno", role: "Vice-Presidente" },
+  { name: "Lívia", role: "Ouvidora-Geral" },
+  { name: "Lúcio", role: "Diretor de Tecnologia" },
+  { name: "Sarah", role: "Diretora de Comunicação" },
+  { name: "Rangel", role: "Diretor de Negócios" },
+  { name: "Pedro", role: "Diretor de RH" },
 ];
 
 const frequentlyAskedQuestions = [
-  { question: "O que é o RanBank?", answer: "O RanBank é um projeto educacional que simula um banco digital. Ele foi criado para demonstrar serviços bancários, segurança, educação financeira e propostas de impacto social e ambiental." },
-  { question: "Posso testar Pix, cartão e pagamentos?", answer: "Sim. Você pode explorar a conta, fazer transferências entre contas demonstrativas, consultar o extrato, organizar uma reserva e controlar um cartão fictício. Nenhuma operação movimenta dinheiro real." },
-  { question: "Preciso informar dados bancários verdadeiros?", answer: "Não. Use somente os dados fictícios fornecidos na demonstração. Nunca informe senhas, cartões ou dados de uma conta bancária real." },
-  { question: "Como o RanBank protege a conta?", answer: "O projeto usa senha de acesso, confirmação separada para operações importantes, bloqueio após tentativas repetidas e avisos para atividades fora do padrão." },
-  { question: "O que a Ran pode fazer?", answer: "A Ran explica as funções da conta, orienta sobre Pix, cartão e segurança e apresenta os projetos do RanBank usando linguagem simples." },
-  { question: "Como o projeto trata privacidade e cookies?", answer: "O site utiliza apenas o necessário para manter a sessão e lembrar suas preferências. Na página de Privacidade você pode entender e controlar o uso de cookies." },
+  { question: "O que é o RanBank?", answer: "É um projeto educacional que simula um banco digital. As contas, os cartões e os valores são fictícios e nenhuma operação movimenta dinheiro real." },
+  { question: "O que dá para testar?", answer: "Entrar na conta de teste, fazer Pix entre contas de demonstração, ver o extrato, bloquear o cartão, guardar dinheiro no cofrinho e conversar com a Ran." },
+  { question: "Preciso informar dados verdadeiros?", answer: "Não. Use só os dados de demonstração. Nunca digite senhas, cartões ou dados de uma conta bancária real." },
+  { question: "O que a Ran pode fazer?", answer: "A Ran explica as funções da conta, orienta sobre Pix, cartão e golpes e apresenta os projetos do RanBank em palavras simples." },
+  { question: "Os projetos sociais já existem?", answer: "Ainda não. São propostas em estudo. O site separa o que já funciona (o banco) do que ainda é ideia (os projetos). Não existem parcerias oficiais." },
 ];
 
-type PublicTheme = "light" | "dark";
+const securityControls: Array<{ icon: IconName; title: string; text: string }> = [
+  { icon: "lock", title: "Senha guardada embaralhada", text: "A senha é salva de um jeito que nem a equipe consegue ler (criptografia bcrypt)." },
+  { icon: "key", title: "Senha só para movimentar", text: "Pix e pagamentos pedem uma senha de 4 dígitos diferente da senha de entrar." },
+  { icon: "eye", title: "Nome de quem recebe", text: "Antes de confirmar o Pix, o app mostra para quem o dinheiro vai." },
+  { icon: "shield", title: "Sessão com prazo", text: "O acesso vence depois de 30 minutos sem uso. Ao sair, ele é encerrado também no servidor." },
+  { icon: "card", title: "Cartão bloqueado em um toque", text: "Perdeu o cartão ou desconfiou de algo? Bloqueie e desbloqueie pelo app." },
+  { icon: "check", title: "Sem Pix repetido nem acima do saldo", text: "Um clique duplo não envia o Pix duas vezes, e o sistema recusa valores maiores que o saldo." },
+];
 
-export function PublicHeader({ dark = false }: { dark?: boolean }) {
-  const [theme, setTheme] = useState<PublicTheme>("light");
+const commonScams = [
+  { title: "Troca ou clonagem de cartão", tip: "Não entregue o cartão a ninguém e cubra o teclado ao digitar a senha." },
+  { title: "Golpe do WhatsApp", tip: "Pedido de dinheiro com número novo? Ligue para a pessoa antes de pagar." },
+  { title: "Falsa central do banco", tip: "O banco não liga pedindo senha, código ou transferência. Desligue e ligue você." },
+  { title: "Pix ou comprovante falso", tip: "Confira no extrato se o dinheiro entrou antes de entregar um produto." },
+];
 
-  useEffect(() => {
-    const savedTheme = window.localStorage.getItem("ranbank-theme");
-    const initialTheme: PublicTheme = savedTheme === "dark" ? "dark" : "light";
-    document.documentElement.dataset.bankTheme = initialTheme;
-    const syncTheme = window.setTimeout(() => setTheme(initialTheme), 0);
-    return () => window.clearTimeout(syncTheme);
-  }, []);
+/* ------------------------------------------------------------------ */
+/* Peças compartilhadas                                                */
+/* ------------------------------------------------------------------ */
 
-  const toggleTheme = () => {
-    const nextTheme: PublicTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    window.localStorage.setItem("ranbank-theme", nextTheme);
-    document.documentElement.dataset.bankTheme = nextTheme;
-  };
+function BrandLogo() {
+  return (
+    <span className="rs-logo">
+      <img src="/ranbank-logo-transparent.png" alt="RanBank" />
+    </span>
+  );
+}
 
+function SectionHead({ label, title, text, center = false }: { label: string; title: ReactNode; text?: ReactNode; center?: boolean }) {
+  return (
+    <header className={`rs-head ${center ? "is-center" : ""}`}>
+      <span className="rs-label">{label}</span>
+      <h2>{title}</h2>
+      {text ? <p>{text}</p> : null}
+    </header>
+  );
+}
+
+const navigation = [
+  { href: "/#produto", label: "O banco" },
+  { href: "/seguranca", label: "Segurança" },
+  { href: "/projetos", label: "Projetos e impacto" },
+  { href: "/organograma", label: "Quem somos" },
+  { href: "/#duvidas", label: "Ajuda" },
+];
+
+// `dark` é aceito por compatibilidade com páginas antigas; o novo cabeçalho tem um só visual.
+export function PublicHeader(props: { dark?: boolean }) {
+  void props;
+  const [open, setOpen] = useState(false);
   return (
     <>
-      <div className="rb-access-strip">
-        <div>
-          <span className="rb-lock">▣</span>
-          <strong>Ambiente seguro RanBank</strong>
-        </div>
-        <div className="rb-access-links">
-          <Link href="/seguranca">Como acessar com segurança</Link>
-          <span>•</span>
-          <span>Projeto criado em Brasília - DF</span>
-        </div>
-        <Link className="rb-access-account" href="/banco">
-          Acessar sua conta <b>→</b>
-        </Link>
+      <div className="rs-notice" role="note">
+        <strong>Projeto educacional.</strong> O RanBank é um banco fictício criado por jovens aprendizes. Nenhum valor é real.
       </div>
-      <header className={`rb-public-header ${dark ? "is-dark" : ""}`}>
-        <Link
-          className="rb-public-brand"
-          href="/"
-          aria-label="Página inicial do RanBank"
-        >
-          <img src="/ranbank-logo-transparent.png" alt="RanBank" />
-        </Link>
-        <nav className="rb-public-nav" aria-label="Navegação principal">
-          <Link href="/#visao-valores">Quem somos</Link>
-          <Link href="/#produtos">Soluções</Link>
-          <Link href="/projetos">Projetos</Link>
-          <Link href="/seguranca">Segurança</Link>
-          <Link href="/instituto">Instituto RanBank</Link>
-          <Link href="/#duvidas">Ajuda</Link>
-        </nav>
-        <div className="rb-header-tools">
-          <button className="rb-public-theme-toggle" type="button" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} aria-pressed={theme === "dark"} title={theme === "dark" ? "Modo claro" : "Modo escuro"}><span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span></button>
-          <Link href="/privacidade">Privacidade</Link>
-          <Link className="rb-open-account" href="/banco?modo=criar-conta">
-            Abra sua conta
+      <header className={`rs-header ${open ? "is-open" : ""}`}>
+        <div className="rs-header-inner">
+          <Link className="rs-brand" href="/" aria-label="Página inicial do RanBank">
+            <BrandLogo />
           </Link>
+          <nav className="rs-nav" aria-label="Navegação principal">
+            {navigation.map((item) => <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>{item.label}</Link>)}
+          </nav>
+          <div className="rs-header-actions">
+            <Link className="rs-btn rs-btn-quiet" href="/banco">Entrar</Link>
+            <Link className="rs-btn rs-btn-primary" href="/banco?modo=criar-conta">Abrir conta</Link>
+            <button className="rs-menu-toggle" type="button" aria-expanded={open} aria-label={open ? "Fechar menu" : "Abrir menu"} onClick={() => setOpen(!open)}>
+              <Icon name={open ? "close" : "menu"} />
+            </button>
+          </div>
         </div>
       </header>
     </>
@@ -178,39 +171,35 @@ export function PublicHeader({ dark = false }: { dark?: boolean }) {
 
 export function PublicFooter() {
   return (
-    <footer className="rb-public-footer">
-      <div className="rb-footer-brand">
-        <img src="/ranbank-logo-transparent.png" alt="RanBank" />
-        <p>
-          Banco digital demonstrativo com tecnologia, segurança e atendimento
-          centrado em Brasília - DF.
-        </p>
+    <footer className="rs-footer">
+      <div className="rs-footer-inner">
+        <div className="rs-footer-brand">
+          <BrandLogo />
+          <p>Banco digital demonstrativo criado em Brasília - DF para ensinar, proteger e pensar no futuro.</p>
+        </div>
+        <div className="rs-footer-col">
+          <strong>RanBank</strong>
+          <Link href="/banco">Acessar conta</Link>
+          <Link href="/#visao-valores">Missão, visão e valores</Link>
+          <Link href="/projetos">Projetos e impacto</Link>
+          <Link href="/instituto">Instituto RanBank</Link>
+          <Link href="/organograma">Nossa equipe</Link>
+        </div>
+        <div className="rs-footer-col">
+          <strong>Proteção</strong>
+          <Link href="/seguranca">Central de Segurança</Link>
+          <Link href="/privacidade">Privacidade e cookies</Link>
+          <Link href="/#duvidas">Dúvidas frequentes</Link>
+        </div>
+        <div className="rs-footer-col">
+          <strong>Redes sociais</strong>
+          <a href="https://www.instagram.com/ranbank.df" target="_blank" rel="noreferrer">Instagram @ranbank.df</a>
+          <a href="https://www.tiktok.com/@ranbank.df" target="_blank" rel="noreferrer">TikTok @ranbank.df</a>
+        </div>
       </div>
-      <div>
-        <strong>RanBank</strong>
-        <Link href="/banco">Acessar conta</Link>
-        <Link href="/#visao-valores">Quem somos</Link>
-        <Link href="/instituto">Instituto</Link>
-        <Link href="/organograma">Nossa equipe</Link>
-        <Link href="/projetos">Projetos e impacto</Link>
-        <Link href="/#duvidas">Ajuda</Link>
-      </div>
-      <div>
-        <strong>Proteção</strong>
-        <Link href="/seguranca">Segurança</Link>
-        <Link href="/privacidade">Privacidade e cookies</Link>
-        <Link href="/#brasilia">Canais de atendimento</Link>
-      </div>
-      <div>
-        <strong>Acompanhe o RanBank</strong>
-        <a href="https://www.instagram.com/ranbank.df" target="_blank" rel="noreferrer">Instagram ↗</a>
-        <a href="https://www.tiktok.com/@ranbank.df" target="_blank" rel="noreferrer">TikTok ↗</a>
-        <span>Projeto criado em Brasília - DF</span>
-      </div>
-      <small>
-        © 2026 RanBank. Projeto demonstrativo — não representa uma instituição
-        financeira autorizada.
-      </small>
+      <p className="rs-footer-legal">
+        © 2026 RanBank. Projeto educacional e demonstrativo. Não é uma instituição financeira e não tem autorização do Banco Central para operar.
+      </p>
     </footer>
   );
 }
@@ -221,10 +210,7 @@ function CookieCenter() {
   const [preferences, setPreferences] = useState(true);
   const [analytics, setAnalytics] = useState(false);
   useEffect(() => {
-    const timer = window.setTimeout(
-      () => setVisible(!window.localStorage.getItem("ranbank-cookie-consent")),
-      0,
-    );
+    const timer = window.setTimeout(() => setVisible(!window.localStorage.getItem("ranbank-cookie-consent")), 0);
     return () => window.clearTimeout(timer);
   }, []);
   function save(level: "essential" | "custom" | "all") {
@@ -234,129 +220,142 @@ function CookieCenter() {
         : level === "essential"
           ? { preferences: false, analytics: false }
           : { preferences, analytics };
-    window.localStorage.setItem(
-      "ranbank-cookie-consent",
-      JSON.stringify({ ...consent, savedAt: new Date().toISOString() }),
-    );
+    window.localStorage.setItem("ranbank-cookie-consent", JSON.stringify({ ...consent, savedAt: new Date().toISOString() }));
     setVisible(false);
     setConfiguring(false);
   }
   if (!visible) return null;
   return (
-    <div
-      className="rb-cookie-layer"
-      role="region"
-      aria-label="Preferências de privacidade"
-    >
+    <div className="rs-cookie" role="region" aria-label="Preferências de privacidade">
       {configuring ? (
-        <section
-          className="rb-cookie-settings"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cookie-title"
-        >
-          <header>
-            <div>
-              <span>PRIVACIDADE RANBANK</span>
-              <h2 id="cookie-title">Controle suas preferências</h2>
-            </div>
-            <button onClick={() => setConfiguring(false)} aria-label="Voltar">
-              ×
-            </button>
-          </header>
-          <p>
-            O RanBank usa armazenamento essencial para manter a sessão e suas
-            escolhas. Nenhum cookie de publicidade é utilizado neste projeto.
-          </p>
-          <div className="rb-cookie-option">
-            <span>
-              <strong>Essenciais</strong>
-              <small>Sessão, segurança e preferência de consentimento.</small>
-            </span>
-            <input
-              aria-label="Cookies essenciais"
-              type="checkbox"
-              checked
-              disabled
-            />
-          </div>
-          <div className="rb-cookie-option">
-            <span>
-              <strong>Preferências</strong>
-              <small>Memoriza ajustes de experiência neste dispositivo.</small>
-            </span>
-            <input
-              aria-label="Cookies de preferências"
-              type="checkbox"
-              checked={preferences}
-              onChange={(event) => setPreferences(event.target.checked)}
-            />
-          </div>
-          <div className="rb-cookie-option">
-            <span>
-              <strong>Medição de experiência</strong>
-              <small>
-                Autoriza métricas anônimas caso esse recurso seja ativado
-                futuramente.
-              </small>
-            </span>
-            <input
-              aria-label="Cookies de medição"
-              type="checkbox"
-              checked={analytics}
-              onChange={(event) => setAnalytics(event.target.checked)}
-            />
-          </div>
-          <div>
-            <button
-              className="rb-cookie-outline"
-              onClick={() => save("essential")}
-            >
-              Usar só essenciais
-            </button>
-            <button
-              className="rb-cookie-primary"
-              onClick={() => save("custom")}
-            >
-              Salvar preferências
-            </button>
+        <section role="dialog" aria-modal="true" aria-labelledby="cookie-title">
+          <h2 id="cookie-title">Suas preferências</h2>
+          <p>Nenhum cookie de publicidade é usado neste projeto.</p>
+          <label className="rs-cookie-option">
+            <span><strong>Essenciais</strong><small>Mantêm você conectado e guardam esta escolha.</small></span>
+            <input aria-label="Cookies essenciais" type="checkbox" checked disabled />
+          </label>
+          <label className="rs-cookie-option">
+            <span><strong>Preferências</strong><small>Lembram ajustes neste aparelho.</small></span>
+            <input aria-label="Cookies de preferências" type="checkbox" checked={preferences} onChange={(event) => setPreferences(event.target.checked)} />
+          </label>
+          <label className="rs-cookie-option">
+            <span><strong>Medição</strong><small>Números anônimos de uso, se um dia forem ativados.</small></span>
+            <input aria-label="Cookies de medição" type="checkbox" checked={analytics} onChange={(event) => setAnalytics(event.target.checked)} />
+          </label>
+          <div className="rs-cookie-actions">
+            <button className="rs-btn rs-btn-outline" onClick={() => save("essential")}>Usar só essenciais</button>
+            <button className="rs-btn rs-btn-primary" onClick={() => save("custom")}>Salvar</button>
           </div>
         </section>
       ) : (
-        <section className="rb-cookie-banner">
-          <div>
-            <span>PRIVACIDADE E COOKIES</span>
-            <strong>
-              Você decide como seus dados de navegação são usados.
-            </strong>
-            <p>
-              Usamos recursos essenciais para segurança e funcionamento.
-              Preferências adicionais só são ativadas com a sua escolha.{" "}
-              <Link href="/privacidade">Entenda nossa política</Link>.
-            </p>
-          </div>
-          <div>
-            <button
-              className="rb-cookie-outline"
-              onClick={() => save("essential")}
-            >
-              Somente essenciais
-            </button>
-            <button
-              className="rb-cookie-outline"
-              onClick={() => setConfiguring(true)}
-            >
-              Configurar
-            </button>
-            <button className="rb-cookie-primary" onClick={() => save("all")}>
-              Aceitar todos
-            </button>
+        <section>
+          <p><strong>Cookies:</strong> usamos só o necessário para o site funcionar. O resto depende de você. <Link href="/privacidade">Saiba mais</Link></p>
+          <div className="rs-cookie-actions">
+            <button className="rs-btn rs-btn-outline" onClick={() => save("essential")}>Somente essenciais</button>
+            <button className="rs-btn rs-btn-outline" onClick={() => setConfiguring(true)}>Configurar</button>
+            <button className="rs-btn rs-btn-primary" onClick={() => save("all")}>Aceitar todos</button>
           </div>
         </section>
       )}
     </div>
   );
 }
+
+function PublicShell({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <div className={`rs ${className}`}>
+      <PublicHeader />
+      <main>{children}</main>
+      <PublicFooter />
+      <CookieCenter />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Maquetes do aplicativo                                              */
+/* ------------------------------------------------------------------ */
+
+function PhoneMockup() {
+  const actions: Array<[IconName, string]> = [["pix", "Pix"], ["bill", "Pagar"], ["calendar", "Agendar"], ["vault", "Guardar"]];
+  const moves = [
+    ["Pix recebido", "Bruno Lima", "+ R$ 150,00", "in"],
+    ["Mercado Bom Preço", "Cartão Ecocard", "- R$ 86,40", "out"],
+    ["Cofrinho", "Meta: viagem", "- R$ 200,00", "out"],
+  ];
+  return (
+    <div className="rs-phone" aria-label="Exemplo da tela inicial do aplicativo RanBank, com valores fictícios" role="img">
+      <div className="rs-phone-screen">
+        <div className="rs-app-top">
+          <span className="rs-app-avatar">A</span>
+          <div><small>Olá,</small><strong>Ana</strong></div>
+          <Icon name="eye" size={20} />
+        </div>
+        <div className="rs-app-balance">
+          <small>Saldo disponível</small>
+          <strong>R$ 4.280,50</strong>
+        </div>
+        <div className="rs-app-actions">
+          {actions.map(([icon, label]) => (
+            <span key={label}><i><Icon name={icon} size={20} /></i>{label}</span>
+          ))}
+        </div>
+        <div className="rs-app-card">
+          <img src="/images/ranbank-ecocard-face.png" alt="" />
+          <div><strong>Ecocard</strong><small>Fatura atual R$ 312,40</small></div>
+        </div>
+        <div className="rs-app-moves">
+          <small>Últimas movimentações</small>
+          {moves.map(([title, detail, value, kind]) => (
+            <div key={title}>
+              <span><strong>{title}</strong><small>{detail}</small></span>
+              <b className={kind === "in" ? "is-in" : ""}>{value}</b>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PixConfirmMockup() {
+  return (
+    <div className="rs-pix-mock" aria-hidden="true">
+      <small>Você vai enviar</small>
+      <strong>R$ 50,00</strong>
+      <div className="rs-pix-to">
+        <span className="rs-app-avatar is-small">B</span>
+        <span><b>Bruno Lima</b><small>Chave: bruno@email.com</small></span>
+      </div>
+      <div className="rs-pix-pin">
+        <small>Senha de 4 dígitos</small>
+        <span><i /><i /><i /><i /></span>
+      </div>
+      <span className="rs-pix-button">Confirmar Pix</span>
+    </div>
+  );
+}
+
+function RanChatMockup() {
+  return (
+    <div className="rs-chat" role="img" aria-label="Exemplo de conversa com a assistente Ran">
+      <div className="rs-chat-head">
+        <img src="/images/ran-assistente-humana.png" alt="" />
+        <span><strong>Ran</strong><small>Assistente RanBank</small></span>
+      </div>
+      <p className="rs-bubble is-user">Recebi um SMS pedindo o código do banco. O que eu faço?</p>
+      <p className="rs-bubble">Não envie o código. O RanBank nunca pede senha ou código por mensagem. Apague o SMS e, se clicou no link, bloqueie o cartão no app.</p>
+      <p className="rs-bubble is-user">Como eu bloqueio?</p>
+      <p className="rs-bubble">Toque em <b>Cartão</b> e depois em <b>Bloquear</b>. Pronto.</p>
+      <small className="rs-chat-note">Exemplo de conversa</small>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Página inicial                                                      */
+/* ------------------------------------------------------------------ */
 
 export default function PublicSiteGate() {
   const pathname = usePathname();
@@ -366,283 +365,233 @@ export default function PublicSiteGate() {
 
 export function PublicHome() {
   return (
-    <div className="rb-public-shell">
-      <PublicHeader />
-      <main id="top">
-        <section className="rb-hero">
-          <div className="rb-hero-photo" aria-hidden="true">
-            <img
-              src="/images/ranbank-hero-ecocard.png"
-              alt=""
-              fetchPriority="high"
-            />
-          </div>
-          <aside className="rb-hero-menu" aria-label="Atalhos RanBank">
-            <Link className="primary" href="/banco?modo=criar-conta">
-              <b>Abra sua conta</b>
-              <span>→</span>
-            </Link>
-            <a className="secondary" href="#produtos">
-              <b>Contrate online</b>
-              <span>→</span>
-            </a>
-            <a href="#solucoes">
-              <i>◇</i>
-              <span>Produtos e serviços</span>
-            </a>
-            <Link href="/seguranca">
-              <i>⌾</i>
-              <span>Segurança</span>
-            </Link>
-            <a href="#brasilia">
-              <i>♧</i>
-              <span>Atendimento</span>
-            </a>
-            <Link href="/instituto">
-              <i>R2</i>
-              <span>Tecnologia e inovação</span>
-            </Link>
-          </aside>
-          <div className="rb-hero-copy">
-            <span className="rb-kicker">
-              RANBANK · FEITO EM BRASÍLIA PARA O FUTURO
-            </span>
-            <h1>Seu banco faz parte da sua vida.</h1>
+    <PublicShell className="rs-home">
+      {/* 1. Abertura */}
+      <section className="rs-hero">
+        <div className="rs-wrap rs-hero-grid">
+          <div className="rs-hero-copy">
+            <span className="rs-chip">Banco digital educacional</span>
+            <h1>O banco que protege, explica e devolve.</h1>
             <p>
-              Conta digital, Ecocard sustentável e proteção em várias camadas
-              para transformar escolhas em um futuro melhor.
+              Conta, Pix e cartão em um só lugar. Proteção contra golpes em cada passo, uma assistente que explica tudo sem complicar
+              e um modelo pensado para investir em educação e comunidades.
             </p>
-            <div className="rb-hero-actions">
-              <Link
-                className="rb-btn rb-btn-primary"
-                href="/banco?modo=criar-conta"
-              >
-                Quero ser cliente
-              </Link>
-              <Link className="rb-btn rb-btn-ghost" href="/seguranca">
-                Conheça nossa segurança
-              </Link>
+            <div className="rs-actions">
+              <Link className="rs-btn rs-btn-primary rs-btn-lg" href="/banco">Ver o banco funcionando <Icon name="arrow" size={20} /></Link>
+              <Link className="rs-btn rs-btn-outline rs-btn-lg" href="#proposta">Conhecer a proposta</Link>
             </div>
-            <div className="rb-hero-trust">
-              <span>
-                <b>30 min</b>Sessão protegida
-              </span>
-              <span>
-                <b>24h</b>Banco com você
-              </span>
-              <span>
-                <b>Ecocard</b>Escolha sustentável
-              </span>
-            </div>
+            <p className="rs-hero-proof"><Icon name="check" size={18} /> Protótipo no ar: dá para entrar e fazer um Pix de teste agora.</p>
           </div>
-        </section>
-        <section className="rb-contract-strip" id="produtos">
-          <div>
-            <span>CONTRATE ONLINE</span>
-            <h2>Soluções para cada momento da sua vida.</h2>
+          <div className="rs-hero-visual">
+            <PhoneMockup />
+            <img className="rs-hero-card" src="/images/ranbank-ecocard-face.png" alt="Cartão Ecocard RanBank" />
           </div>
-          <Link href="/banco?modo=criar-conta">
-            Conheça sua conta digital <b>→</b>
-          </Link>
-        </section>
-        <section className="rb-product-rail">
-          {products.map((item) => (
-            <Link href={item.href} key={item.title}>
-              <i>{item.icon}</i>
-              <strong>{item.title}</strong>
-              <span>{item.text}</span>
-              <b>Conhecer →</b>
-            </Link>
-          ))}
-        </section>
-        <section className="rb-ecocard" id="ecocard">
-          <div className="rb-ecocard-copy">
-            <span>ECOCARD RANBANK</span>
-            <h2>Um cartão que pensa no presente e no futuro.</h2>
-            <p>
-              Feito com materiais de origem sustentável, o Ecocard reúne
-              praticidade, segurança e escolhas que reduzem o impacto no
-              planeta.
-            </p>
-            <div className="rb-ecocard-benefits">
-              <span><b>♧</b>Material de origem sustentável</span>
-              <span><b>↻</b>Cashback para você</span>
-              <span><b>⌾</b>O mesmo controle no físico e no virtual</span>
-            </div>
-            <Link className="rb-btn rb-btn-primary" href="/banco?modo=criar-conta">
-              Peça o seu Ecocard
-            </Link>
-          </div>
-          <figure className="rb-ecocard-visual">
-            <span>ESCOLHA CONSCIENTE</span>
-            <div className="ecocard-asset">
-              <img src="/images/ranbank-ecocard-reference.jpeg" alt="Ecocard RanBank sustentável" />
-            </div>
-            <figcaption>Menos impacto. Mais consciência.</figcaption>
-          </figure>
-        </section>
-        <section className="rb-section rb-solutions" id="solucoes">
-          <div className="rb-section-heading">
-            <span>PRODUTOS E SERVIÇOS</span>
-            <h2>
-              Seu banco mais simples.
-              <br />
-              Seu dia mais leve.
-            </h2>
-            <p>
-              Acesse rapidamente o que precisa e mantenha o controle de cada
-              movimentação.
-            </p>
-          </div>
-          <div className="rb-service-grid">
-            {services.map(([icon, title, text]) => (
-              <Link
-                href={title === "Segurança" ? "/seguranca" : "/banco"}
-                key={title}
-              >
-                <i>{icon}</i>
-                <strong>{title}</strong>
-                <span>{text}</span>
-                <b>→</b>
-              </Link>
+        </div>
+      </section>
+
+      {/* 2. O problema */}
+      <section className="rs-section rs-light" id="por-que">
+        <div className="rs-wrap">
+          <SectionHead
+            label="Por que o RanBank existe"
+            title={<>O Pix chegou a quase todo mundo.<br />A proteção e a informação, ainda não.</>}
+          />
+          <div className="rs-facts">
+            {researchFacts.map((fact) => (
+              <article key={fact.value}>
+                <strong>{fact.value}</strong>
+                <p>{fact.text}</p>
+                <a href={fact.href} target="_blank" rel="noreferrer">Fonte: {fact.source} ↗</a>
+              </article>
             ))}
           </div>
-        </section>
-        <section className="rb-motion-stories" aria-label="RanBank em movimento">
-          {motionStories.map((story, index) => (
-            <article className="rb-motion-story" key={story.title}>
-              <video autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-                <source src={story.source} type="video/mp4" />
-              </video>
-              <div className="rb-motion-shade" aria-hidden="true" />
-              <div className="rb-motion-copy">
-                <span>{story.eyebrow}</span>
-                <h2>{story.title}</h2>
-                <p>{story.text}</p>
-                <Link href={story.href}>{story.action} <b>→</b></Link>
-              </div>
-              <small>0{index + 1} / 02</small>
+          <p className="rs-statement">Usar o banco ficou fácil. Usar com <em>segurança</em> e <em>consciência</em> continua difícil. É esse espaço que o RanBank quer ocupar.</p>
+        </div>
+      </section>
+
+      {/* 3. Identidade */}
+      <section className="rs-section" id="visao-valores">
+        <div className="rs-wrap">
+          <SectionHead label="Quem somos" title="Missão, visão e valores" />
+          <div className="rs-purpose">
+            <article>
+              <span>Missão</span>
+              <p>Facilitar a vida financeira das pessoas com serviços simples, seguros e acessíveis.</p>
             </article>
-          ))}
-        </section>
-        <section className="rb-purpose" id="visao-valores" aria-labelledby="purpose-title">
-          <div className="rb-purpose-intro">
-            <span>IDENTIDADE RANBANK</span>
-            <h2 id="purpose-title">Missão, visão e valores</h2>
-            <div className="rb-purpose-foundations">
-              <article>
-                <strong>Missão</strong>
-                <p>Facilitar a vida financeira das pessoas com serviços simples, seguros e acessíveis.</p>
-              </article>
-              <article>
-                <strong>Visão</strong>
-                <p>Ser um banco digital reconhecido por unir tecnologia, educação financeira e responsabilidade social.</p>
-              </article>
-            </div>
-            <div className="rb-purpose-commitment">
-              <span>NOSSO COMPROMISSO</span>
-              <p>Tecnologia para simplificar. Segurança para proteger. Responsabilidade para transformar.</p>
-            </div>
+            <article>
+              <span>Visão</span>
+              <p>Ser um banco digital reconhecido por unir tecnologia, educação financeira e responsabilidade social.</p>
+            </article>
           </div>
-          <div className="rb-values-column">
-            <div className="rb-values-heading">
-              <span>VALORES</span>
-              <p>Os princípios que orientam nossas decisões, relações e experiências.</p>
-            </div>
-            <div className="rb-values-grid">
-              {institutionalValues.map((value) => (
-                <article key={value.title}>
-                  <span>{value.number}</span>
-                  <h3>{value.title}</h3>
-                  <p>{value.text}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-        <section className="rb-security" id="seguranca">
-          <video className="rb-security-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-            <source src="/videos/ranbank-demonstracao-01.mp4" type="video/mp4" />
-          </video>
-          <div className="rb-security-copy">
-            <span>SEGURANÇA RANBANK</span>
-            <h2>Confiança não é discurso. É arquitetura.</h2>
-            <p>
-              Do login à confirmação de um Pix, cada etapa reduz exposição,
-              limita tentativas e mantém a sessão sob controle.
-            </p>
-            <Link className="rb-btn rb-btn-light" href="/seguranca">
-              Visitar Central de Segurança
-            </Link>
-          </div>
-          <div className="rb-security-stack">
-            {securityControls.slice(0, 4).map(([tag, title, text], index) => (
-              <article key={title}>
-                <b>{String(index + 1).padStart(2, "0")}</b>
-                <div>
-                  <span>{tag}</span>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </div>
-                <i>✓</i>
+          <div className="rs-values">
+            {institutionalValues.map((value, index) => (
+              <article key={value.title}>
+                <b>0{index + 1}</b>
+                <h3>{value.title}</h3>
+                <p>{value.text}</p>
               </article>
             ))}
           </div>
-        </section>
-        <section className="rb-brasilia" id="brasilia">
-          <div className="rb-brasilia-map" aria-hidden="true">
-            <span>BRASÍLIA</span>
-            <i>DF</i>
-            <b>61</b>
+          <p className="rs-motto">Tecnologia para simplificar. Segurança para proteger. Responsabilidade para transformar.</p>
+        </div>
+      </section>
+
+      {/* 4. Produto */}
+      <section className="rs-section rs-light" id="produto">
+        <div className="rs-wrap">
+          <SectionHead label="O banco" title="Tudo o que uma conta precisa. Nada que confunda." />
+          <div className="rs-bento">
+            <article className="rs-tile rs-tile-pix">
+              <div>
+                <i className="rs-tile-icon"><Icon name="pix" /></i>
+                <h3>Pix com confirmação</h3>
+                <p>Antes de enviar, você vê o nome de quem vai receber e confirma com uma senha de 4 dígitos, diferente da senha de entrar.</p>
+              </div>
+              <PixConfirmMockup />
+            </article>
+            <article className="rs-tile rs-tile-card" id="ecocard">
+              <img src="/images/ranbank-ecocard-face.png" alt="Cartão Ecocard RanBank" />
+              <div>
+                <h3>Ecocard</h3>
+                <p>Cartão feito de material de origem sustentável. Bloqueie e desbloqueie pelo app em um toque.</p>
+              </div>
+            </article>
+            {productFeatures.map((feature) => (
+              <article className="rs-tile" key={feature.title}>
+                <i className="rs-tile-icon"><Icon name={feature.icon} /></i>
+                <h3>{feature.title}</h3>
+                <p>{feature.text}</p>
+              </article>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* 5. Ran */}
+      <section className="rs-section rs-ran" id="ran">
+        <div className="rs-wrap rs-split">
           <div>
-            <span>ATENDIMENTO COM REFERÊNCIA LOCAL</span>
-            <h2>Nascido em Brasília. Pensado para todos.</h2>
-            <p>
-              O RanBank nasceu em Brasília como projeto educacional e foi pensado
-              para pessoas de diferentes regiões do Brasil.
-            </p>
-            <div className="rb-contact-cards">
-              <a href="https://www.instagram.com/ranbank.df" target="_blank" rel="noreferrer">
-                <b>@ranbank.df</b>
-                <span>Instagram</span>
-              </a>
-              <a href="https://www.tiktok.com/@ranbank.df" target="_blank" rel="noreferrer">
-                <b>@ranbank.df</b>
-                <span>TikTok</span>
-              </a>
-            </div>
+            <SectionHead
+              label="Assistente Ran"
+              title="Dúvida de banco? Pergunte para a Ran."
+              text="A Ran responde em palavras simples sobre Pix, cartão, extrato e golpes. Ela foi feita para explicar, não para vender."
+            />
+            <Link className="rs-btn rs-btn-primary rs-btn-lg" href="/banco">Falar com a Ran <Icon name="arrow" size={20} /></Link>
           </div>
-        </section>
-        <section className="rb-institute-teaser">
-          <div>
-            <span>INSTITUTO RANBANK</span>
-            <h2>Um banco maior quando compartilha conhecimento.</h2>
-            <p>
-              Educação financeira, inclusão e tecnologia colocadas a serviço
-              das pessoas e das comunidades.
-            </p>
-            <Link href="/instituto">Explorar o Instituto RanBank →</Link>
+          <RanChatMockup />
+        </div>
+      </section>
+
+      {/* 6. Segurança */}
+      <section className="rs-section rs-light" id="seguranca">
+        <div className="rs-wrap">
+          <SectionHead
+            label="Segurança"
+            title="Um Pix no RanBank passa por quatro etapas."
+            text="Cada etapa existe para impedir que o dinheiro vá para o lugar errado."
+          />
+          <ol className="rs-steps">
+            {pixSteps.map((step, index) => (
+              <li key={step.title}>
+                <b>{index + 1}</b>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </li>
+            ))}
+          </ol>
+          <Link className="rs-link" href="/seguranca">Ver a Central de Segurança <Icon name="arrow" size={18} /></Link>
+        </div>
+      </section>
+
+      {/* 7. Impacto */}
+      <section className="rs-section rs-impact" id="proposta">
+        <div className="rs-wrap">
+          <SectionHead
+            label="Proposta de impacto"
+            title="Um banco que cresce junto com a comunidade."
+            text="Bancos ganham dinheiro com tarifas que as lojas pagam no cartão, com crédito e com investimentos. A proposta do RanBank é separar uma parte fixa desse resultado para o Instituto RanBank."
+          />
+          <div className="rs-destinations">
+            {impactDestinations.map((item) => (
+              <article key={item.title}>
+                <div className="rs-destination-top">
+                  <i className="rs-tile-icon"><Icon name={item.icon} /></i>
+                  <span className="rs-status">{item.status}</span>
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
           </div>
-          <div className="rb-institute-numbers">
-            <span>
-              <b>01</b>educação financeira
-            </span>
-            <span>
-              <b>02</b>inclusão e acesso
-            </span>
-            <span>
-              <b>03</b>impacto socioambiental
-            </span>
+          <p className="rs-honest"><Icon name="alert" size={20} /> Tudo nesta parte é proposta. Nenhum projeto foi realizado e não existem parcerias oficiais.</p>
+          <Link className="rs-link" href="/projetos">Ver os projetos em detalhe <Icon name="arrow" size={18} /></Link>
+        </div>
+      </section>
+
+      {/* 8. Onde estamos */}
+      <section className="rs-section rs-light" id="caminho">
+        <div className="rs-wrap">
+          <SectionHead label="Onde estamos" title="Do protótipo ao piloto." />
+          <ol className="rs-roadmap">
+            {roadmap.map((item) => (
+              <li key={item.title} className={`is-${item.tone}`}>
+                <span className="rs-status">{item.status}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* 9. Por que apostar */}
+      <section className="rs-section rs-back">
+        <div className="rs-wrap">
+          <SectionHead label="Por que apostar no RanBank" title="Uma ideia pequena para testar. Um problema grande para resolver." center />
+          <div className="rs-reasons">
+            {reasonsToBack.map((reason) => (
+              <article key={reason.title}>
+                <i className="rs-tile-icon"><Icon name={reason.icon} /></i>
+                <h3>{reason.title}</h3>
+                <p>{reason.text}</p>
+              </article>
+            ))}
           </div>
-        </section>
-        <section className="rb-faq" id="duvidas" aria-labelledby="faq-title">
-          <div className="rb-section-heading">
-            <span>CENTRAL DE AJUDA</span>
+        </div>
+      </section>
+
+      {/* 10. Equipe */}
+      <section className="rs-section rs-light" id="equipe">
+        <div className="rs-wrap">
+          <SectionHead label="Quem faz" title="Feito por jovens aprendizes de Brasília." text="São 16 pessoas organizadas em presidência, ouvidoria e quatro áreas: tecnologia, comunicação, negócios e gestão de pessoas." />
+          <div className="rs-team">
+            {teamHighlights.map((person) => (
+              <article key={person.name}>
+                <span className="rs-avatar">{person.name[0]}</span>
+                <strong>{person.name}</strong>
+                <small>{person.role}</small>
+              </article>
+            ))}
+            <Link className="rs-team-more" href="/organograma">
+              <strong>+9</strong>
+              <small>Ver o organograma completo</small>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* 11. Dúvidas */}
+      <section className="rs-section" id="duvidas" aria-labelledby="faq-title">
+        <div className="rs-wrap rs-faq-grid">
+          <header className="rs-head">
+            <span className="rs-label">Ajuda</span>
             <h2 id="faq-title">Dúvidas frequentes</h2>
-            <p>Respostas diretas para conhecer o projeto e navegar com segurança.</p>
-          </div>
-          <div className="rb-faq-list">
+            <div className="rs-ran-help">
+              <img src="/images/ran-assistente-humana.png" alt="" />
+              <p>Não achou a resposta? <Link href="/banco">Pergunte para a Ran</Link>.</p>
+            </div>
+          </header>
+          <div className="rs-faq">
             {frequentlyAskedQuestions.map((item, index) => (
               <details key={item.question} open={index === 0}>
                 <summary>{item.question}<span aria-hidden="true">+</span></summary>
@@ -650,341 +599,215 @@ export function PublicHome() {
               </details>
             ))}
           </div>
-          <div className="rb-faq-help rb-ran-faq-help">
-            <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-humana.png" alt="" /></span>
-            <div>
-              <small>CONHEÇA A RAN</small>
-              <strong>Ainda precisa de ajuda?</strong>
-              <p>A assistente do RanBank explica o projeto, segurança e tecnologias de forma simples.</p>
-            </div>
-            <Link href="/banco">Falar com a Ran →</Link>
+        </div>
+      </section>
+
+      {/* 12. Chamada final */}
+      <section className="rs-final">
+        <div className="rs-wrap">
+          <h2>Veja o RanBank funcionando.</h2>
+          <p>Entre na conta de demonstração e faça um Pix de teste em menos de um minuto.</p>
+          <div className="rs-actions is-center">
+            <Link className="rs-btn rs-btn-light rs-btn-lg" href="/banco">Acessar o banco <Icon name="arrow" size={20} /></Link>
+            <Link className="rs-btn rs-btn-outline rs-btn-lg" href="/banco?modo=criar-conta">Criar conta de teste</Link>
           </div>
-        </section>
-        <section className="rb-final-cta">
-          <div>
-            <span>PRONTO PARA COMEÇAR?</span>
-            <h2>Seu RanBank está a um toque.</h2>
-            <p>
-              Abra sua conta demonstrativa ou acesse o ambiente seguro do banco.
-            </p>
-          </div>
-          <div>
-            <Link className="rb-btn rb-btn-light" href="/banco">
-              Acessar minha conta
-            </Link>
-            <Link
-              className="rb-btn rb-btn-ghost"
-              href="/banco?modo=criar-conta"
-            >
-              Criar conta
-            </Link>
-          </div>
-        </section>
-      </main>
-      <PublicFooter />
-      <CookieCenter />
-    </div>
+        </div>
+      </section>
+    </PublicShell>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Páginas internas                                                    */
+/* ------------------------------------------------------------------ */
+
+function PageHero({ label, title, text, children }: { label: string; title: ReactNode; text: ReactNode; children?: ReactNode }) {
+  return (
+    <section className="rs-page-hero">
+      <div className="rs-wrap">
+        <span className="rs-chip">{label}</span>
+        <h1>{title}</h1>
+        <p>{text}</p>
+        {children}
+      </div>
+    </section>
   );
 }
 
 export function SecurityPublicPage() {
   return (
-    <div className="rb-public-shell rb-info-page">
-      <PublicHeader dark />
-      <main>
-        <section className="rb-info-hero">
-          <span>CENTRAL DE SEGURANÇA RANBANK</span>
-          <h1>Proteção que você entende.</h1>
-          <p>
-            Controles técnicos reais, orientação clara e decisões sensíveis
-            confirmadas por você.
-          </p>
-          <div className="rb-security-seal">
-            <i>✓</i>
-            <div>
-              <b>Arquitetura em camadas</b>
-              <small>Prevenção, controle, detecção e resposta</small>
-            </div>
-          </div>
-        </section>
-        <section className="rb-section">
-          <div className="rb-section-heading">
-            <span>CONTROLES ATIVOS NO PROJETO</span>
-            <h2>Da credencial à movimentação.</h2>
-            <p>
-              Estes mecanismos estão implementados no RanBank — não são apenas
-              promessas de interface.
-            </p>
-          </div>
-          <div className="rb-control-grid">
-            {securityControls.map(([tag, title, text]) => (
-              <article key={title}>
-                <span>{tag}</span>
-                <i>✓ ATIVO</i>
-                <h3>{title}</h3>
-                <p>{text}</p>
+    <PublicShell className="rs-page">
+      <PageHero
+        label="Central de Segurança RanBank"
+        title="Segurança que dá para entender."
+        text="O que o RanBank faz para proteger a conta e o que você pode fazer para não cair em golpe."
+      />
+      <section className="rs-section rs-light">
+        <div className="rs-wrap">
+          <SectionHead label="Funciona no protótipo" title="O que protege a sua conta." text="Tudo desta lista está programado no RanBank de verdade, não é só desenho de tela." />
+          <div className="rs-controls">
+            {securityControls.map((control) => (
+              <article key={control.title}>
+                <i className="rs-tile-icon"><Icon name={control.icon} /></i>
+                <h3>{control.title}</h3>
+                <p>{control.text}</p>
               </article>
             ))}
           </div>
-        </section>
-        <section className="rb-safe-guide">
-          <div>
-            <span>PROTEJA-SE</span>
-            <h2>O RanBank nunca pede seu PIN por mensagem.</h2>
-            <p>
-              Antes de entrar, confira o endereço. Desconfie de urgência, links
-              encurtados e contatos que pedem instalação de aplicativos.
-            </p>
-            <aside className="rb-ran-security-guide">
-              <span className="rb-ran-public-avatar" aria-hidden="true"><img src="/images/ran-assistente-humana.png" alt="" /></span>
-              <div><small>CONSELHO DA RAN</small><strong>Segurança começa antes do login.</strong><p>Digite o endereço diretamente e nunca compartilhe códigos de acesso.</p></div>
-            </aside>
+        </div>
+      </section>
+      <section className="rs-section">
+        <div className="rs-wrap">
+          <SectionHead label="Golpes mais comuns" title="Os golpes que os brasileiros mais relatam." text="Segundo o Observatório Febraban de julho de 2025. Ao lado de cada um, como se proteger." />
+          <div className="rs-scams">
+            {commonScams.map((scam, index) => (
+              <article key={scam.title}>
+                <b>0{index + 1}</b>
+                <div>
+                  <h3>{scam.title}</h3>
+                  <p>{scam.tip}</p>
+                </div>
+              </article>
+            ))}
           </div>
+        </div>
+      </section>
+      <section className="rs-section rs-light">
+        <div className="rs-wrap rs-split">
           <div>
-            <article>
-              <b>01</b>
-              <span>
-                <strong>Confira o endereço</strong>
-                <small>Acesse diretamente o domínio oficial.</small>
-              </span>
-            </article>
-            <article>
-              <b>02</b>
-              <span>
-                <strong>Não compartilhe códigos</strong>
-                <small>PIN e confirmação são pessoais.</small>
-              </span>
-            </article>
-            <article>
-              <b>03</b>
-              <span>
-                <strong>Revise local e valor</strong>
-                <small>
-                  Uma compra distante de Brasília pode exigir validação.
-                </small>
-              </span>
-            </article>
-            <article>
-              <b>04</b>
-              <span>
-                <strong>Encerre a sessão</strong>
-                <small>Principalmente em dispositivos compartilhados.</small>
-              </span>
-            </article>
+            <SectionHead label="Regra de ouro" title="O RanBank nunca pede sua senha por mensagem." text="Nem por SMS, WhatsApp, e-mail ou ligação. Se alguém pedir, é golpe." />
           </div>
-        </section>
-        <section className="rb-final-cta">
-          <div>
-            <span>ACESSO PROTEGIDO</span>
-            <h2>Entre pelo ambiente seguro.</h2>
-            <p>Use seu CPF, conta ou e-mail e o PIN de quatro dígitos.</p>
+          <div className="rs-ran-tip">
+            <img src="/images/ran-assistente-humana.png" alt="" />
+            <div>
+              <small>Dica da Ran</small>
+              <p>Digite o endereço do banco você mesmo, desconfie de pressa e nunca compartilhe códigos. Em aparelho de outra pessoa, sempre saia da conta.</p>
+            </div>
           </div>
-          <Link className="rb-btn rb-btn-light" href="/banco">
-            Acessar RanBank →
-          </Link>
-        </section>
-      </main>
-      <PublicFooter />
-      <CookieCenter />
-    </div>
+        </div>
+      </section>
+      <section className="rs-final">
+        <div className="rs-wrap">
+          <h2>Entre pelo caminho seguro.</h2>
+          <p>Use CPF, conta ou e-mail e a sua senha de acesso.</p>
+          <div className="rs-actions is-center">
+            <Link className="rs-btn rs-btn-light rs-btn-lg" href="/banco">Acessar o RanBank <Icon name="arrow" size={20} /></Link>
+          </div>
+        </div>
+      </section>
+    </PublicShell>
   );
 }
 
 export function PrivacyPublicPage() {
+  const data = [
+    { title: "Identificação", text: "Nome, CPF, e-mail, telefone e número da conta.", use: "Para você entrar e para falarmos com você." },
+    { title: "Movimentações", text: "Valores, destinatários e horários.", use: "Para fazer e comprovar cada operação." },
+    { title: "Segurança", text: "Sessões e aparelhos conectados.", use: "Para perceber acessos estranhos." },
+    { title: "Preferências", text: "Sua escolha sobre cookies, guardada no aparelho.", use: "Para respeitar a sua decisão." },
+  ];
+  const cookies = [
+    ["Sessão", "Necessário", "Mantém você conectado. É protegido e não pode ser lido por outros programas da página."],
+    ["Consentimento", "Necessário", "Lembra o que você escolheu sobre cookies."],
+    ["Preferências", "Opcional", "Guarda ajustes de uso neste aparelho."],
+    ["Publicidade", "Não usamos", "O RanBank não usa cookies de propaganda."],
+  ];
   return (
-    <div className="rb-public-shell rb-info-page">
-      <PublicHeader dark />
-      <main>
-        <section className="rb-info-hero rb-privacy-hero">
-          <span>PRIVACIDADE E CONTROLE DE DADOS</span>
-          <h1>Seus dados, com propósito definido.</h1>
-          <p>
-            Transparência sobre o que é usado, por que é necessário e quais
-            escolhas ficam no seu dispositivo.
-          </p>
-        </section>
-        <section className="rb-section">
-          <div className="rb-section-heading">
-            <span>MAPA DE DADOS</span>
-            <h2>Coletar menos. Proteger melhor.</h2>
+    <PublicShell className="rs-page">
+      <PageHero
+        label="Privacidade e cookies"
+        title="Seus dados, só para o necessário."
+        text="O que o RanBank guarda, por que guarda e o que você pode controlar."
+      />
+      <section className="rs-section rs-light">
+        <div className="rs-wrap">
+          <SectionHead label="O que guardamos" title="Coletar menos. Proteger melhor." />
+          <div className="rs-controls">
+            {data.map((item) => (
+              <article key={item.title}>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+                <small className="rs-purpose-tag">{item.use}</small>
+              </article>
+            ))}
           </div>
-          <div className="rb-data-grid">
-            <article>
-              <b>Identificação</b>
-              <p>
-                Nome, CPF, e-mail, telefone e conta para cadastro, acesso e
-                comunicação.
-              </p>
-              <span>Finalidade: autenticação e relacionamento</span>
-            </article>
-            <article>
-              <b>Movimentações</b>
-              <p>
-                Valores, destinatários, horários e identificadores para executar
-                e comprovar operações.
-              </p>
-              <span>Finalidade: serviço financeiro demonstrativo</span>
-            </article>
-            <article>
-              <b>Segurança</b>
-              <p>
-                Sessões, tentativas, dispositivos e contexto de localização para
-                reduzir fraudes.
-              </p>
-              <span>Finalidade: prevenção e controle</span>
-            </article>
-            <article>
-              <b>Preferências</b>
-              <p>
-                Escolhas de cookies guardadas localmente para respeitar sua
-                decisão.
-              </p>
-              <span>Finalidade: experiência e consentimento</span>
-            </article>
+        </div>
+      </section>
+      <section className="rs-section">
+        <div className="rs-wrap">
+          <SectionHead label="Cookies" title="Essencial quer dizer essencial." />
+          <div className="rs-cookie-table">
+            {cookies.map(([name, kind, text]) => (
+              <div key={name}>
+                <strong>{name}</strong>
+                <span className={`rs-status ${kind === "Necessário" ? "" : "is-muted"}`}>{kind}</span>
+                <p>{text}</p>
+              </div>
+            ))}
           </div>
-        </section>
-        <section className="rb-cookie-policy">
-          <div>
-            <span>COOKIES NO RANBANK</span>
-            <h2>Essencial significa essencial.</h2>
-            <p>
-              A sessão autenticada usa cookie HttpOnly e não pode ser lida pelo
-              JavaScript. O site público não utiliza publicidade comportamental.
-              Preferências opcionais dependem do seu consentimento.
-            </p>
-          </div>
-          <div>
-            <span>
-              <b>Sessão</b>Necessário · protegido
-            </span>
-            <span>
-              <b>Consentimento</b>Necessário · local
-            </span>
-            <span>
-              <b>Preferências</b>Opcional
-            </span>
-            <span>
-              <b>Publicidade</b>Não utilizado
-            </span>
-          </div>
-        </section>
-        <section className="rb-rights">
-          <span>SEUS CONTROLES</span>
-          <h2>Acesso, correção e exclusão.</h2>
-          <p>
-            No ambiente demonstrativo, você pode atualizar chaves Pix, recuperar
-            o PIN e solicitar desativação da conta por meio do gerenciamento
-            administrativo. Para dúvidas:{" "}
-            <a href="mailto:privacidade@ranbank.demo">
-              privacidade@ranbank.demo
-            </a>
-            .
-          </p>
-        </section>
-      </main>
-      <PublicFooter />
-      <CookieCenter />
-    </div>
+        </div>
+      </section>
+      <section className="rs-section rs-light">
+        <div className="rs-wrap">
+          <SectionHead
+            label="Seus direitos"
+            title="Ver, corrigir e apagar."
+            text={<>Na conta de demonstração você pode trocar chaves Pix, recuperar a senha e pedir a desativação da conta. Dúvidas: <a href="mailto:privacidade@ranbank.demo">privacidade@ranbank.demo</a> (endereço fictício).</>}
+          />
+        </div>
+      </section>
+    </PublicShell>
   );
 }
 
 export function InstitutePublicPage() {
-  const initiatives = [
-    [
-      "01",
-      "EDUCAÇÃO FINANCEIRA",
-      "Conhecimento para escolher melhor",
-      "Atividades simples sobre orçamento, crédito, Pix, planejamento e prevenção a golpes.",
-    ],
-    [
-      "02",
-      "INCLUSÃO",
-      "Banco acessível para todos",
-      "Linguagem clara, telas legíveis e soluções pensadas para diferentes necessidades.",
-    ],
-    [
-      "03",
-      "COMUNIDADES",
-      "Decisões construídas em conjunto",
-      "Propostas de apoio a iniciativas indígenas e comunitárias com escuta e respeito cultural.",
-    ],
-    [
-      "04",
-      "IMPACTO POSITIVO",
-      "Crédito social e ambiental",
-      "Conceitos de crédito e cartões ligados a escolhas que beneficiam pessoas e o meio ambiente.",
-    ],
+  const fronts: Array<{ icon: IconName; title: string; text: string }> = [
+    { icon: "book", title: "Educação financeira", text: "Orçamento, crédito, Pix e prevenção a golpes explicados com exemplos do dia a dia." },
+    { icon: "access", title: "Inclusão", text: "Telas legíveis, linguagem simples e atenção a quem tem pouca experiência com banco." },
+    { icon: "users", title: "Comunidades", text: "Propostas para comunidades indígenas e locais, construídas com escuta e respeito à cultura." },
+    { icon: "leaf", title: "Impacto positivo", text: "Crédito e cartão ligados a escolhas que fazem bem às pessoas e ao meio ambiente." },
   ];
   return (
-    <div className="rb-public-shell rb-institute-page">
-      <PublicHeader dark />
-      <main>
-        <section className="rb-institute-hero">
-          <span className="rb-kicker">
-            INSTITUTO RANBANK · BRASÍLIA - DF
-          </span>
-          <h1>
-            Conhecimento, inclusão
-            <br />e impacto positivo.
-          </h1>
-          <p>
-            Um espaço para transformar educação financeira e responsabilidade
-            social em propostas que fazem sentido para as pessoas.
-          </p>
-          <div className="rb-hero-actions">
-            <a className="rb-btn rb-btn-primary" href="#iniciativas">
-              Conhecer iniciativas
-            </a>
-            <Link className="rb-btn rb-btn-ghost" href="/banco">
-              Abrir o banco
-            </Link>
-          </div>
-        </section>
-        <section className="rb-section" id="iniciativas">
-          <div className="rb-section-heading">
-            <span>4 FRENTES DE ATUAÇÃO</span>
-            <h2>Ideias simples para desafios reais.</h2>
-          </div>
-          <div className="rb-initiative-grid">
-            {initiatives.map(([n, topic, title, text]) => (
-              <article key={n}>
-                <b>{n}</b>
-                <span>{topic}</span>
-                <h3>{title}</h3>
-                <p>{text}</p>
+    <PublicShell className="rs-page">
+      <PageHero
+        label="Instituto RanBank · proposta"
+        title="O lado social do RanBank."
+        text="Uma proposta de instituto para transformar parte do resultado do banco em educação, inclusão e apoio a comunidades."
+      >
+        <div className="rs-actions">
+          <Link className="rs-btn rs-btn-primary rs-btn-lg" href="/projetos">Ver os projetos</Link>
+          <Link className="rs-btn rs-btn-outline rs-btn-lg" href="/banco">Abrir o banco</Link>
+        </div>
+      </PageHero>
+      <section className="rs-section rs-light">
+        <div className="rs-wrap">
+          <SectionHead label="Quatro frentes" title="Ideias simples para problemas reais." />
+          <div className="rs-controls is-four">
+            {fronts.map((front) => (
+              <article key={front.title}>
+                <i className="rs-tile-icon"><Icon name={front.icon} /></i>
+                <h3>{front.title}</h3>
+                <p>{front.text}</p>
               </article>
             ))}
           </div>
-        </section>
-        <section className="rb-robotics-callout">
-          <div>
-            <span>NOSSO JEITO DE TRABALHAR</span>
-            <h2>Primeiro ouvimos. Depois construímos.</h2>
-            <p>
-              Uma boa iniciativa começa pela realidade das pessoas, respeita
-              cada comunidade e apresenta seus objetivos com clareza.
-            </p>
-          </div>
-          <div className="rb-robotics-points">
-            <span>Escuta das comunidades</span>
-            <span>Linguagem simples</span>
-            <span>Participação nas decisões</span>
-            <span>Resultados transparentes</span>
-          </div>
-        </section>
-        <section className="rb-final-cta">
-          <div>
-            <span>AMBIENTE DEMONSTRATIVO</span>
-            <h2>Veja a tecnologia dentro do banco.</h2>
-            <p>Entre no RanBank e conheça como o banco funciona por dentro.</p>
-          </div>
-          <Link className="rb-btn rb-btn-light" href="/banco">
-            Acessar RanBank →
-          </Link>
-        </section>
-      </main>
-      <PublicFooter />
-      <CookieCenter />
-    </div>
+        </div>
+      </section>
+      <section className="rs-section">
+        <div className="rs-wrap rs-split">
+          <SectionHead label="Como trabalhar" title="Primeiro ouvir. Depois construir." text="Uma boa iniciativa começa pela realidade das pessoas, respeita cada comunidade e explica seus objetivos com clareza." />
+          <ul className="rs-checklist">
+            {["Ouvir quem será atendido", "Falar em linguagem simples", "Decidir junto com a comunidade", "Mostrar resultados com transparência"].map((item) => (
+              <li key={item}><Icon name="check" size={20} />{item}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+      <section className="rs-section rs-light">
+        <div className="rs-wrap">
+          <p className="rs-honest"><Icon name="alert" size={20} /> O Instituto RanBank é uma proposta. Ele ainda não existe e não tem parcerias oficiais.</p>
+        </div>
+      </section>
+    </PublicShell>
   );
 }

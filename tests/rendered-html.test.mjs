@@ -47,7 +47,7 @@ test("includes the protected access experience", async () => {
   assert.match(api, /!transientStatuses\.has\(response\.status\)/);
   assert.match(api, /O servidor demorou para responder/);
   assert.match(auth, /progressMessage/);
-  assert.match(page, /O primeiro acesso pode levar cerca de dois minutos/);
+  assert.match(page, /Está demorando mais que o normal/);
   assert.match(page, /\/auth\/session/);
   assert.match(page, /\/auth\/logout/);
   assert.doesNotMatch(page, /new EventSource/);
@@ -118,23 +118,24 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   const publicSite = await readFile(publicSiteUrl, "utf8");
   const theme = await readFile(bankThemeUrl, "utf8");
   const page = await readFile(pageUrl, "utf8");
-  assert.match(publicSite, /Feito em Brasília para o futuro/i);
+  assert.match(publicSite, /Banco digital educacional/);
   assert.doesNotMatch(publicSite, /\(61\) 4004-2028/);
   assert.match(publicSite, /instagram\.com\/ranbank\.df/);
   assert.match(publicSite, /tiktok\.com\/@ranbank\.df/);
-  assert.match(publicSite, /CENTRAL DE SEGURANÇA RANBANK/);
-  assert.match(publicSite, /A sessão é protegida e encerrada com segurança/);
+  assert.match(publicSite, /Central de Segurança RanBank/);
+  assert.match(publicSite, /Sessão com prazo/);
+  assert.doesNotMatch(publicSite, /tentativas repetidas causam bloqueio/);
   assert.match(publicSite, /Somente essenciais/);
   assert.match(publicSite, /Aceitar todos/);
   assert.match(publicSite, /SecurityPublicPage/);
   assert.match(publicSite, /PrivacyPublicPage/);
-  assert.match(publicSite, /RANBANK EM MOVIMENTO/);
-  assert.match(publicSite, /ranbank-demonstracao-04\.mp4/);
+  assert.match(publicSite, /Observatório Febraban, julho de 2025/);
+  assert.match(publicSite, /Relatório de Gestão do Pix/);
   assert.match(publicSite, /\/banco\?modo=criar-conta/);
-  assert.match(publicSite, /rb-public-theme-toggle/);
+  assert.match(publicSite, /rs-menu-toggle/);
   assert.match(publicSite, /<img src="\/ranbank-logo-transparent\.png" alt="RanBank" \/>/);
-  assert.match(publicSite, /aria-pressed/);
-  assert.match(publicSite, /ranbank-theme/);
+  assert.match(publicSite, /aria-expanded/);
+  assert.match(publicSite, /Projeto educacional\./);
   assert.match(theme, /rb-impact-shell/);
   assert.match(theme, /rb-info-page/);
   assert.match(theme, /rb-institute-page/);
@@ -229,10 +230,11 @@ test("keeps account controls inside the customer profile", async () => {
   assert.doesNotMatch(page, /Java conectado/);
   assert.doesNotMatch(page, /Iniciar apresentação guiada/);
   assert.doesNotMatch(page, /pix-modal-tools/);
-  assert.match(page, /profile-actions/);
+  assert.match(page, /Meu perfil/);
   assert.match(page, /Gerenciar chaves Pix/);
   assert.match(page, /Sair da conta/);
-  assert.ok(page.indexOf("Robótica assistiva") < page.indexOf("Comparar tecnologias"));
+  assert.match(page, /setLab\("scam"\)/);
+  assert.doesNotMatch(page, /Robótica assistiva|simulateThreat|analyzeSuspiciousTransaction/);
 });
 
 test("shows the Ecocard artwork in the card control panel", async () => {
@@ -264,8 +266,17 @@ test("keeps the bank home focused and moves project details into menus", async (
 
 test("uses Ran as a guide in public help and security", async () => {
   const publicSite = await readFile(publicSiteUrl, "utf8");
-  assert.match(publicSite, /rb-ran-faq-help/);
+  assert.match(publicSite, /rs-ran-help/);
   assert.match(publicSite, /Falar com a Ran/);
-  assert.match(publicSite, /rb-ran-security-guide/);
-  assert.match(publicSite, /CONSELHO DA RAN/);
+  assert.match(publicSite, /rs-ran-tip/);
+  assert.match(publicSite, /Dica da Ran/);
+});
+
+test("keeps every technology demo interactive instead of scripted", async () => {
+  const labs = await readFile(new URL("../app/bank/Labs.tsx", import.meta.url), "utf8");
+  const flow = await readFile(new URL("../app/bank/RanFlow.tsx", import.meta.url), "utf8");
+  for (const lab of ["CloudLab", "EnergyLab", "CompareLab", "ScamLab", "LoginLab", "ChainLab"]) assert.ok(labs.includes(`function ${lab}(`), `${lab} deve existir`);
+  assert.match(labs, /sha256\(/);
+  assert.match(flow, /function evaluate\(event: FlowEvent, rules: Rules\)/);
+  assert.match(flow, /Reprocessar com regras novas/);
 });

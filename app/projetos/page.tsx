@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import ProjectsPublicPage from "../ProjectsPublicPage";
 
 export const metadata: Metadata = {
-  title: "Portal de Impacto | RanBank",
+  title: "Projetos e impacto | RanBank",
   description:
-    "Conheça os projetos sociais simulados, as referências públicas e os compromissos de impacto do RanBank.",
+    "Conheça as propostas sociais do RanBank, as referências públicas e os compromissos de transparência.",
 };
 
 export default function ProjetosPage() {

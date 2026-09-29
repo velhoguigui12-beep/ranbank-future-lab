@@ -124,7 +124,7 @@ async function createDemoAccount(sql: Sql, request: Request) {
   const documentId = digits(data.documentId); const email = String(data.email ?? "").trim().toLowerCase();
   const phone = digits(data.phoneNumber); const accessPin = String(data.accessPin ?? ""); const transactionPin = String(data.transactionPin ?? "");
   if (!customerName || documentId.length !== 11 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !/^\d{10,11}$/.test(phone) || !/^\d{4}$/.test(accessPin) || !/^\d{4}$/.test(transactionPin)) {
-    return error("Confira nome, CPF, e-mail, telefone e os PINs de quatro dígitos.", 400);
+    return error("Confira nome, CPF, e-mail, telefone e as senhas de quatro dígitos.", 400);
   }
   const conflicts = await sql.query(`SELECT 1 FROM bank_accounts WHERE document_id=$1 OR LOWER(email)=$2 OR phone_number=$3 UNION ALL SELECT 1 FROM pix_keys WHERE normalized_key IN ($1,$2,$3) LIMIT 1`, [documentId, email, phone]);
   if (conflicts.length) return error("CPF, e-mail ou telefone já está vinculado a uma conta.", 409);
@@ -142,24 +142,24 @@ async function recoverPin(sql: Sql, request: Request) {
   const rows = await sql.query(`SELECT * FROM bank_accounts WHERE deleted_at IS NULL AND (document_id=$1 OR account_number_normalized=$1 OR LOWER(email)=LOWER($2)) LIMIT 1`, [digits(identification), identification]);
   const account = rows[0] as Row | undefined;
   if (!account || String(account.email).toLowerCase() !== String(data.email ?? "").trim().toLowerCase() || !account.transaction_pin_hash || !(await compare(String(data.transactionPin ?? ""), account.transaction_pin_hash))) return error("Não foi possível validar os dados informados.", 401);
-  if (!/^\d{4}$/.test(String(data.newAccessPin ?? ""))) return error("O novo PIN deve ter quatro dígitos.", 400);
+  if (!/^\d{4}$/.test(String(data.newAccessPin ?? ""))) return error("A nova senha deve ter quatro dígitos.", 400);
   await sql.query(`UPDATE bank_accounts SET access_pin_hash=$2,version=version+1 WHERE id=$1`, [account.id, await hash(String(data.newAccessPin), 10)]);
   await sql.query(`DELETE FROM bank_sessions WHERE account_id=$1`, [account.id]);
-  return json({ message: "PIN de acesso redefinido. Entre novamente com o novo PIN." });
+  return json({ message: "Senha redefinida. Entre de novo com a nova senha." });
 }
 
 async function login(sql: Sql, request: Request) {
   const data = await body(request);
   const identification = String(data.identification ?? "").trim();
   const pin = String(data.pin ?? "");
-  if (!identification || !/^\d{4}$/.test(pin)) return error("Informe seu CPF ou sua conta e um PIN de quatro dígitos.", 400);
+  if (!identification || !/^\d{4}$/.test(pin)) return error("Informe seu CPF, conta ou e-mail e a senha de quatro dígitos.", 400);
   const normalized = digits(identification);
   const rows = await sql.query(
     `SELECT * FROM bank_accounts WHERE deleted_at IS NULL AND
      (document_id=$1 OR account_number_normalized=$1 OR LOWER(email)=LOWER($2)) LIMIT 1`, [normalized, identification]);
   const account = rows[0] as Row | undefined;
   if (!account || !account.active || !account.access_pin_hash || !(await compare(pin, account.access_pin_hash))) {
-    return error(account && !account.active ? "Esta conta está desativada. Procure o administrador." : "CPF, conta ou PIN inválido.", account && !account.active ? 403 : 401);
+    return error(account && !account.active ? "Esta conta está desativada. Procure o administrador." : "CPF, conta ou senha incorretos.", account && !account.active ? 403 : 401);
   }
   const raw = token();
   const hash = await sha256(raw);
@@ -192,14 +192,14 @@ async function authenticated(sql: Sql, request: Request, path: string) {
     response = json({ blocked: row.card_blocked, limit: money(row.card_limit), spent: money(row.card_spent), available: Math.max(0, money(row.card_limit) - money(row.card_spent)) });
   } else if (method === "PUT" && path === "banking/card/limit") {
     const data = await body(request); const limit = money(data.limit);
-    if (!(await verifyTransactionPin(data, account))) return error("PIN transacional inválido.", 401);
+    if (!(await verifyTransactionPin(data, account))) return error("Senha de 4 dígitos incorreta.", 401);
     if (limit < money(account.card_spent) || limit > 20000) return error("O limite deve cobrir a fatura atual e não pode ultrapassar R$ 20.000,00.", 422);
     const rows = await sql.query(`UPDATE bank_accounts SET card_limit=$2,version=version+1 WHERE id=$1 RETURNING card_blocked,card_limit,card_spent`, [account.id, limit]);
     const row = rows[0] as Row;
     response = json({ blocked: row.card_blocked, limit: money(row.card_limit), spent: money(row.card_spent), available: Math.max(0, money(row.card_limit) - money(row.card_spent)) });
   } else if (method === "POST" && (path === "banking/savings/deposit" || path === "banking/savings/withdraw")) {
     const data = await body(request); const amount = money(data.amount); const deposit = path.endsWith("deposit");
-    if (!(await verifyTransactionPin(data, account))) return error("PIN transacional inválido.", 401);
+    if (!(await verifyTransactionPin(data, account))) return error("Senha de 4 dígitos incorreta.", 401);
     if (amount <= 0) return error("Informe um valor positivo.", 422);
     if (deposit && amount > money(account.balance)) return error("Saldo insuficiente para realizar esta operação.", 422);
     if (!deposit && amount > money(account.savings_balance)) return error("Saldo insuficiente no cofrinho.", 422);
@@ -212,14 +212,14 @@ async function authenticated(sql: Sql, request: Request, path: string) {
   } else if (method === "POST" && path === "banking/bills") {
     const data = await body(request); const amount = money(data.amount); const barcode = digits(data.barcode); const payee = String(data.payee ?? "").trim();
     if (barcode.length < 44 || barcode.length > 48) return error("O código de barras deve ter entre 44 e 48 dígitos.", 422);
-    if (!(await verifyTransactionPin(data, account))) return error("PIN transacional inválido.", 401);
+    if (!(await verifyTransactionPin(data, account))) return error("Senha de 4 dígitos incorreta.", 401);
     if (amount <= 0 || amount > money(account.balance)) return error(amount <= 0 ? "Informe um valor positivo." : "Saldo insuficiente para realizar esta operação.", 422);
     await sql.query(`UPDATE bank_accounts SET balance=balance-$2,version=version+1 WHERE id=$1`, [account.id, amount]);
     const rows = await sql.query(`INSERT INTO bank_transactions(account_id,title,detail,amount,type,occurred_at,status) VALUES($1,'Boleto pago',$2,$3,'debit',CURRENT_TIMESTAMP,'COMPLETED') RETURNING *`, [account.id, `${payee} · cód. ${barcode.slice(-6)}`, -amount]);
-    const row = rows[0] as Row; response = json({ transactionId: Number(row.id), operation: "Boleto", recipient: payee, amount, detail: row.detail, timestamp: new Date().toISOString(), authentication: "PIN transacional + sessão protegida" }, 201);
+    const row = rows[0] as Row; response = json({ transactionId: Number(row.id), operation: "Boleto", recipient: payee, amount, detail: row.detail, timestamp: new Date().toISOString(), authentication: "Senha de 4 dígitos + sessão protegida" }, 201);
   } else if (method === "POST" && path === "banking/schedules") {
     const data = await body(request); const amount = money(data.amount); const date = String(data.scheduledDate ?? ""); const key = String(data.pixKey ?? "").trim();
-    if (!(await verifyTransactionPin(data, account))) return error("PIN transacional inválido.", 401);
+    if (!(await verifyTransactionPin(data, account))) return error("Senha de 4 dígitos incorreta.", 401);
     if (amount <= 0 || amount > money(account.balance)) return error(amount <= 0 ? "Informe um valor positivo." : "O valor agendado ultrapassa o saldo atual.", 422);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < new Date().toISOString().slice(0, 10)) return error("Escolha hoje ou uma data futura.", 422);
     const masked = key.includes("@") ? key : `Chave Pix ****${normalizePixKey(key).slice(-4)}`;
@@ -267,7 +267,7 @@ async function authenticated(sql: Sql, request: Request, path: string) {
     const rows = await sql.query(`UPDATE bank_accounts SET active=FALSE,deleted_at=CURRENT_TIMESTAMP,customer_name='Conta removida',document_id='deleted-'||id,email='deleted-'||id||'@ranbank.invalid',phone_number=NULL,access_pin_hash=NULL,transaction_pin_hash=NULL,card_blocked=TRUE,version=version+1 WHERE id=$1 RETURNING id`, [id]);
     if (!rows[0]) return error("Conta não encontrada.", 403); response = json({ message: "Conta removida e dados pessoais anonimizados. O histórico financeiro foi preservado." });
   } else if (method === "GET" && path === "admin/insights/summary") {
-    if (account.role !== "ADMIN") return error("Acesso restrito ao Insights administrativo.", 403);
+    if (account.role !== "ADMIN") return error("Acesso restrito à administração.", 403);
     const rows = await sql.query(`SELECT (SELECT COUNT(*) FROM bank_accounts) total_accounts,(SELECT COUNT(*) FROM bank_accounts WHERE active) active_accounts,(SELECT COALESCE(SUM(balance),0) FROM bank_accounts) total_deposits,(SELECT COUNT(*) FROM bank_transactions) total_transactions,(SELECT COALESCE(SUM(ABS(amount)),0) FROM bank_transactions) transaction_volume,(SELECT COUNT(*) FROM pix_transfers) pix_transfers,(SELECT COUNT(*) FROM notifications WHERE read_at IS NULL) unread_notifications,(SELECT COUNT(*) FROM flow_executions) flow_executions`);
     const row = rows[0] as Row; response = json({ generatedAt: new Date().toISOString(), totalAccounts: Number(row.total_accounts), activeAccounts: Number(row.active_accounts), totalDeposits: money(row.total_deposits), totalTransactions: Number(row.total_transactions), transactionVolume: money(row.transaction_volume), pixTransfers: Number(row.pix_transfers), unreadNotifications: Number(row.unread_notifications), flowExecutions: Number(row.flow_executions) });
   } else if (method === "GET" && path === "pix/keys") {
@@ -279,7 +279,7 @@ async function authenticated(sql: Sql, request: Request, path: string) {
     else if (type === "CPF") { normalized = digits(data.value); display = normalized; if (normalized !== account.document_id) return error("A chave CPF deve pertencer ao titular da conta.", 422); }
     else if (type === "PHONE") { normalized = digits(data.value); display = formatPhone(normalized) ?? normalized; if (account.phone_number && normalized !== account.phone_number) return error("A chave telefone deve usar o número cadastrado no perfil.", 422); }
     else if (type === "RANDOM") { normalized = crypto.randomUUID(); display = normalized; }
-    else return error("Tipo de chave inválido. Use EMAIL, CPF, PHONE ou RANDOM.", 422);
+    else return error("Tipo de chave inválido. Use e-mail, CPF, telefone ou chave aleatória.", 422);
     const exists = await sql.query(`SELECT 1 FROM pix_keys WHERE normalized_key=$1`, [normalized]); if (exists.length) return error("Esta chave Pix já está cadastrada.", 422);
     const rows = await sql.query(`INSERT INTO pix_keys(account_id,key_type,normalized_key,display_key,created_at) VALUES($1,$2,$3,$4,CURRENT_TIMESTAMP) RETURNING *`, [account.id, type, normalized, display]);
     const row = rows[0] as Row; response = json({ id: Number(row.id), type: row.key_type, value: row.display_key, createdAt: row.created_at }, 201);
@@ -297,7 +297,7 @@ async function authenticated(sql: Sql, request: Request, path: string) {
     response = json({ accountId: Number(row.id), name: row.customer_name, accountNumber: row.account_number, keyType: row.key_type, maskedKey: row.display_key });
   } else if (method === "POST" && (path === "pix/transfers" || path === "transactions")) {
     const data = await body(request); const amount = money(data.amount); const normalized = normalizePixKey(data.pixKey); const idempotency = (request.headers.get("idempotency-key") || crypto.randomUUID()).slice(0, 64);
-    if (!(await verifyTransactionPin(data, account))) return error("PIN transacional inválido.", 401);
+    if (!(await verifyTransactionPin(data, account))) return error("Senha de 4 dígitos incorreta.", 401);
     if (amount <= 0 || amount > money(account.balance)) return error(amount <= 0 ? "Informe um valor positivo." : "Saldo insuficiente para realizar este Pix.", 422);
     const existing = await sql.query(`SELECT p.*,a.customer_name,a.account_number,t.id transaction_id FROM pix_transfers p JOIN bank_accounts a ON a.id=p.recipient_account_id LEFT JOIN bank_transactions t ON t.account_id=p.sender_account_id AND t.transfer_id=p.id WHERE p.sender_account_id=$1 AND p.idempotency_key=$2 LIMIT 1`, [account.id, idempotency]);
     let receipt: Row;
@@ -340,7 +340,7 @@ async function authenticated(sql: Sql, request: Request, path: string) {
     await sql.query(`INSERT INTO connected_devices(account_id,name,type,location,last_access,trusted,blocked) VALUES(1,'iPhone de Ana','Celular','Brasília - DF','Agora',TRUE,FALSE),(1,'Notebook pessoal','Computador','Brasília - DF','Hoje, 20:14',TRUE,FALSE),(1,'Galaxy S24','Celular','Taguatinga, DF','Hoje, 03:18',FALSE,FALSE),(1,'Caixa eletrônico 0842','Terminal IoT','Asa Sul, Brasília - DF','Ontem, 17:42',TRUE,FALSE)`);
     response = json({ message: "Demonstração restaurada com sucesso." });
   } else {
-    response = error("Esta função ainda não foi migrada para a nova API.", 501);
+    response = error("Esta função não está disponível nesta versão.", 501);
   }
   return withSession(response, raw);
 }
@@ -363,7 +363,7 @@ async function publicSimulation(path: string, request: Request): Promise<Respons
     else if (message.includes("social") || message.includes("indigena") || message.includes("comunidade") || message.includes("meio ambiente")) { topic = "Impacto positivo"; answer = "O projeto apresenta propostas de educação financeira, crédito com propósito, acessibilidade e apoio construído com comunidades. São ideias demonstrativas."; }
     else if (message.includes("privacidade") || message.includes("cookie") || message.includes("dados pessoais")) { topic = "Privacidade"; answer = "Use somente dados fictícios. O site guarda apenas o necessário para a sessão e para suas preferências de navegação."; }
     else if (message.includes("pix") || message.includes("transferencia")) { topic = "Pix"; answer = "Informe a chave e o valor, confira quem vai receber e confirme com a senha de quatro dígitos do cartão. Tudo acontece entre contas demonstrativas."; }
-    else if (message.includes("cartao") || message.includes("fatura") || message.includes("limite")) { topic = "Cartão"; answer = "Na área Cartões você consulta a fatura e o limite, além de bloquear ou desbloquear o cartão demonstrativo."; }
+    else if (message.includes("cartao") || message.includes("fatura") || message.includes("limite")) { topic = "Cartão"; answer = "Na área Cartão você consulta a fatura e o limite, além de bloquear ou desbloquear o cartão demonstrativo."; }
     else if (message.includes("extrato") || message.includes("movimentacao") || message.includes("comprovante")) { topic = "Extrato"; answer = "O extrato reúne entradas e saídas e permite abrir o comprovante de cada movimentação demonstrativa."; }
     else if (message.includes("segur") || message.includes("golpe") || message.includes("phishing")) { topic = "Segurança"; answer = "Confira o endereço do site e nunca compartilhe senhas ou códigos. O RanBank pede uma confirmação extra quando encontra algo fora do padrão."; }
     else if (message.includes("nuvem") || message.includes("cloud") || message.includes("sistema")) { topic = "Como o sistema funciona"; answer = "A versão publicada usa Cloudflare para o site e os serviços do banco, enquanto o Neon guarda contas e movimentações."; }
@@ -377,16 +377,16 @@ async function publicSimulation(path: string, request: Request): Promise<Respons
   if (request.method === "GET" && path === "innovation/open-finance") return json({ customer: "Ana Ribeiro", consentExpires: new Date(Date.now() + 90 * 86400000).toISOString().slice(0,10), institutions: [{ name: "RanBank", scope: "Conta principal", balance: 8540.75, connected: true }, { name: "Banco Horizonte", scope: "Conta e cartão", balance: 3260.40, connected: true }, { name: "Cooperativa Cerrado", scope: "Investimentos", balance: 4180, connected: false }] });
   if (request.method === "POST" && path === "innovation/open-finance/toggle") return json({ customer: "Ana Ribeiro", consentExpires: new Date(Date.now() + 90 * 86400000).toISOString().slice(0,10), institutions: [{ name: "RanBank", scope: "Conta principal", balance: 8540.75, connected: true }, { name: "Banco Horizonte", scope: "Conta e cartão", balance: 3260.40, connected: true }, { name: "Cooperativa Cerrado", scope: "Investimentos", balance: 4180, connected: true }] });
   if (request.method === "GET" && path === "innovation/audit") return json({ algorithm: "SHA-256", integrityVerified: true, entries: ["Sessão autenticada", "Consentimento consultado", "Chave Pix validada", "Risco calculado", "Decisão registrada"].map((event, index) => ({ block: index + 1, event, previousHash: index ? `hash-${index}` : "GENESIS-RANBANK", hash: `hash-${index + 1}`, status: "ÍNTEGRO" })) });
-  if (request.method === "GET" && path === "innovation/fraud-journey") return json({ scenario: "Compra de R$ 2.950,00 em novo dispositivo", riskScore: 68, decision: "REVISÃO NECESSÁRIA", steps: ["Coleta de contexto", "Comparação histórica", "Cálculo de risco", "Orquestração da resposta", "Continuidade e registro", "Decisão responsável"].map((title, index) => ({ order: index + 1, technology: ["IoT", "Big Data", "IA explicável", "Automação", "Nuvem", "Pessoa"][index], title, explanation: "Etapa demonstrativa do fluxo antifraude.", status: index === 5 ? "AGUARDANDO" : "CONCLUÍDO" })) });
+  if (request.method === "GET" && path === "innovation/fraud-journey") return json({ scenario: "Compra de R$ 2.950,00 em novo dispositivo", riskScore: 68, decision: "REVISÃO NECESSÁRIA", steps: ["Coleta de contexto", "Comparação histórica", "Cálculo de risco", "Organização da resposta", "Continuidade e registro", "Decisão responsável"].map((title, index) => ({ order: index + 1, technology: ["IoT", "Análise de dados", "IA explicável", "Automação", "Nuvem", "Pessoa"][index], title, explanation: "Etapa demonstrativa do fluxo antifraude.", status: index === 5 ? "AGUARDANDO" : "CONCLUÍDO" })) });
   if (path.startsWith("cloud/")) {
-    const failed = path.endsWith("simulate-failure"); return json({ systemStatus: failed ? "DEGRADADO" : "SAUDÁVEL", availability: failed ? "99,98%" : "100%", activeRegion: failed ? "Goiânia" : "Brasília", failureActive: failed, regions: [{ name: "Brasília", code: "br-central", status: failed ? "INDISPONÍVEL" : "ATIVA", trafficPercent: failed ? 0 : 60, latencyMs: failed ? 0 : 12 }, { name: "Goiânia", code: "br-central-2", status: "ATIVA", trafficPercent: failed ? 62 : 25, latencyMs: 24 }, { name: "Fortaleza", code: "br-northeast", status: failed ? "ATIVA" : "STANDBY", trafficPercent: failed ? 38 : 15, latencyMs: 44 }], timeline: [{ time: "Agora", title: failed ? "Tráfego redirecionado" : "Operação normal", description: failed ? "As regiões secundárias assumiram as requisições." : "As regiões estão sincronizadas e monitoradas." }] });
+    const failed = path.endsWith("simulate-failure"); return json({ systemStatus: failed ? "DEGRADADO" : "SAUDÁVEL", availability: failed ? "99,98%" : "100%", activeRegion: failed ? "Goiânia" : "Brasília", failureActive: failed, regions: [{ name: "Brasília", code: "br-central", status: failed ? "INDISPONÍVEL" : "ATIVA", trafficPercent: failed ? 0 : 60, latencyMs: failed ? 0 : 12 }, { name: "Goiânia", code: "br-central-2", status: "ATIVA", trafficPercent: failed ? 62 : 25, latencyMs: 24 }, { name: "Fortaleza", code: "br-northeast", status: failed ? "ATIVA" : "STANDBY", trafficPercent: failed ? 38 : 15, latencyMs: 44 }], timeline: [{ time: "Agora", title: failed ? "Tráfego redirecionado" : "Operação normal", description: failed ? "Os servidores reservas assumiram os acessos." : "Os servidores estão sincronizados e monitorados." }] });
   }
   if (path.startsWith("sustainability/")) {
-    const active = path.endsWith("optimize"); return json({ optimized: active, powerKw: active ? 42.6 : 58.4, renewablePercent: active ? 78 : 54, carbonKgHour: active ? 8.7 : 14.2, pue: active ? 1.18 : 1.42, savingsPercent: active ? 27 : 0, sources: [{ name: "Solar", percentage: active ? 46 : 32, type: "RENOVÁVEL" }, { name: "Eólica", percentage: active ? 32 : 22, type: "RENOVÁVEL" }, { name: "Rede elétrica", percentage: active ? 22 : 46, type: "MISTA" }], actions: active ? ["Cargas não críticas migradas", "Servidores ociosos consolidados", "Maior uso de energia renovável"] : ["Consumo acima da meta", "Capacidade ociosa identificada", "Otimização disponível"] });
+    const active = path.endsWith("optimize"); return json({ optimized: active, powerKw: active ? 42.6 : 58.4, renewablePercent: active ? 78 : 54, carbonKgHour: active ? 8.7 : 14.2, pue: active ? 1.18 : 1.42, savingsPercent: active ? 27 : 0, sources: [{ name: "Solar", percentage: active ? 46 : 32, type: "RENOVÁVEL" }, { name: "Eólica", percentage: active ? 32 : 22, type: "RENOVÁVEL" }, { name: "Rede elétrica", percentage: active ? 22 : 46, type: "MISTA" }], actions: active ? ["Serviços não essenciais reorganizados", "Servidores ociosos consolidados", "Maior uso de energia renovável"] : ["Consumo acima da meta", "Capacidade ociosa identificada", "Otimização disponível"] });
   }
   if (request.method === "GET" && path === "comparison") {
-    const goal = new URL(request.url).searchParams.get("goal") || "seguranca"; const scores: Record<string, Record<string, number>> = { seguranca: { IA: 94, "Big Data": 86, IoT: 65, Nuvem: 82, "Automação": 90, Sustentabilidade: 52 }, escala: { IA: 78, "Big Data": 96, IoT: 84, Nuvem: 98, "Automação": 88, Sustentabilidade: 72 }, eficiencia: { IA: 85, "Big Data": 82, IoT: 76, Nuvem: 91, "Automação": 96, Sustentabilidade: 94 } }; const selected = scores[goal] ? goal : "seguranca";
-    const details: Record<string, [string,string,string,string]> = { IA: ["Alto","Em evolução","Reconhecimento de padrões","Exige dados de qualidade e supervisão."], "Big Data": ["Alto","Maduro","Análise de grandes volumes","Infraestrutura e governança são complexas."], IoT: ["Médio","Maduro","Telemetria de dispositivos","Amplia a superfície de ataque."], Nuvem: ["Médio","Muito maduro","Escala e disponibilidade","Depende de configuração e conectividade."], "Automação": ["Baixo","Maduro","Orquestração de processos","Automatizar uma regra ruim amplia o erro."], Sustentabilidade: ["Médio","Em expansão","Eficiência energética","Métricas ambientais exigem contexto."] };
+    const goal = new URL(request.url).searchParams.get("goal") || "seguranca"; const scores: Record<string, Record<string, number>> = { seguranca: { IA: 94, "Análise de dados": 86, IoT: 65, Nuvem: 82, "Automação": 90, Sustentabilidade: 52 }, escala: { IA: 78, "Análise de dados": 96, IoT: 84, Nuvem: 98, "Automação": 88, Sustentabilidade: 72 }, eficiencia: { IA: 85, "Análise de dados": 82, IoT: 76, Nuvem: 91, "Automação": 96, Sustentabilidade: 94 } }; const selected = scores[goal] ? goal : "seguranca";
+    const details: Record<string, [string,string,string,string]> = { IA: ["Alto","Em evolução","Reconhecimento de padrões","Exige dados de qualidade e supervisão."], "Análise de dados": ["Alto","Maduro","Análise de grandes volumes","Infraestrutura e governança são complexas."], IoT: ["Médio","Maduro","Telemetria de dispositivos","Mais aparelhos conectados significam mais pontos de ataque."], Nuvem: ["Médio","Muito maduro","Escala e disponibilidade","Depende de configuração e conectividade."], "Automação": ["Baixo","Maduro","Organização de tarefas automáticas","Automatizar uma regra ruim amplia o erro."], Sustentabilidade: ["Médio","Em expansão","Eficiência energética","Métricas ambientais exigem contexto."] };
     const results = Object.entries(scores[selected]).map(([name, score]) => ({ name, score, cost: details[name][0], maturity: details[name][1], bestUse: details[name][2], limitation: details[name][3] })).sort((a,b) => b.score-a.score);
     return json({ goal: selected, goalLabel: selected === "escala" ? "Escalabilidade" : selected === "eficiencia" ? "Eficiência operacional" : "Segurança digital", results, disclaimer: "A maior pontuação indica aderência ao objetivo escolhido, não uma tecnologia universalmente melhor." });
   }
@@ -395,7 +395,7 @@ async function publicSimulation(path: string, request: Request): Promise<Respons
     return json({ ...scenario, defenses: [{ name: "Análise preventiva", result: "Evento suspeito identificado", responsibility: "automatica" }, { name: "MFA", result: "Validação adicional exigida", responsibility: "automatica" }, { name: "Revisão", result: "Pessoa confirma a decisão", responsibility: "humana" }] });
   }
   if (request.method === "GET" && path === "immersive") {
-    const vr = new URL(request.url).searchParams.get("mode") === "vr"; return json(vr ? { code: "VR", name: "Realidade Virtual", title: "Treinamento antifraude", definition: "O usuário entra em um ambiente digital imersivo, separado do espaço real.", steps: ["Cenário simula uma agência bancária", "Personagens apresentam tentativas de golpe", "Escolhas geram feedback sem risco real"], equipment: "Óculos VR e controles", strength: "Treinamento seguro", limitation: "Custo dos equipamentos e possível desconforto" } : { code: "RA", name: "Realidade Aumentada", title: "Agência inteligente", definition: "Informações digitais são sobrepostas à visão do ambiente real.", steps: ["Câmera reconhece o caixa eletrônico", "Setas orientam onde inserir o cartão", "Alertas destacam sinais de adulteração"], equipment: "Celular ou óculos de RA", strength: "Orientação contextual", limitation: "Privacidade da câmera e precisão do reconhecimento" });
+    const vr = new URL(request.url).searchParams.get("mode") === "vr"; return json(vr ? { code: "VR", name: "Realidade Virtual", title: "Treinamento antifraude", definition: "O usuário entra em um ambiente digital imersivo, separado do espaço real.", steps: ["Cenário simula uma agência bancária", "Personagens apresentam tentativas de golpe", "Escolhas geram feedback sem risco real"], equipment: "Óculos de realidade virtual e controles", strength: "Treinamento seguro", limitation: "Custo dos equipamentos e possível desconforto" } : { code: "RA", name: "Realidade Aumentada", title: "Agência inteligente", definition: "Informações digitais são sobrepostas à visão do ambiente real.", steps: ["Câmera reconhece o caixa eletrônico", "Setas orientam onde inserir o cartão", "Alertas destacam sinais de adulteração"], equipment: "Celular ou óculos de realidade aumentada", strength: "Orientação contextual", limitation: "Privacidade da câmera e precisão do reconhecimento" });
   }
   if (request.method === "GET" && path === "robotics/mission") {
     const type = new URL(request.url).searchParams.get("type") || "reception"; const mission: Record<string, [string,string,number,string]> = { reception: ["Recepção inteligente","Orientar cliente até o atendimento correto",87,"O robô orienta, mas um atendente assume dúvidas complexas."], accessibility: ["Apoio à acessibilidade","Acompanhar uma pessoa com baixa visão",94,"A pessoa escolhe se deseja ajuda; acessibilidade não deve retirar autonomia."], security: ["Alerta de segurança","Responder a um objeto esquecido na agência",72,"O robô não determina sozinho se existe ameaça; a decisão final é humana."] }; const item = mission[type] || mission.reception;

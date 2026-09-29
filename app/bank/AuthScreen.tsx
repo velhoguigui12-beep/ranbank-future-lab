@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- The local brand image is reused by the installable banking shell. */
+/* eslint-disable @next/next/no-img-element, @next/next/no-html-link-for-pages -- The local brand image is reused by the installable banking shell; the link back to the public site should reload the page. */
 
 import type { FormEvent } from "react";
 import { formatBrazilianPhone, formatCpf, formatLoginIdentification, normalizeEmailInput } from "./inputMasks";
@@ -31,62 +31,61 @@ type Props = {
 
 export default function AuthScreen(props: Props) {
   const submit = props.mode === "login" ? props.onLogin : props.mode === "create" ? props.onCreate : props.onRecover;
-  const title = props.mode === "login" ? "Acesse sua conta" : props.mode === "create" ? "Abra sua conta demonstrativa" : "Recupere seu acesso";
+  const title = props.mode === "login" ? "Acesse sua conta" : props.mode === "create" ? "Crie sua conta de teste" : "Recupere seu acesso";
   const description = props.mode === "login"
-    ? "Informe seu CPF, número da conta ou e-mail para continuar."
+    ? "Use seu CPF, número da conta ou e-mail."
     : props.mode === "create"
-      ? "Seus dados ficam neste ambiente educacional, com e-mail, CPF e telefone disponíveis como chaves Pix."
-      : "Confirme sua identificação, e-mail e PIN transacional para definir um novo PIN de acesso.";
+      ? "Use dados inventados. Esta conta existe só para testar o RanBank."
+      : "Confirme seus dados e a senha para movimentar para criar uma nova senha de acesso.";
 
   const changeMode = (mode: AuthMode) => {
     props.setMode(mode);
     props.clearError();
   };
 
-  return <main className="login-shell">
-    <section className="login-visual">
-      <div className="login-brand"><img src="/ranbank-logo.jpeg" alt=""/><span>RANBANK<small>Banco digital</small></span></div>
-      <div className="login-message"><span>SEU BANCO, DO SEU JEITO</span><h1>Uma conta completa. Uma experiência simples.</h1><p>Pix, pagamentos, cartão e segurança inteligente em um só lugar.</p></div>
-      <div className="login-visual-footer">
-        <div className="login-security-points" aria-hidden="true"><span><b>✓</b>Conexão criptografada</span><span><b>✓</b>Autenticação em camadas</span><span><b>✓</b>Monitoramento antifraude</span></div>
-        <aside className="demo-access-card" aria-label="Credenciais de acesso para apresentação">
-          <div><small>APRESENTAÇÃO SENAC</small><strong>Acesso demonstrativo</strong></div>
-          <span><small>CPF</small><b>123.456.789-09</b></span>
-          <span><small>PIN</small><b>2580</b></span>
-        </aside>
+  return <main className="bk-auth">
+    <section className="bk-auth-brand">
+      <a className="bk-auth-back" href="/">← Voltar ao site</a>
+      <span className="bk-logo"><img src="/ranbank-logo-transparent.png" alt="RanBank"/></span>
+      <div className="bk-auth-message">
+        <h1>Seu banco, simples e seguro.</h1>
+        <p>Pix, cartão e extrato em um só lugar, com proteção em cada passo.</p>
+        <ul>
+          <li><b>✓</b>Senha guardada embaralhada</li>
+          <li><b>✓</b>Senha separada para movimentar dinheiro</li>
+          <li><b>✓</b>Confirmação de quem recebe o Pix</li>
+        </ul>
       </div>
+      <p className="bk-auth-notice"><strong>Projeto educacional.</strong> Contas e valores fictícios. Nunca use dados reais.</p>
     </section>
-    <section className="login-panel">
-      <form className={`login-card ${props.mode !== "login" ? "signup-card" : ""}`} onSubmit={submit}>
-        {props.mode === "recover" && <button className="recovery-back-link" type="button" onClick={() => changeMode("login")}>← Voltar para entrar</button>}
-        <div className="login-bank-context"><span>Internet Banking</span><b>Ambiente educacional · dados fictícios</b></div>
-        <header><span>ACESSO SEGURO</span><h2>{title}</h2><p>{description}</p></header>
-        {props.mode !== "recover" && <div className="auth-mode-tabs"><button type="button" className={props.mode === "login" ? "active" : ""} onClick={() => changeMode("login")}>Entrar</button><button type="button" className={props.mode === "create" ? "active" : ""} onClick={() => changeMode("create")}>Criar conta</button></div>}
+    <section className="bk-auth-panel">
+      <form className="bk-auth-card" onSubmit={submit}>
+        {props.mode === "recover" && <button className="bk-auth-link is-back" type="button" onClick={() => changeMode("login")}>← Voltar para entrar</button>}
+        <header><h2>{title}</h2><p>{description}</p></header>
+        {props.mode !== "recover" && <div className="bk-auth-tabs"><button type="button" aria-pressed={props.mode === "login"} className={props.mode === "login" ? "active" : ""} onClick={() => changeMode("login")}>Entrar</button><button type="button" aria-pressed={props.mode === "create"} className={props.mode === "create" ? "active" : ""} onClick={() => changeMode("create")}>Criar conta</button></div>}
         {props.mode === "login" && <>
-          <label>CPF, conta ou e-mail<input value={props.identification} onChange={(event) => props.setIdentification(formatLoginIdentification(event.target.value))} autoComplete="username" autoCapitalize="none" spellCheck={false} maxLength={254} placeholder="CPF, conta ou e-mail" aria-label="CPF, número da conta ou e-mail"/></label>
-          <label>PIN de acesso<input className="login-pin-input" type="password" value={props.pin} onChange={(event) => props.setPin(event.target.value.replace(/\D/g, "").slice(0,4))} autoComplete="current-password" inputMode="numeric" maxLength={4} placeholder="••••" aria-label="PIN de quatro dígitos"/></label>
-          <div className="pin-dots" aria-hidden="true">{[0,1,2,3].map((index) => <i key={index} className={index < props.pin.length ? "filled" : ""}/>)}</div>
-          <div className="numeric-keypad" aria-label="Teclado numérico">{[1,2,3,4,5,6,7,8,9].map((digit) => <button type="button" key={digit} onClick={() => props.appendDigit(String(digit))}>{digit}</button>)}<button type="button" className="biometric-key" disabled aria-label="Biometria indisponível">◎</button><button type="button" onClick={() => props.appendDigit("0")}>0</button><button type="button" className="erase-key" onClick={() => props.setPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito">⌫</button></div>
+          <label>CPF, conta ou e-mail<input value={props.identification} onChange={(event) => props.setIdentification(formatLoginIdentification(event.target.value))} autoComplete="username" autoCapitalize="none" spellCheck={false} maxLength={254} placeholder="Digite seu CPF, conta ou e-mail" aria-label="CPF, número da conta ou e-mail"/></label>
+          <label>Senha de acesso (PIN)<input className="bk-auth-pin" type="password" value={props.pin} onChange={(event) => props.setPin(event.target.value.replace(/\D/g, "").slice(0,4))} autoComplete="current-password" inputMode="numeric" maxLength={4} placeholder="••••" aria-label="PIN de quatro dígitos"/></label>
+          <div className="bk-keypad" aria-label="Teclado numérico">{[1,2,3,4,5,6,7,8,9].map((digit) => <button type="button" key={digit} onClick={() => props.appendDigit(String(digit))}>{digit}</button>)}<span aria-hidden="true"/><button type="button" onClick={() => props.appendDigit("0")}>0</button><button type="button" onClick={() => props.setPin((current) => current.slice(0,-1))} aria-label="Apagar último dígito">⌫</button></div>
         </>}
-        {props.mode === "create" && <div className="signup-fields">
+        {props.mode === "create" && <div className="bk-auth-fields">
           <label>Nome completo<input value={props.signup.customerName} onChange={(event) => props.setSignup({ ...props.signup, customerName: event.target.value })} autoComplete="name" required/></label>
           <label>CPF fictício<input value={props.signup.documentId} onChange={(event) => props.setSignup({ ...props.signup, documentId: formatCpf(event.target.value) })} inputMode="numeric" minLength={14} maxLength={14} placeholder="000.000.000-00" required/></label>
-          <label>Telefone com DDD<input value={props.signup.phoneNumber} onChange={(event) => props.setSignup({ ...props.signup, phoneNumber: formatBrazilianPhone(event.target.value) })} autoComplete="tel-national" inputMode="tel" minLength={14} maxLength={15} placeholder="(61) 99999-9999" required/></label>
-          <label>E-mail<input type="email" value={props.signup.email} onChange={(event) => props.setSignup({ ...props.signup, email: normalizeEmailInput(event.target.value) })} autoComplete="email" autoCapitalize="none" spellCheck={false} required/><small>E-mail, CPF e telefone serão chaves Pix.</small></label>
-          <label>PIN de acesso<input type="password" value={props.signup.accessPin} onChange={(event) => props.setSignup({ ...props.signup, accessPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
-          <label>PIN transacional<input type="password" value={props.signup.transactionPin} onChange={(event) => props.setSignup({ ...props.signup, transactionPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
+          <label>Telefone com DDD<input value={props.signup.phoneNumber} onChange={(event) => props.setSignup({ ...props.signup, phoneNumber: formatBrazilianPhone(event.target.value) })} autoComplete="tel-national" inputMode="tel" minLength={14} maxLength={15} placeholder="(00) 00000-0000" required/></label>
+          <label>E-mail<input type="email" value={props.signup.email} onChange={(event) => props.setSignup({ ...props.signup, email: normalizeEmailInput(event.target.value) })} autoComplete="email" autoCapitalize="none" spellCheck={false} required/><small>E-mail, CPF e telefone viram chaves Pix.</small></label>
+          <label>Senha de acesso (4 dígitos)<input type="password" value={props.signup.accessPin} onChange={(event) => props.setSignup({ ...props.signup, accessPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
+          <label>Senha para movimentar (4 dígitos)<input type="password" value={props.signup.transactionPin} onChange={(event) => props.setSignup({ ...props.signup, transactionPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/><small>Use uma senha diferente da de acesso.</small></label>
         </div>}
-        {props.mode === "recover" && <div className="signup-fields recovery-fields">
+        {props.mode === "recover" && <div className="bk-auth-fields">
           <label>CPF, conta ou e-mail<input value={props.recovery.identification} onChange={(event) => props.setRecovery({ ...props.recovery, identification: formatLoginIdentification(event.target.value) })} autoCapitalize="none" spellCheck={false} maxLength={254} required/></label>
           <label>E-mail cadastrado<input type="email" value={props.recovery.email} onChange={(event) => props.setRecovery({ ...props.recovery, email: normalizeEmailInput(event.target.value) })} autoComplete="email" autoCapitalize="none" spellCheck={false} required/></label>
-          <label>PIN transacional<input type="password" value={props.recovery.transactionPin} onChange={(event) => props.setRecovery({ ...props.recovery, transactionPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
-          <label>Novo PIN de acesso<input type="password" value={props.recovery.newAccessPin} onChange={(event) => props.setRecovery({ ...props.recovery, newAccessPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
+          <label>Senha para movimentar (4 dígitos)<input type="password" value={props.recovery.transactionPin} onChange={(event) => props.setRecovery({ ...props.recovery, transactionPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
+          <label>Nova senha de acesso<input type="password" value={props.recovery.newAccessPin} onChange={(event) => props.setRecovery({ ...props.recovery, newAccessPin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" minLength={4} maxLength={4} required/></label>
         </div>}
-        {props.error && <p className="login-error" role="alert">{props.error}</p>}
-        <button className="login-submit" disabled={props.loading || (props.mode === "login" && props.pin.length !== 4)}>{props.loading ? "Processando…" : props.mode === "login" ? "Entrar com PIN" : props.mode === "create" ? "Criar e acessar conta" : "Definir novo PIN"}</button>
-        {props.loading && props.progressMessage && <p className="login-progress" role="status">{props.progressMessage}</p>}
-        {props.mode === "login" && <><div className="forgot-pin-row"><button type="button" onClick={() => changeMode("recover")}>Esqueci meu PIN</button></div><button className="biometric-login" type="button" disabled><span>◎</span><div><strong>Entrar com biometria</strong><small>Indisponível neste dispositivo</small></div></button></>}
-        <footer><span>🔒</span> Conexão protegida · nunca solicitamos sua senha por telefone</footer>
+        {props.error && <p className="bk-error" role="alert">{props.error}</p>}
+        <button className="bk-btn bk-btn-primary login-submit" disabled={props.loading || (props.mode === "login" && props.pin.length !== 4)}>{props.loading ? "Entrando…" : props.mode === "login" ? "Entrar com PIN" : props.mode === "create" ? "Criar e acessar conta" : "Definir nova senha"}</button>
+        {props.loading && props.progressMessage && <p className="bk-muted bk-auth-progress" role="status">{props.progressMessage}</p>}
+        {props.mode === "login" && <><button className="bk-auth-link" type="button" onClick={() => changeMode("recover")}>Esqueci meu PIN</button><p className="bk-auth-soon biometric-login">Biometria indisponível nesta versão de demonstração.</p></>}
       </form>
     </section>
   </main>;

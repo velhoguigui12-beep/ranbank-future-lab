@@ -218,13 +218,13 @@ export default function BankingSuite({
 
           {tab === "bill" && (
             <div className="banking-operation">
-              <div className="operation-copy"><span>BOLETO BANCÁRIO</span><h3>Pague com validação em duas etapas.</h3><p>O código, o beneficiário, o saldo e o PIN transacional são conferidos antes do registro.</p><div className="operation-flow"><b>1</b><i/><b>2</b><i/><b>3</b><span>Leitura</span><span>Validação</span><span>Comprovante</span></div></div>
+              <div className="operation-copy"><span>BOLETO BANCÁRIO</span><h3>Pague com validação em duas etapas.</h3><p>Conferimos o código, quem recebe, o saldo e a sua senha antes de pagar.</p><div className="operation-flow"><b>1</b><i/><b>2</b><i/><b>3</b><span>Leitura</span><span>Validação</span><span>Comprovante</span></div></div>
               <form onSubmit={submitBill}>
                 <label>Código de barras<input value={bill.barcode} onChange={(event) => setBill({ ...bill, barcode: event.target.value.replace(/\D/g, "").slice(0, 48) })} inputMode="numeric" placeholder="44 a 48 dígitos" required /></label>
-                <label>Beneficiário<input value={bill.payee} onChange={(event) => setBill({ ...bill, payee: event.target.value })} placeholder="Ex.: Energia Brasília" required /></label>
-                <div className="split-fields"><label>Valor<input value={bill.amount} onChange={(event) => setBill({ ...bill, amount: event.target.value })} inputMode="decimal" placeholder="0,00" required /></label><label>PIN do cartão<input type="password" value={bill.pin} onChange={(event) => setBill({ ...bill, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label></div>
+                <label>Beneficiário<input value={bill.payee} onChange={(event) => setBill({ ...bill, payee: event.target.value })} placeholder="Ex.: Companhia de energia" required /></label>
+                <div className="split-fields"><label>Valor<input value={bill.amount} onChange={(event) => setBill({ ...bill, amount: event.target.value })} inputMode="decimal" placeholder="0,00" required /></label><label>Senha de 4 dígitos<input type="password" value={bill.pin} onChange={(event) => setBill({ ...bill, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label></div>
                 <button disabled={working || bill.pin.length !== 4}>{working ? "Validando…" : "Pagar boleto"}</button>
-                <small>PIN transacional: 7314</small>
+
               </form>
             </div>
           )}
@@ -232,11 +232,11 @@ export default function BankingSuite({
           {tab === "schedule" && (
             <div className="schedule-view">
               <div className="banking-operation compact">
-                <div className="operation-copy"><span>AGENDA FINANCEIRA</span><h3>Programe um Pix.</h3><p>O valor não é descontado agora. A agenda registra a intenção e permite demonstrar automação bancária.</p></div>
+                <div className="operation-copy"><span>AGENDAMENTO</span><h3>Programe um Pix.</h3><p>O valor não sai agora. Ele fica agendado para a data escolhida.</p></div>
                 <form onSubmit={submitSchedule}>
                   <label>Chave Pix<input value={schedule.pixKey} onChange={(event) => setSchedule({ ...schedule, pixKey: event.target.value })} placeholder="CPF, telefone ou e-mail" required /></label>
                   <div className="split-fields"><label>Valor<input value={schedule.amount} onChange={(event) => setSchedule({ ...schedule, amount: event.target.value })} inputMode="decimal" placeholder="0,00" required /></label><label>Data<input type="date" value={schedule.date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setSchedule({ ...schedule, date: event.target.value })} required /></label></div>
-                  <label>PIN do cartão<input type="password" value={schedule.pin} onChange={(event) => setSchedule({ ...schedule, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label>
+                  <label>Senha de 4 dígitos<input type="password" value={schedule.pin} onChange={(event) => setSchedule({ ...schedule, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label>
                   <button disabled={working || schedule.pin.length !== 4}>{working ? "Agendando…" : "Confirmar agendamento"}</button>
                 </form>
               </div>
@@ -262,9 +262,9 @@ export default function BankingSuite({
 
           {tab === "savings" && overview && (
             <div className="savings-center">
-              <div className="savings-hero"><div><span>RESERVA FUTURE</span><strong>{money.format(overview.savingsBalance)}</strong><small>Meta: {money.format(overview.savingsGoal)}</small></div><div className="savings-ring" style={{ "--progress": `${Math.min(100, overview.savingsBalance / overview.savingsGoal * 100)}%` } as React.CSSProperties}><b>{Math.round(Math.min(100, overview.savingsBalance / overview.savingsGoal * 100))}%</b></div></div>
-              <div className="savings-grid"><article><span>Rendimento projetado</span><strong>{money.format(overview.savingsBalance * 0.0105)}</strong><small>Projeção mensal a 1,05%</small></article><article><span>Disponível na conta</span><strong>{money.format(overview.balance)}</strong><small>Para transferir ao cofrinho</small></article></div>
-              <div className="savings-form"><div><span>MOVIMENTAR RESERVA</span><h3>Guardar ou resgatar</h3><p>Acompanhe a evolução da sua reserva e a projeção mensal no mesmo painel.</p></div><form onSubmit={(event) => event.preventDefault()}><div className="split-fields"><label>Valor<input value={savings.amount} onChange={(event) => setSavings({ ...savings, amount: event.target.value })} inputMode="decimal" placeholder="0,00" /></label><label>PIN<input type="password" value={savings.pin} onChange={(event) => setSavings({ ...savings, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" /></label></div><div><button disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("deposit")}>Guardar</button><button className="secondary" disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("withdraw")}>Resgatar</button></div></form></div>
+              <div className="savings-hero"><div><span>COFRINHO</span><strong>{money.format(overview.savingsBalance)}</strong><small>Meta: {money.format(overview.savingsGoal)}</small></div><div className="savings-ring" style={{ "--progress": `${Math.min(100, overview.savingsBalance / overview.savingsGoal * 100)}%` } as React.CSSProperties}><b>{Math.round(Math.min(100, overview.savingsBalance / overview.savingsGoal * 100))}%</b></div></div>
+              <div className="savings-grid"><article><span>Rendimento projetado</span><strong>{money.format(overview.savingsBalance * 0.0105)}</strong><small>Estimativa para um mês (1,05%)</small></article><article><span>Disponível na conta</span><strong>{money.format(overview.balance)}</strong><small>Para transferir ao cofrinho</small></article></div>
+              <div className="savings-form"><div><span>COFRINHO</span><h3>Guardar ou resgatar</h3><p>Separe dinheiro para um objetivo e resgate quando precisar.</p></div><form onSubmit={(event) => event.preventDefault()}><div className="split-fields"><label>Valor<input value={savings.amount} onChange={(event) => setSavings({ ...savings, amount: event.target.value })} inputMode="decimal" placeholder="0,00" /></label><label>PIN<input type="password" value={savings.pin} onChange={(event) => setSavings({ ...savings, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" /></label></div><div><button disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("deposit")}>Guardar</button><button className="secondary" disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("withdraw")}>Resgatar</button></div></form></div>
             </div>
           )}
         </div>

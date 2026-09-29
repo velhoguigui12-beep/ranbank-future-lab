@@ -1,8 +1,8 @@
 "use client";
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions -- The backdrop closes the modal; the dialog stops propagation. */
 
 import { useEffect, useState } from "react";
 import { apiFetch, responseMessage } from "./api";
+import { BkSheet } from "./BkSheet";
 import { formatBrazilianPhone, formatCpf, normalizeEmailInput } from "./inputMasks";
 
 type PixKey = { id: number; type: "EMAIL" | "CPF" | "PHONE" | "RANDOM"; value: string; createdAt: string };
@@ -50,10 +50,15 @@ export default function PixKeysModal({ open, onClose }: Props) {
   };
 
   if (!open) return null;
-  return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="pix-keys-modal" role="dialog" aria-modal="true" aria-labelledby="pix-keys-title" onMouseDown={(event) => event.stopPropagation()}>
-    <header><div><span>PIX · RECEBIMENTOS</span><h2 id="pix-keys-title">Minhas chaves Pix</h2></div><button onClick={onClose} aria-label="Fechar chaves">×</button></header>
-    <div className="pix-key-list">{keys.map((key) => <article key={key.id}><span>{key.type === "EMAIL" ? "@" : key.type === "CPF" ? "ID" : key.type === "PHONE" ? "☎" : "◆"}</span><div><strong>{labels[key.type]}</strong><small>{key.value}</small></div><button onClick={() => remove(key)} disabled={keys.length <= 1} title={keys.length <= 1 ? "Mantenha pelo menos uma chave" : "Remover chave"}>×</button></article>)}</div>
-    <form className="new-pix-key" onSubmit={create}><label>Tipo<select value={type} onChange={(event) => { setType(event.target.value as PixKey["type"]); setValue(""); }}><option value="EMAIL">E-mail</option><option value="CPF">CPF</option><option value="PHONE">Telefone</option><option value="RANDOM">Aleatória</option></select></label>{type !== "RANDOM" && <label>Valor<input value={value} onChange={(event) => setValue(formatValue(event.target.value))} inputMode={type === "EMAIL" ? "email" : "numeric"} autoCapitalize="none" spellCheck={false} maxLength={type === "CPF" ? 14 : type === "PHONE" ? 15 : 255} required placeholder={type === "EMAIL" ? "voce@email.com" : type === "CPF" ? "000.000.000-00" : "(61) 99999-9999"}/></label>}<button disabled={loading}>{loading ? "Salvando…" : type === "RANDOM" ? "Gerar chave aleatória" : "Adicionar chave"}</button></form>
-    {error && <p className="management-error" role="alert">{error}</p>}
-  </section></div>;
+  return <BkSheet label="Pix" title="Minhas chaves Pix" onClose={onClose}>
+    <p className="bk-lead">As chaves são o jeito de outras pessoas enviarem Pix para você.</p>
+    <ul className="bk-rows">{keys.map((key) => <li key={key.id}><div><strong>{labels[key.type]}</strong><small>{key.value}</small></div><button className="bk-mini-btn" onClick={() => remove(key)} disabled={keys.length <= 1} title={keys.length <= 1 ? "Mantenha pelo menos uma chave" : "Remover chave"}>Remover</button></li>)}</ul>
+    <form className="bk-form" onSubmit={create}>
+      <h3 className="bk-sheet-title">Nova chave</h3>
+      <label>Tipo<select className="bk-select" value={type} onChange={(event) => { setType(event.target.value as PixKey["type"]); setValue(""); }}><option value="EMAIL">E-mail</option><option value="CPF">CPF</option><option value="PHONE">Telefone</option><option value="RANDOM">Aleatória</option></select></label>
+      {type !== "RANDOM" && <label>Valor<input value={value} onChange={(event) => setValue(formatValue(event.target.value))} inputMode={type === "EMAIL" ? "email" : "numeric"} autoCapitalize="none" spellCheck={false} maxLength={type === "CPF" ? 14 : type === "PHONE" ? 15 : 255} required placeholder={type === "EMAIL" ? "voce@email.com" : type === "CPF" ? "000.000.000-00" : "(00) 00000-0000"}/></label>}
+      <button className="bk-btn bk-btn-primary" disabled={loading}>{loading ? "Salvando…" : type === "RANDOM" ? "Gerar chave aleatória" : "Adicionar chave"}</button>
+    </form>
+    {error && <p className="bk-error" role="alert">{error}</p>}
+  </BkSheet>;
 }

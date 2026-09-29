@@ -19,14 +19,14 @@ export default function AccountLoadGuard() {
             <i className="account-load-spinner" />
             <h2>Carregando sua conta…</h2>
             <p>{state.message || "Confirmando os dados da conta autenticada."}</p>
-            <small>O RanBank nunca substitui sua conta por dados de outro cliente enquanto carrega.</small>
+            <small>Só os dados da sua conta aparecem aqui.</small>
           </>
         ) : (
           <>
             <span className="account-load-warning">!</span>
             <h2>Não foi possível abrir sua conta</h2>
             <p>{state.message}</p>
-            <small>Se o servidor gratuito estiver iniciando, aguarde um pouco e tente novamente.</small>
+            <small>Confira sua internet e tente novamente.</small>
             <button type="button" onClick={() => window.dispatchEvent(new Event("ranbank:retry-account"))}>Tentar novamente</button><button type="button" onClick={() => window.dispatchEvent(new Event("ranbank:reauthenticate"))}>Entrar novamente</button>
           </>
         )}

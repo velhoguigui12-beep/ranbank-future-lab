@@ -1,8 +1,8 @@
 "use client";
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions -- The backdrop closes the modal; the dialog stops propagation. */
 
 import { useEffect, useState } from "react";
 import { apiFetch, responseMessage } from "./api";
+import { BkLoading, BkSheet } from "./BkSheet";
 import { formatBrazilianPhone } from "./inputMasks";
 
 type Account = { id: number; customerName: string; accountNumber: string; email: string; phoneNumber?: string; maskedDocument: string; role: string; active: boolean; deleted: boolean; balance: number; createdAt: string };
@@ -61,14 +61,14 @@ export default function AccountManagementModal({ open, onClose }: Props) {
   };
 
   if (!open) return null;
-  return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="admin-accounts-modal" role="dialog" aria-modal="true" aria-labelledby="accounts-title" onMouseDown={(event) => event.stopPropagation()}>
-    <header><div><span>ADMINISTRAÇÃO · CONTAS E ACESSOS</span><h2 id="accounts-title">Gerenciar contas</h2></div><button onClick={onClose} aria-label="Fechar contas">×</button></header>
-    <div className="management-summary"><strong>{accounts.filter((account) => account.active).length}</strong><span>contas ativas</span><b>{accounts.length} registros</b></div>
-    {error && <p className="management-error" role="alert">{error}</p>}
-    {loading ? <div className="analysis-loading"><i/><p>Carregando contas…</p></div> : <div className="account-management-list">{accounts.map((account) => <article key={account.id} className={`${!account.active ? "inactive" : ""} ${account.deleted ? "deleted" : ""}`}>
-      <div className="account-identity"><span>{account.customerName.split(/\s+/).map((part) => part[0]).slice(0,2).join("")}</span><div><strong>{account.customerName}</strong><small>{account.email} · {account.phoneNumber ? formatBrazilianPhone(account.phoneNumber) : "sem telefone"} · {account.accountNumber}</small></div></div>
-      <div className="account-admin-meta"><span>{account.role}</span><b>{money.format(account.balance)}</b><em>{account.deleted ? "REMOVIDA" : account.active ? "ATIVA" : "DESATIVADA"}</em></div>
-      <div className="account-admin-actions">{account.id > 2 && !account.deleted && <><button disabled={busyId === account.id} onClick={() => changeStatus(account)}>{account.active ? "Desativar" : "Reativar"}</button><button className="danger" disabled={busyId === account.id} onClick={() => remove(account)}>Remover</button></>} {account.id <= 2 && <small>Conta protegida da apresentação</small>}</div>
-    </article>)}</div>}
-  </section></div>;
+  return <BkSheet label="Administração" title="Gerenciar contas" onClose={onClose} wide>
+    <div className="bk-stats is-two"><article><span>Contas ativas</span><strong>{accounts.filter((account) => account.active).length}</strong></article><article><span>Registros</span><strong>{accounts.length}</strong></article></div>
+    {error && <p className="bk-error" role="alert">{error}</p>}
+    {loading ? <BkLoading text="Carregando contas…" /> : <ul className="bk-rows">{accounts.map((account) => (
+      <li key={account.id}>
+        <div><strong>{account.customerName} <b className={`bk-pill ${account.deleted ? "is-bad" : account.active ? "is-ok" : "is-warn"}`}>{account.deleted ? "Removida" : account.active ? "Ativa" : "Desativada"}</b>{account.role === "ADMIN" && <b className="bk-pill">Admin</b>}</strong><small>{account.email} · {account.phoneNumber ? formatBrazilianPhone(account.phoneNumber) : "sem telefone"} · conta {account.accountNumber} · {money.format(account.balance)}</small></div>
+        {account.id > 2 && !account.deleted ? <span className="bk-row-actions"><button className="bk-mini-btn" disabled={busyId === account.id} onClick={() => changeStatus(account)}>{account.active ? "Desativar" : "Reativar"}</button><button className="bk-mini-btn is-danger" disabled={busyId === account.id} onClick={() => remove(account)}>Remover</button></span> : account.id <= 2 ? <small className="bk-muted">Conta da apresentação</small> : null}
+      </li>
+    ))}</ul>}
+  </BkSheet>;
 }
