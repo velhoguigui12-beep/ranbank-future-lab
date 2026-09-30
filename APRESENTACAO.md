@@ -34,8 +34,8 @@ Role a página inicial de cima para baixo. Cada item abaixo é uma parte da pág
 4. **O banco** (Pix, Ecocard, extrato, cofrinho)
    Fale: "É tudo o que uma conta precisa, sem nada que confunda. O Pix, por exemplo, mostra o nome de quem vai receber e pede uma senha só para movimentar dinheiro."
 
-5. **Assistente Ran**
-   Fale: "A Ran responde dúvidas em palavras simples, como esta sobre um SMS pedindo código."
+5. **Assistente Rani**
+   Fale: "A Rani responde dúvidas em palavras simples, como esta sobre um SMS pedindo código."
 
 6. **Segurança** (as quatro etapas do Pix)
    Fale: "Todo Pix passa por quatro etapas: entrar, conferir, confirmar e comprovar."
@@ -71,7 +71,12 @@ Role a página inicial de cima para baixo. Cada item abaixo é uma parte da pág
    - Clique em **Simular 30 transações** e mostre o gráfico: quantas foram aprovadas, quantas pediram confirmação e quantas foram bloqueadas.
    - Em **Regras do fluxo**, diminua o limite de valor e clique em **Reprocessar com regras novas**. Fale: "Se o banco ficar mais rígido, veja como mais transações passam a ser bloqueadas."
    - Deixe claro: "É uma simulação. A lógica é de verdade, mas roda no navegador e não mexe em dinheiro."
-7. **Ran** — Faça uma pergunta simples para a Ran (o botão com a foto dela, no canto da tela).
+   - **Simulação de ataque** (no topo da página Segurança, botão **Começar a simulação**):
+     - Mostre o SMS falso e clique no número de quem mandou. Ele entra na lista de sinais de golpe.
+     - Clique em **Abrir o link** e depois em **Preencher com dados fictícios**. Fale: "Olhem a tela do golpista: cada letra aparece para ele enquanto a pessoa digita."
+     - Clique em **Regularizar agora** e em **Ver a invasão da conta**. Com só o **Código SMS** ligado, rode o ataque. O golpe passa, porque a vítima entregou o código no site falso.
+     - Ligue **Rosto para aparelho novo** e rode de novo. Agora o ataque para. Fale: "Uma defesa sozinha pode falhar. Por isso o banco usa várias camadas."
+7. **Rani** — Faça uma pergunta simples para a Rani (o botão com a foto dela, no canto da tela).
    *(Teste a pergunta antes, para saber a resposta que ela vai dar.)*
 8. **Tecnologia** — Se sobrar tempo, abra **Como o banco funciona** no menu. Tudo ali é interativo. Boas opções:
    - **Isso é golpe?**: escolha “Parente no WhatsApp” e mostre os sinais destacados na mensagem.

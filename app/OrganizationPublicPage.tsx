@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PublicFooter, PublicHeader } from "./PublicSiteGate";
+import RaniAssistant from "./RaniAssistant";
 
 type OrganizationRole = {
   id: string;
@@ -159,6 +160,7 @@ export default function OrganizationPublicPage() {
         )}
       </main>
       <PublicFooter />
+      <RaniAssistant context="site" />
     </div>
   );
 }

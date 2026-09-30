@@ -172,7 +172,7 @@ test("shows the institutional identity, FAQ and a project-wide non-commercial se
   assert.match(presentationGuide, /### Nosso compromisso/);
   assert.match(publicSite, /Dúvidas frequentes/);
   assert.match(publicSite, /O que é o RanBank\?/);
-  assert.match(publicSite, /O que a Ran pode fazer\?/);
+  assert.match(publicSite, /O que a Rani pode fazer\?/);
   assert.match(publicSite, /id="visao-valores"/);
   assert.match(publicSite, /id="duvidas"/);
   assert.match(layout, /Sem valor comercial/);
@@ -241,16 +241,24 @@ test("shows the Ecocard artwork in the card control panel", async () => {
   const bankingSuite = await readFile(bankingSuiteUrl, "utf8");
   const sections = await readFile(bankSectionPagesUrl, "utf8");
   assert.match(bankingSuite, /ecocard-suite-face/);
-  assert.match(bankingSuite, /ranbank-ecocard-face\.png/);
+  assert.match(bankingSuite, /ranbank-ecocard-nativa-frente\.webp/);
   assert.match(bankingSuite, /Frente ilustrativa do cartão Ecocard RanBank/);
   assert.doesNotMatch(sections, /ranbank-ecocard-reference\.jpeg/);
 });
 
-test("introduces Ran as the bank assistant without exposing the concept sheet", async () => {
+test("introduces Rani as the assistant on the bank and on the public site", async () => {
   const page = await readFile(pageUrl, "utf8");
-  assert.match(page, /Fale com a Ran/);
+  const assistant = await readFile(new URL("../app/RaniAssistant.tsx", import.meta.url), "utf8");
+  const knowledge = await readFile(new URL("../app/rani-knowledge.ts", import.meta.url), "utf8");
+  const publicSite = await readFile(publicSiteUrl, "utf8");
+  assert.match(page, /Fale com a Rani/);
+  assert.match(page, /<RaniAssistant context="bank"/);
+  assert.match(publicSite, /<RaniAssistant context="site"/);
   assert.match(page, /ran-assistente-humana\.png/);
-  assert.match(page, /Eu sou a Ran/);
+  assert.match(assistant, /ran-assistente-humana\.png/);
+  assert.match(knowledge, /Eu sou a Rani/);
+  assert.match(knowledge, /não tem parcerias oficiais/);
+  assert.doesNotMatch(page, /\bRan\b/);
   assert.match(page, /bank-project-menu-v2/);
   assert.match(page, /Explore o RanBank/);
   assert.doesNotMatch(page, /ran-mascote-conceito-v1\.png/);
@@ -264,12 +272,15 @@ test("keeps the bank home focused and moves project details into menus", async (
   assert.match(page, /Conheça o projeto RanBank/);
 });
 
-test("uses Ran as a guide in public help and security", async () => {
+test("uses Rani as a guide in public help and security", async () => {
   const publicSite = await readFile(publicSiteUrl, "utf8");
   assert.match(publicSite, /rs-ran-help/);
-  assert.match(publicSite, /Falar com a Ran/);
+  assert.match(publicSite, /Falar com a Rani/);
   assert.match(publicSite, /rs-ran-tip/);
-  assert.match(publicSite, /Dica da Ran/);
+  assert.match(publicSite, /Dica da Rani/);
+  assert.match(publicSite, /ranbank-demonstracao-04\.mp4/);
+  assert.doesNotMatch(publicSite, /ranbank-historia-2026\.mp4/);
+  assert.doesNotMatch(publicSite, /\bRan\b/);
 });
 
 test("keeps every technology demo interactive instead of scripted", async () => {
@@ -279,4 +290,12 @@ test("keeps every technology demo interactive instead of scripted", async () => 
   assert.match(labs, /sha256\(/);
   assert.match(flow, /function evaluate\(event: FlowEvent, rules: Rules\)/);
   assert.match(flow, /Reprocessar com regras novas/);
+});
+
+test("attack simulation stays fictional and computes the outcome from the defenses", async () => {
+  const attack = await readFile(new URL("../app/bank/AttackLab.tsx", import.meta.url), "utf8");
+  assert.ok(attack.includes("function runAttack(captured: Record<Field, boolean>, on: Record<DefenseId, boolean>, target: number)"));
+  assert.ok(attack.includes("Simulação educativa."));
+  assert.match(attack, /<input readOnly/);
+  assert.ok(!attack.includes("fetch("), "a simulação não pode enviar nada");
 });

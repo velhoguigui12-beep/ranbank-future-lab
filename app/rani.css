@@ -1,0 +1,88 @@
+/* Rani: assistente do RanBank (site e banco) */
+
+.rani {
+  --rani-bg: #ffffff;
+  --rani-soft: #f3f4f6;
+  --rani-line: #e4e6eb;
+  --rani-text: #0c0e12;
+  --rani-muted: #5b6270;
+  --rani-blue: #2563eb;
+  --rani-blue-ink: #1d4fd8;
+  --rani-blue-soft: #eaf0ff;
+  font-family: var(--font-geist), "Segoe UI", Arial, sans-serif;
+  color: var(--rani-text);
+}
+html[data-bank-theme="dark"] .rani-bank {
+  --rani-bg: #111215;
+  --rani-soft: #1d1f24;
+  --rani-line: rgba(255, 255, 255, 0.12);
+  --rani-text: #f4f5f7;
+  --rani-muted: #a9aeb9;
+  --rani-blue-ink: #8fb1ff;
+  --rani-blue-soft: rgba(37, 99, 235, 0.22);
+}
+.rani *, .rani *::before, .rani *::after { box-sizing: border-box; }
+.rani p { margin: 0; }
+.rani button { font: inherit; cursor: pointer; }
+
+.rani-launcher {
+  position: fixed; right: 24px; bottom: 24px; z-index: 70; display: flex; align-items: center;
+  padding: 5px; border: 0; border-radius: 999px; background: #0a0a0c; color: #fff;
+  font-size: 15px; font-weight: 600; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+.rani-site .rani-launcher { background: var(--rani-blue); box-shadow: 0 12px 30px rgba(37, 99, 235, 0.35); }
+html[data-bank-theme="dark"] .rani-bank .rani-launcher { background: var(--rani-blue); }
+.rani-launcher img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; object-position: top; background: #2a4fa8; }
+.rani-launcher span { max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .2s ease, margin .2s ease; }
+.rani-launcher:hover span, .rani-launcher:focus-visible span { max-width: 160px; margin: 0 14px 0 10px; }
+.rani-site .rani-launcher span { max-width: 160px; margin: 0 16px 0 10px; }
+.rani-launcher:focus-visible { outline: 3px solid #22c3ee; outline-offset: 3px; }
+
+.rani-panel {
+  position: fixed; right: 24px; bottom: 96px; z-index: 75; display: flex; flex-direction: column;
+  width: min(400px, 100vw - 32px); height: min(620px, 100vh - 140px); border-radius: 24px;
+  border: 1px solid var(--rani-line); background: var(--rani-bg); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35); overflow: hidden;
+}
+.rani-panel header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--rani-line); }
+.rani-panel header img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: top; background: #2a4fa8; }
+.rani-panel header div { display: grid; flex: 1; }
+.rani-panel header strong { font-size: 17px; }
+.rani-panel header small { font-size: 14px; color: var(--rani-muted); }
+.rani-panel header button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--rani-soft); color: var(--rani-text); font-size: 22px; line-height: 1; }
+
+.rani-messages { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px; overflow-y: auto; }
+.rani-bubble { align-self: flex-start; display: grid; gap: 6px; max-width: 88%; padding: 12px 16px; border-radius: 18px 18px 18px 6px; background: var(--rani-soft); }
+.rani-bubble p { font-size: 16px; line-height: 1.45; }
+.rani-bubble small { font-size: 12.5px; font-weight: 700; color: var(--rani-blue-ink); }
+.rani-bubble.is-user { align-self: flex-end; border-radius: 18px 18px 6px 18px; background: var(--rani-blue); color: #fff; }
+.rani-action {
+  justify-self: start; display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--rani-line); background: var(--rani-bg); color: var(--rani-blue-ink); font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.rani-action:hover { border-color: var(--rani-blue); }
+.rani-typing { display: flex; gap: 5px; }
+.rani-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--rani-muted); animation: rani-blink .9s ease infinite alternate; opacity: .3; }
+.rani-typing i:nth-child(2) { animation-delay: .2s; }
+.rani-typing i:nth-child(3) { animation-delay: .4s; }
+@keyframes rani-blink { to { opacity: 1; } }
+
+.rani-suggestions { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; }
+.rani-suggestions button { flex: none; padding: 8px 14px; border: 1px solid var(--rani-line); border-radius: 999px; background: var(--rani-bg); color: var(--rani-text); font-size: 14px; font-weight: 600; }
+.rani-suggestions button:hover { border-color: var(--rani-blue); color: var(--rani-blue-ink); }
+.rani-form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--rani-line); }
+.rani-form input { flex: 1; min-width: 0; height: 48px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--rani-line); background: var(--rani-bg); color: var(--rani-text); font: inherit; font-size: 16px; }
+.rani-form input:focus { outline: none; border-color: var(--rani-blue); }
+.rani-form button { width: 48px; height: 48px; border: 0; border-radius: 50%; background: var(--rani-blue); color: #fff; font-size: 20px; }
+.rani-form button:disabled { opacity: .4; }
+.rani-panel footer { padding: 0 16px 12px; font-size: 12.5px; color: var(--rani-muted); text-align: center; }
+
+@media (max-width: 1024px) {
+  .rani-bank .rani-launcher { bottom: 88px; right: 16px; }
+  .rani-bank .rani-panel { bottom: 152px; right: 16px; height: min(560px, 100vh - 220px); }
+}
+@media (max-width: 640px) {
+  .rani-site .rani-launcher { right: 16px; bottom: 16px; }
+  .rani-site .rani-launcher span { display: none; }
+  .rani-site .rani-panel { right: 16px; bottom: 84px; }
+}
+@media (prefers-reduced-motion: reduce) { .rani-typing i { animation-duration: 2s; } }

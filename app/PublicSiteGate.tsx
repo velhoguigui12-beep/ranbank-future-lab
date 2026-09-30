@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 import { Icon } from "./SiteIcons";
+import RaniAssistant, { openRani } from "./RaniAssistant";
 import type { IconName } from "./SiteIcons";
 
 function Link({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
@@ -63,7 +64,7 @@ const impactDestinations: Array<{ icon: IconName; title: string; text: string; s
 ];
 
 const roadmap = [
-  { status: "Pronto", tone: "done", title: "Protótipo funcionando", text: "Site, conta de teste, Pix com senha, cartão, extrato, cofrinho e a assistente Ran, rodando na internet." },
+  { status: "Pronto", tone: "done", title: "Protótipo funcionando", text: "Site, conta de teste, Pix com senha, cartão, extrato, cofrinho e a assistente Rani, rodando na internet." },
   { status: "Próximo passo", tone: "next", title: "Piloto educativo", text: "Usar o RanBank em oficinas com jovens para praticar Pix, orçamento e prevenção a golpes, sem dinheiro real." },
   { status: "Em estudo", tone: "study", title: "Comunidades", text: "Levar educação financeira a comunidades, ouvindo cada uma antes de propor qualquer coisa." },
   { status: "Futuro", tone: "future", title: "Crescer com apoio", text: "Encontrar mentores e apoiadores para transformar o piloto em um programa contínuo." },
@@ -87,9 +88,9 @@ const teamHighlights = [
 
 const frequentlyAskedQuestions = [
   { question: "O que é o RanBank?", answer: "É um projeto educacional que simula um banco digital. As contas, os cartões e os valores são fictícios e nenhuma operação movimenta dinheiro real." },
-  { question: "O que dá para testar?", answer: "Entrar na conta de teste, fazer Pix entre contas de demonstração, ver o extrato, bloquear o cartão, guardar dinheiro no cofrinho e conversar com a Ran." },
+  { question: "O que dá para testar?", answer: "Entrar na conta de teste, fazer Pix entre contas de demonstração, ver o extrato, bloquear o cartão, guardar dinheiro no cofrinho e conversar com a Rani." },
   { question: "Preciso informar dados verdadeiros?", answer: "Não. Use só os dados de demonstração. Nunca digite senhas, cartões ou dados de uma conta bancária real." },
-  { question: "O que a Ran pode fazer?", answer: "A Ran explica as funções da conta, orienta sobre Pix, cartão e golpes e apresenta os projetos do RanBank em palavras simples." },
+  { question: "O que a Rani pode fazer?", answer: "A Rani explica as funções da conta, orienta sobre Pix, cartão e golpes e apresenta os projetos do RanBank em palavras simples." },
   { question: "Os projetos sociais já existem?", answer: "Ainda não. São propostas em estudo. O site separa o que já funciona (o banco) do que ainda é ideia (os projetos). Não existem parcerias oficiais." },
 ];
 
@@ -269,6 +270,7 @@ function PublicShell({ children, className = "" }: { children: ReactNode; classN
       <main>{children}</main>
       <PublicFooter />
       <CookieCenter />
+      <RaniAssistant context="site" />
     </div>
   );
 }
@@ -302,7 +304,7 @@ function PhoneMockup() {
           ))}
         </div>
         <div className="rs-app-card">
-          <img src="/images/ranbank-ecocard-face.png" alt="" />
+          <img src="/images/ranbank-ecocard-nativa-frente.webp" alt="" />
           <div><strong>Ecocard</strong><small>Fatura atual R$ 312,40</small></div>
         </div>
         <div className="rs-app-moves">
@@ -339,15 +341,15 @@ function PixConfirmMockup() {
 
 function RanChatMockup() {
   return (
-    <div className="rs-chat" role="img" aria-label="Exemplo de conversa com a assistente Ran">
+    <div className="rs-chat" role="img" aria-label="Exemplo de conversa com a assistente Rani">
       <div className="rs-chat-head">
         <img src="/images/ran-assistente-humana.png" alt="" />
-        <span><strong>Ran</strong><small>Assistente RanBank</small></span>
+        <span><strong>Rani</strong><small>Assistente RanBank</small></span>
       </div>
       <p className="rs-bubble is-user">Recebi um SMS pedindo o código do banco. O que eu faço?</p>
       <p className="rs-bubble">Não envie o código. O RanBank nunca pede senha ou código por mensagem. Apague o SMS e, se clicou no link, bloqueie o cartão no app.</p>
       <p className="rs-bubble is-user">Como eu bloqueio?</p>
-      <p className="rs-bubble">Toque em <b>Cartão</b> e depois em <b>Bloquear</b>. Pronto.</p>
+      <p className="rs-bubble">Vá em <b>Cartão</b> e toque em <b>Bloquear temporariamente</b>. Para liberar, é só tocar de novo.</p>
       <small className="rs-chat-note">Exemplo de conversa</small>
     </div>
   );
@@ -384,7 +386,7 @@ export function PublicHome() {
           </div>
           <div className="rs-hero-visual">
             <PhoneMockup />
-            <img className="rs-hero-card" src="/images/ranbank-ecocard-face.png" alt="Cartão Ecocard RanBank" />
+            <img className="rs-hero-card" src="/images/ranbank-ecocard-nativa-frente.webp" alt="Cartão Ecocard RanBank" />
           </div>
         </div>
       </section>
@@ -450,7 +452,7 @@ export function PublicHome() {
               <PixConfirmMockup />
             </article>
             <article className="rs-tile rs-tile-card" id="ecocard">
-              <img src="/images/ranbank-ecocard-face.png" alt="Cartão Ecocard RanBank" />
+              <img src="/images/ranbank-ecocard-nativa-frente.webp" alt="Cartão Ecocard RanBank" />
               <div>
                 <h3>Ecocard</h3>
                 <p>Cartão feito de material de origem sustentável. Bloqueie e desbloqueie pelo app em um toque.</p>
@@ -467,16 +469,31 @@ export function PublicHome() {
         </div>
       </section>
 
-      {/* 5. Ran */}
+      {/* 4b. Banner com vídeo */}
+      <section className="rs-banner" aria-labelledby="banner-title">
+        <video className="rs-banner-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+          <source src="/videos/ranbank-demonstracao-04.mp4" type="video/mp4" />
+        </video>
+        <div className="rs-banner-shade" aria-hidden="true" />
+        <div className="rs-wrap rs-banner-copy">
+          <span className="rs-chip">Agência do futuro · conceito</span>
+          <h2 id="banner-title">Tecnologia que orienta. Pessoas que acolhem.</h2>
+          <p>Uma ideia de atendimento em que a tecnologia ajuda no caminho e sempre existe uma pessoa por perto para resolver.</p>
+          <Link className="rs-btn rs-btn-light rs-btn-lg" href="/projetos">Conhecer as propostas <Icon name="arrow" size={20} /></Link>
+        </div>
+        <small className="rs-banner-note">Vídeo ilustrativo</small>
+      </section>
+
+      {/* 5. Rani */}
       <section className="rs-section rs-ran" id="ran">
         <div className="rs-wrap rs-split">
           <div>
             <SectionHead
-              label="Assistente Ran"
-              title="Dúvida de banco? Pergunte para a Ran."
-              text="A Ran responde em palavras simples sobre Pix, cartão, extrato e golpes. Ela foi feita para explicar, não para vender."
+              label="Assistente Rani"
+              title="Dúvida de banco? Pergunte para a Rani."
+              text="A Rani responde em palavras simples sobre Pix, cartão, extrato e golpes. Ela foi feita para explicar, não para vender."
             />
-            <Link className="rs-btn rs-btn-primary rs-btn-lg" href="/banco">Falar com a Ran <Icon name="arrow" size={20} /></Link>
+            <button type="button" className="rs-btn rs-btn-primary rs-btn-lg" onClick={openRani}>Falar com a Rani <Icon name="arrow" size={20} /></button>
           </div>
           <RanChatMockup />
         </div>
@@ -588,7 +605,7 @@ export function PublicHome() {
             <h2 id="faq-title">Dúvidas frequentes</h2>
             <div className="rs-ran-help">
               <img src="/images/ran-assistente-humana.png" alt="" />
-              <p>Não achou a resposta? <Link href="/banco">Pergunte para a Ran</Link>.</p>
+              <p>Não achou a resposta? <button type="button" className="rs-inline-link" onClick={openRani}>Pergunte para a Rani</button>.</p>
             </div>
           </header>
           <div className="rs-faq">
@@ -621,9 +638,13 @@ export function PublicHome() {
 /* Páginas internas                                                    */
 /* ------------------------------------------------------------------ */
 
-function PageHero({ label, title, text, children }: { label: string; title: ReactNode; text: ReactNode; children?: ReactNode }) {
+function PageHero({ label, title, text, children, video }: { label: string; title: ReactNode; text: ReactNode; children?: ReactNode; video?: string }) {
   return (
-    <section className="rs-page-hero">
+    <section className={`rs-page-hero ${video ? "has-video" : ""}`}>
+      {video && <>
+        <video className="rs-banner-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true"><source src={video} type="video/mp4" /></video>
+        <div className="rs-banner-shade" aria-hidden="true" />
+      </>}
       <div className="rs-wrap">
         <span className="rs-chip">{label}</span>
         <h1>{title}</h1>
@@ -639,6 +660,7 @@ export function SecurityPublicPage() {
     <PublicShell className="rs-page">
       <PageHero
         label="Central de Segurança RanBank"
+        video="/videos/ranbank-demonstracao-01.mp4"
         title="Segurança que dá para entender."
         text="O que o RanBank faz para proteger a conta e o que você pode fazer para não cair em golpe."
       />
@@ -680,7 +702,7 @@ export function SecurityPublicPage() {
           <div className="rs-ran-tip">
             <img src="/images/ran-assistente-humana.png" alt="" />
             <div>
-              <small>Dica da Ran</small>
+              <small>Dica da Rani</small>
               <p>Digite o endereço do banco você mesmo, desconfie de pressa e nunca compartilhe códigos. Em aparelho de outra pessoa, sempre saia da conta.</p>
             </div>
           </div>

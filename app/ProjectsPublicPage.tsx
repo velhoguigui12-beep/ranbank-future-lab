@@ -1,6 +1,7 @@
 "use client";
 
 import { PublicFooter, PublicHeader } from "./PublicSiteGate";
+import RaniAssistant from "./RaniAssistant";
 import { Icon } from "./SiteIcons";
 import type { IconName } from "./SiteIcons";
 
@@ -37,7 +38,7 @@ const projects: Array<{ icon: IconName; status: string; tone: string; title: str
     status: "Parte no protótipo",
     tone: "done",
     title: "Um banco para todas as pessoas",
-    text: "Letras grandes, palavras simples e a assistente Ran já estão no protótipo. Testes com pessoas de diferentes necessidades são o próximo passo.",
+    text: "Letras grandes, palavras simples e a assistente Rani já estão no protótipo. Testes com pessoas de diferentes necessidades são o próximo passo.",
     audience: "Clientes com diferentes necessidades",
     format: "Testes com participação das pessoas",
   },
@@ -198,6 +199,7 @@ export default function ProjectsPublicPage() {
         </section>
       </main>
       <PublicFooter />
+      <RaniAssistant context="site" />
     </div>
   );
 }

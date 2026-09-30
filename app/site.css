@@ -557,3 +557,38 @@ body:has(.rs) .rb-noncommercial-seal { display: none; }
 /* Legibilidade: texto sobre azul sempre em branco puro */
 .rs-final p, .rs-tile-pix p, .rs-team-more small, .rs .org-president small, .rs .org-president span { color: #fff !important; }
 .rs-app-avatar { background: rgba(0, 0, 0, 0.22); }
+
+/* Vídeos do RanBank */
+.rs-video-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: start; }
+.rs-video { margin: 0; overflow: hidden; border-radius: var(--rs-radius); background: var(--rs-surface); border: 1px solid var(--rs-line); }
+.rs-video video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #000; }
+/* O vídeo conceitual é ampliado a partir do canto de cima para esconder a marca-d’água do canto de baixo. */
+.rs-video.is-cropped { position: relative; }
+.rs-video.is-cropped video { transform: scale(1.25); transform-origin: top left; }
+.rs-video.is-cropped figcaption { position: relative; z-index: 1; background: var(--rs-surface); }
+.rs-video figcaption { display: grid; gap: 6px; padding: 20px 24px 24px; }
+.rs-video figcaption strong { font-size: 20px; }
+.rs-video figcaption span { font-size: 17px; color: var(--rs-muted); }
+.rs-inline-link { padding: 0; border: 0; background: none; font: inherit; color: var(--rs-blue-text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+@media (max-width: 960px) { .rs-video-grid { grid-template-columns: 1fr; } }
+
+/* Banners com vídeo de fundo */
+.rs-banner { position: relative; display: flex; align-items: center; min-height: min(78vh, 680px); padding: 96px 0; overflow: hidden; background: linear-gradient(135deg, #0a0a0c, #10244f); color: #fff; }
+/* O vídeo é ampliado a partir do canto de cima: a marca-d’água do canto de baixo fica fora da tela. */
+.rs-banner-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.3); transform-origin: 0 0; }
+.rs-banner-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8, 9, 12, 0.94) 0%, rgba(8, 9, 12, 0.78) 42%, rgba(8, 9, 12, 0.25) 78%, rgba(8, 9, 12, 0.1) 100%), linear-gradient(0deg, rgba(8, 9, 12, 0.6), transparent 40%); }
+.rs-banner-copy { position: relative; z-index: 1; display: grid; gap: 22px; justify-items: start; }
+.rs-banner-copy h2 { max-width: 640px; font-size: clamp(38px, 5vw, 68px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 700; }
+.rs-banner-copy p { max-width: 520px; font-size: 20px; color: #d6d9e0; }
+.rs-banner-note { position: absolute; right: 24px; bottom: 18px; z-index: 1; padding: 6px 12px; border-radius: 999px; background: rgba(8, 9, 12, 0.7); color: #d6d9e0; font-size: 13px; }
+.rs-page-hero.has-video { min-height: 460px; display: flex; align-items: center; }
+.rs-page-hero.has-video::before { display: none; }
+.rs-page-hero.has-video .rs-wrap { z-index: 1; }
+@media (max-width: 640px) {
+  .rs-banner { min-height: 560px; padding: 72px 0; }
+  .rs-banner-shade { background: linear-gradient(0deg, rgba(8, 9, 12, 0.95) 20%, rgba(8, 9, 12, 0.55) 100%); }
+  .rs-banner-copy p { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .rs-banner-video { display: none; } }
+/* Desfoque leve: esconde textos com erro gerados pela IA no vídeo, mas mantém a cena reconhecível. */
+.rs-banner-video { filter: blur(3px) saturate(1.1); }

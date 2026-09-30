@@ -10,6 +10,8 @@ import { apiFetch, clearAccountSession } from "./bank/api";
 import { AccountSectionPage, SecuritySectionPage } from "./bank/BankSectionPages";
 import { BkLoading, BkSheet, BkUnavailable } from "./bank/BkSheet";
 import { LabSheet, type LabId } from "./bank/Labs";
+import RaniAssistant, { openRani } from "./RaniAssistant";
+import CardCatalog from "./bank/CardCatalog";
 import { transactionDescription, type TransactionView } from "./bank/transactionFormatting";
 
 const BankingSuite = lazy(() => import("./BankingSuite"));
@@ -59,7 +61,6 @@ type AutomationRun = {
   steps: Array<{ order: number; title: string; description: string; responsibility: string; duration: string }>;
 };
 
-type ChatMessage = { role: "assistant" | "user"; text: string; topic?: string };
 type AuthUser = { customerName: string; accountNumber: string };
 type PixRecipient = { accountId: number; name: string; accountNumber: string; keyType: string; maskedKey: string };
 type BankNotification = { id: number; type: string; title: string; message: string; referenceId?: string; createdAt: string; read: boolean };
@@ -86,36 +87,6 @@ const demoData: DashboardData = {
   ],
 };
 
-function answerLocally(message: string) {
-  const normalized = message.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
-  const has = (...terms: string[]) => terms.some((term) => normalized.includes(term));
-  if (["oi", "ola", "opa", "bom dia", "boa tarde", "boa noite"].includes(normalized)) return { topic: "Boas-vindas", text: "Olá! Eu sou a Ran. Posso ajudar com Pix, cartão, extrato, segurança, privacidade e projetos do RanBank. O que você quer saber?" };
-  if (["ajuda", "menu", "assuntos"].includes(normalized) || has("o que posso perguntar", "quais assuntos")) return { topic: "Ajuda", text: "Você pode perguntar: como fazer um Pix, como controlar o cartão, como a conta é protegida, se o projeto é real ou quais são as propostas sociais e ambientais." };
-  if (has("ranbank e real", "banco real", "dinheiro real", "projeto demonstrativo")) return { topic: "Sobre o projeto", text: "O RanBank é um projeto educacional. Saldos, cartões e transferências são fictícios e servem apenas para demonstrar como um banco digital pode funcionar." };
-  if (has("projeto social", "impacto social", "indigena", "comunidade", "meio ambiente", "credito social")) return { topic: "Impacto positivo", text: "O RanBank apresenta propostas de educação financeira, crédito com propósito, acessibilidade e apoio construído com comunidades. São ideias demonstrativas, não resultados já realizados." };
-  if (has("privacidade", "cookie", "dados pessoais")) return { topic: "Privacidade", text: "Use somente dados fictícios. O site guarda apenas o necessário para a sessão e suas preferências, que podem ser controladas na página de Privacidade." };
-  if (has("phishing", "golpe", "link suspeito")) return { topic: "Segurança", text: "Golpes costumam usar urgência e links falsos. Confira o endereço do site e nunca compartilhe senhas ou códigos recebidos." };
-  if (has("malware", "virus", "ransomware", "trojan")) return { topic: "Aplicativos maliciosos", text: "Evite arquivos e aplicativos de origem desconhecida, mantenha o aparelho atualizado e nunca conceda permissões sem entender o motivo." };
-  if (has("pix", "chave", "transferencia", "saldo")) return { topic: "Pix", text: "Informe a chave e o valor, confira quem vai receber e confirme com a senha de quatro dígitos do cartão. No RanBank, tudo acontece somente entre contas demonstrativas." };
-  if (has("boleto", "codigo de barras", "pagamento")) return { topic: "Pagamentos", text: "Informe o código e o valor, revise os dados e confirme com a senha da operação. Depois, o comprovante fica disponível no extrato." };
-  if (has("extrato", "movimentacoes", "comprovante")) return { topic: "Extrato", text: "O extrato reúne entradas e saídas, permite pesquisar movimentações e abre um comprovante individual para cada registro." };
-  if (has("cartao", "fatura", "limite")) return { topic: "Cartão", text: "Na área Cartão você consulta a fatura e o limite, além de bloquear ou desbloquear o cartão demonstrativo." };
-  if (has("cofrinho", "reserva", "investimento", "guardar dinheiro")) return { topic: "Guardar dinheiro", text: "A reserva separa uma parte do saldo para um objetivo e permite acompanhar o progresso da meta." };
-  if (has("open finance", "banco aberto", "consentimento")) return { topic: "Compartilhamento de dados", text: "Dados de outras instituições só podem ser compartilhados com autorização do cliente, por tempo definido e com opção de cancelar." };
-  if (has("blockchain", "hash", "auditoria", "ledger")) return { topic: "Auditoria encadeada", text: "Cada evento recebe um hash ligado ao registro anterior. Uma alteração quebra a sequência e torna a inconsistência visível." };
-  if (has("fraude", "risco", "transacao suspeita")) return { topic: "Fraudes", text: "A análise combina valor, dispositivo, localização e horário. Cada sinal contribui para uma pontuação explicável que apoia a decisão." };
-  if (has("inteligencia artificial", "machine learning", "chatbot") || normalized.split(" ").includes("ia")) return { topic: "Inteligência Artificial", text: "A IA reconhece padrões, apoia a detecção de fraude e facilita o atendimento. Neste assistente, uma base local responde aos principais temas da apresentação." };
-  if (has("big data", "dados", "analytics")) return { topic: "Análise de dados", text: "A análise organiza muitas movimentações para encontrar padrões e ajudar a identificar gastos ou situações incomuns." };
-  if (has("java", "spring", "backend", "frontend", "banco de dados", "h2", "neon", "cloudflare")) return { topic: "Como o sistema funciona", text: "A tela mostra as informações, o sistema aplica as regras do banco e o banco de dados guarda as contas e movimentações. Na versão publicada, esses serviços usam Cloudflare e Neon." };
-  if (has("iot", "internet das coisas", "dispositivo")) return { topic: "Dispositivos", text: "O RanBank reconhece aparelhos usados para acessar a conta e pode pedir uma confirmação extra quando encontra algo diferente." };
-  if (has("nuvem", "cloud", "redundancia", "failover")) return { topic: "Disponibilidade", text: "O sistema usa serviços na internet para continuar no ar e não depender de um único servidor." };
-  if (has("automacao", "n8n", "workflow")) return { topic: "Resposta automática", text: "Algumas tarefas podem acontecer automaticamente, mas decisões importantes continuam sob responsabilidade de uma pessoa." };
-  if (has("energia", "sustentavel", "sustentabilidade", "green it")) return { topic: "Sustentabilidade", text: "A proposta é reduzir desperdícios de energia e materiais e criar produtos ligados a escolhas sociais e ambientais positivas." };
-  if (has("robotica", "robo")) return { topic: "Robótica", text: "Robótica combina sensores, software e atuadores para perceber, decidir e agir, mantendo supervisão humana nas decisões importantes." };
-  if (has("realidade aumentada", "realidade virtual", "imersiva") || normalized.split(" ").some((word) => word === "ra" || word === "vr")) return { topic: "Tecnologias imersivas", text: "A realidade aumentada (RA) acrescenta informações ao ambiente real. A realidade virtual (RV) cria um ambiente digital para treinamentos e experiências." };
-  return { topic: "Posso ajudar", text: "Não encontrei uma resposta direta. Tente perguntar sobre Pix, cartão, extrato, segurança, privacidade, projetos sociais ou sobre o próprio RanBank." };
-}
-
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const parseMoneyInput = (value: string) => {
   const compact = value.trim().replace(/\s/g, "");
@@ -129,12 +100,13 @@ const formatMoneyFromDigits = (value: string) => {
   return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     .format(cents / 100);
 };
-type BankIconName = "home" | "pix" | "statement" | "card" | "shield" | "spark" | "bell" | "sun" | "moon" | "eye" | "eyeOff" | "pay" | "transfer" | "schedule" | "chevron" | "help" | "logout" | "chart" | "device" | "cloud" | "leaf" | "brain" | "automation" | "lock" | "user" | "key";
+type BankIconName = "home" | "pix" | "statement" | "card" | "shield" | "spark" | "bell" | "sun" | "moon" | "eye" | "eyeOff" | "pay" | "transfer" | "schedule" | "chevron" | "help" | "logout" | "chart" | "device" | "cloud" | "leaf" | "brain" | "automation" | "lock" | "user" | "key" | "terminal";
 
 function BankIcon({ name, size = 20 }: { name: BankIconName; size?: number }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
   const paths: Record<BankIconName, React.ReactNode> = {
     home: <><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></>,
+    terminal: <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></>,
     pix: <><path d="m12 3 3.2 3.2a3.5 3.5 0 0 0 5 0"/><path d="m12 21-3.2-3.2a3.5 3.5 0 0 0-5 0"/><path d="m3 12 3.2-3.2a3.5 3.5 0 0 1 5 0l1.6 1.6a3.5 3.5 0 0 0 5 0L21 7.2"/><path d="m21 12-3.2 3.2a3.5 3.5 0 0 1-5 0l-1.6-1.6a3.5 3.5 0 0 0-5 0L3 16.8"/></>,
     statement: <><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></>,
     card: <><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></>,
@@ -203,7 +175,6 @@ export default function Home() {
   const [innovationOpen, setInnovationOpen] = useState(false);
   const [innovationTab, setInnovationTab] = useState<InnovationTab>("open-finance");
   const [notifications, setNotifications] = useState<BankNotification[]>([]);
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [lab, setLab] = useState<LabId | null>(null);
 
   const [pixKey, setPixKey] = useState("");
@@ -229,12 +200,6 @@ export default function Home() {
   const [adminInsightsLoading, setAdminInsightsLoading] = useState(false);
   const [accountManagementOpen, setAccountManagementOpen] = useState(false);
   const [pixKeysOpen, setPixKeysOpen] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [chatLoading, setChatLoading] = useState(false);
-  const [chatMode, setChatMode] = useState<"LOCAL" | "OPENAI" | "LOCAL_FALLBACK">("LOCAL");
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { role: "assistant", text: "Olá! Eu sou a Ran. Posso ajudar com sua conta e explicar o RanBank de forma simples.", topic: "Boas-vindas" },
-  ]);
   const [resettingDemo, setResettingDemo] = useState(false);
   const [bankTheme, setBankTheme] = useState<BankTheme>("light");
   const [balanceVisible, setBalanceVisible] = useState(true);
@@ -428,7 +393,6 @@ export default function Home() {
     await apiFetch("/auth/logout", { method: "POST" }).catch(() => undefined);
     setAuthUser(null);
     setAuthStatus("unauthenticated");
-    setAssistantOpen(false);
     setUtilityPanel(null);
     setBankingOpen(false);
     setInnovationOpen(false);
@@ -557,31 +521,6 @@ export default function Home() {
     if (response.ok) {
       const updated: ConnectedDevice = await response.json();
       setDevices((current) => current.map((device) => device.id === id ? updated : device));
-    }
-  };
-
-  const sendChatMessage = async (message = chatInput) => {
-    const cleanMessage = message.trim();
-    if (!cleanMessage || chatLoading) return;
-    setChatMessages((current) => [...current, { role: "user", text: cleanMessage }]);
-    setChatInput("");
-    setChatLoading(true);
-    try {
-      const response = await apiFetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: cleanMessage }),
-      });
-      if (!response.ok) throw new Error();
-      const result: { answer: string; topic: string; mode: "LOCAL" | "OPENAI" | "LOCAL_FALLBACK" } = await response.json();
-      setChatMode(result.mode);
-      setChatMessages((current) => [...current, { role: "assistant", text: result.answer, topic: result.topic }]);
-    } catch {
-      const local = answerLocally(cleanMessage);
-      setChatMode("LOCAL");
-      setChatMessages((current) => [...current, { role: "assistant", text: local.text, topic: local.topic }]);
-    } finally {
-      setChatLoading(false);
     }
   };
 
@@ -743,7 +682,7 @@ export default function Home() {
                 <div>
                   <button onClick={() => setScreen("security")}><span><BankIcon name="shield" /></span><strong>Segurança</strong><small>Como a conta é protegida</small></button>
                   <button onClick={() => setScreen("lab")}><span><BankIcon name="spark" /></span><strong>Como o banco funciona</strong><small>A tecnologia por trás</small></button>
-                  <button onClick={() => setAssistantOpen(true)}><span className="bk-discover-ran"><img src="/images/ran-assistente-humana.png" alt="" /></span><strong>Fale com a Ran</strong><small>Dúvidas em palavras simples</small></button>
+                  <button onClick={openRani}><span className="bk-discover-ran"><img src="/images/ran-assistente-humana.png" alt="" /></span><strong>Fale com a Rani</strong><small>Dúvidas em palavras simples</small></button>
                 </div>
               </aside>
             </div>
@@ -820,7 +759,7 @@ export default function Home() {
             </div>
           </div>
         ) : screen === "cards" || screen === "statement" ? (
-          <div className="bk-page"><header className="bk-page-head"><h1>{screen === "cards" ? "Cartão" : "Extrato"}</h1><p>{screen === "cards" ? "Fatura, limite e bloqueio do seu Ecocard." : "Todas as entradas e saídas da sua conta."}</p></header><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={screen} open embedded initialTab={screen === "cards" ? "card" : "statement"} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
+          <div className="bk-page"><header className="bk-page-head"><h1>{screen === "cards" ? "Cartão" : "Extrato"}</h1><p>{screen === "cards" ? "Escolha um cartão para ver os detalhes. Só o Ecocard está liberado na sua conta." : "Todas as entradas e saídas da sua conta."}</p></header><CardCatalog enabled={screen === "cards"}><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={screen} open embedded initialTab={screen === "cards" ? "card" : "statement"} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></CardCatalog></div>
         ) : screen === "services" ? (
           <div className="bk-page"><header className="bk-page-head"><h1>Pagar e guardar</h1><p>Boletos, agendamentos e o seu cofrinho.</p></header><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={bankingTab} open embedded initialTab={bankingTab === "statement" || bankingTab === "card" ? "bill" : bankingTab} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
         ) : screen === "security" ? (
@@ -829,6 +768,7 @@ export default function Home() {
             onAuthentication={() => setLab("login")}
             onThreat={() => setLab("scam")}
             onDevices={() => { void loadDevices(); }}
+            onAttack={() => setLab("attack")}
           />
         ) : (
           <div className="bk-page bk-tech">
@@ -851,6 +791,7 @@ export default function Home() {
 
             <h2 className="bk-section-title">Escolha um assunto</h2>
             <div className="bk-topics">
+              <button onClick={() => setLab("attack")}><span><BankIcon name="terminal" /></span><strong>Simular um ataque hacker</strong><small>Siga um golpe do SMS até a conta e teste as defesas.</small></button>
               <button onClick={() => setLab("scam")}><span><BankIcon name="shield" /></span><strong>Isso é golpe?</strong><small>Escreva uma mensagem e veja os sinais de golpe.</small></button>
               <button onClick={() => setLab("login")}><span><BankIcon name="lock" /></span><strong>Entrada suspeita?</strong><small>Monte um acesso e veja o banco decidir.</small></button>
               <button onClick={() => setLab("chain")}><span><BankIcon name="key" /></span><strong>Registro que não se altera</strong><small>Mude um registro e veja a corrente quebrar.</small></button>
@@ -883,8 +824,7 @@ export default function Home() {
         <button className={screen === "security" || screen === "lab" ? "active" : ""} onClick={() => setScreen("security")}><BankIcon name="shield" /><span>Segurança</span></button>
       </nav>
 
-      <button className="bk-ran-button" onClick={() => setAssistantOpen(!assistantOpen)} aria-label={assistantOpen ? "Fechar conversa com a Ran" : "Fale com a Ran"} aria-expanded={assistantOpen}><img src="/images/ran-assistente-humana.png" alt="" /><span>Fale com a Ran</span></button>
-      {assistantOpen && <aside className="bk-ran-panel" aria-label="Conversa com a Ran, assistente educacional do RanBank"><header><img src="/images/ran-assistente-humana.png" alt="" /><div><strong>Ran</strong><small>{chatMode === "OPENAI" ? "Assistente conectada" : "Assistente do RanBank"}</small></div><button onClick={() => setAssistantOpen(false)} aria-label="Fechar conversa com a Ran">×</button></header><div className="bk-chat" aria-live="polite">{chatMessages.map((message,index) => <p key={index} className={`bk-bubble ${message.role === "user" ? "is-user" : ""}`}>{message.text}</p>)}{chatLoading && <p className="bk-bubble bk-typing" aria-label="Ran está digitando"><i/><i/><i/></p>}</div><div className="bk-chat-suggestions"><button onClick={() => sendChatMessage("Como faço um Pix?")}>Como fazer um Pix</button><button onClick={() => sendChatMessage("Como o RanBank protege minha conta?")}>Segurança da conta</button><button onClick={() => sendChatMessage("O RanBank é um banco real?")}>Sobre o projeto</button></div><form className="bk-chat-form" onSubmit={(event) => { event.preventDefault(); sendChatMessage(); }}><input value={chatInput} maxLength={300} onChange={(event) => setChatInput(event.target.value)} placeholder="Pergunte para a Ran…" aria-label="Pergunta para a Ran"/><button type="submit" disabled={chatLoading || !chatInput.trim()} aria-label="Enviar pergunta para a Ran">→</button></form></aside>}
+      <RaniAssistant context="bank" onNavigate={(target) => { if (target === "pix") openPix(); else if (target === "statement") openBanking("statement"); else if (target === "services") openBanking("savings"); else setScreen(target); }} />
       {analyticsOpen && (
         <BkSheet label="Dados" title="Análise das movimentações" onClose={() => setAnalyticsOpen(false)}>
           {analyticsLoading ? <BkLoading text="Organizando as movimentações…" /> : analytics ? <>
