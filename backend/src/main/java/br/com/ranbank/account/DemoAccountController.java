@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/demo-accounts")
 public class DemoAccountController {
-    private static final BigDecimal INITIAL_BALANCE = new BigDecimal("2500.00");
+    private static final BigDecimal INITIAL_BALANCE = new BigDecimal("200.00");
     private final BankAccountRepository accounts;
     private final PixKeyRepository pixKeys;
     private final AuthenticationService authentication;
@@ -64,6 +64,7 @@ public class DemoAccountController {
         BankAccount account = new BankAccount(accountId, body.customerName().trim(), accountNumber,
             document, email, INITIAL_BALANCE);
         account.updatePhoneNumber(phoneNumber);
+        account.startAsNewCustomer();
         account.configureCredentials(authentication.hashPin(body.accessPin()),
             authentication.hashPin(body.transactionPin()));
         accounts.save(account);

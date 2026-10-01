@@ -1,6 +1,8 @@
 "use client";
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-static-element-interactions, @next/next/no-img-element -- Modal backdrops intentionally handle pointer dismissal; Vinext serves these local decorative images directly. */
 
+import { CardArt } from "./bank/CardCatalog";
+import type { OwnCard } from "./bank/cards";
 import { apiFetch } from "./bank/api";
 import { useEffect, useMemo, useState } from "react";
 import { sortTransactionsNewestFirst, transactionDescription, type TransactionView } from "./bank/transactionFormatting";
@@ -31,11 +33,18 @@ type Receipt = {
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const parseMoneyInput = (value: string) => {
-  const compact = value.trim().replace(/\s/g, "");
+  const compact = value.replace(/[^\d.,-]/g, "");
   if (compact.includes(",")) return Number(compact.replace(/\./g, "").replace(",", "."));
   if (/^\d{1,3}(\.\d{3})+$/.test(compact)) return Number(compact.replace(/\./g, ""));
   return Number(compact);
 };
+// Máscara de dinheiro: os números entram pela direita (1 → R$ 0,01; 1234 → R$ 12,34). Letras são ignoradas.
+const maskMoney = (value: string) => {
+  const digits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 11);
+  return digits ? `R$ ${new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(digits) / 100)}` : "";
+};
+const LIMIT_MAX: Record<OwnCard, number> = { basic: 2000, ecocard: 20000 };
+const LIMIT_STEP = 100;
 const bankFetch = (path: string, init: RequestInit = {}) => apiFetch(path, { ...init, headers: { "Content-Type": "application/json", ...init.headers } });
 
 const tabLabels: Array<{ id: BankingTab; icon: string; label: string }> = [
@@ -52,7 +61,9 @@ export default function BankingSuite({
   initialTab,
   onClose,
   onChanged,
+  ownCard = "basic",
 }: {
+  ownCard?: OwnCard;
   open: boolean;
   embedded?: boolean;
   initialTab: BankingTab;
@@ -72,7 +83,7 @@ export default function BankingSuite({
   const [bill, setBill] = useState({ barcode: "", payee: "", amount: "", pin: "" });
   const [schedule, setSchedule] = useState({ pixKey: "", amount: "", date: "", pin: "" });
   const [savings, setSavings] = useState({ amount: "", pin: "" });
-  const [limit, setLimit] = useState({ value: "", pin: "" });
+  const [limit, setLimit] = useState<{ value: number | null; pin: string }>({ value: null, pin: "" });
 
   const loadOverview = async () => {
     setLoading(true);
@@ -222,7 +233,7 @@ export default function BankingSuite({
               <form onSubmit={submitBill}>
                 <label>Código de barras<input value={bill.barcode} onChange={(event) => setBill({ ...bill, barcode: event.target.value.replace(/\D/g, "").slice(0, 48) })} inputMode="numeric" placeholder="44 a 48 dígitos" required /></label>
                 <label>Beneficiário<input value={bill.payee} onChange={(event) => setBill({ ...bill, payee: event.target.value })} placeholder="Ex.: Companhia de energia" required /></label>
-                <div className="split-fields"><label>Valor<input value={bill.amount} onChange={(event) => setBill({ ...bill, amount: event.target.value })} inputMode="decimal" placeholder="0,00" required /></label><label>Senha de 4 dígitos<input type="password" value={bill.pin} onChange={(event) => setBill({ ...bill, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label></div>
+                <div className="split-fields"><label>Valor<input value={bill.amount} onChange={(event) => setBill({ ...bill, amount: maskMoney(event.target.value) })} inputMode="numeric" placeholder="R$ 0,00" required /></label><label>Senha de 4 dígitos<input type="password" value={bill.pin} onChange={(event) => setBill({ ...bill, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label></div>
                 <button disabled={working || bill.pin.length !== 4}>{working ? "Validando…" : "Pagar boleto"}</button>
 
               </form>
@@ -235,7 +246,7 @@ export default function BankingSuite({
                 <div className="operation-copy"><span>AGENDAMENTO</span><h3>Programe um Pix.</h3><p>O valor não sai agora. Ele fica agendado para a data escolhida.</p></div>
                 <form onSubmit={submitSchedule}>
                   <label>Chave Pix<input value={schedule.pixKey} onChange={(event) => setSchedule({ ...schedule, pixKey: event.target.value })} placeholder="CPF, telefone ou e-mail" required /></label>
-                  <div className="split-fields"><label>Valor<input value={schedule.amount} onChange={(event) => setSchedule({ ...schedule, amount: event.target.value })} inputMode="decimal" placeholder="0,00" required /></label><label>Data<input type="date" value={schedule.date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setSchedule({ ...schedule, date: event.target.value })} required /></label></div>
+                  <div className="split-fields"><label>Valor<input value={schedule.amount} onChange={(event) => setSchedule({ ...schedule, amount: maskMoney(event.target.value) })} inputMode="numeric" placeholder="R$ 0,00" required /></label><label>Data<input type="date" value={schedule.date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setSchedule({ ...schedule, date: event.target.value })} required /></label></div>
                   <label>Senha de 4 dígitos<input type="password" value={schedule.pin} onChange={(event) => setSchedule({ ...schedule, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label>
                   <button disabled={working || schedule.pin.length !== 4}>{working ? "Agendando…" : "Confirmar agendamento"}</button>
                 </form>
@@ -246,16 +257,29 @@ export default function BankingSuite({
 
           {tab === "card" && overview && (
             <div className="card-center">
-              <div className="card-presentation"><div className={`suite-card ecocard-suite ${overview.card.blocked ? "blocked" : ""}`}><img className="ecocard-suite-face" src="/images/ranbank-ecocard-nativa-frente.webp" alt="Frente ilustrativa do cartão Ecocard RanBank"/>{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div><div className="card-account-data"><span className={overview.card.blocked ? "card-status blocked" : "card-status"}>{overview.card.blocked ? "Bloqueado temporariamente" : "Cartão ativo"}</span><h3>Ecocard RanBank</h3><dl><div><dt>Titular</dt><dd>{overview.customerName}</dd></div><div><dt>Número do cartão</dt><dd>•••• •••• •••• {overview.cardLastFour}</dd></div><div><dt>Modalidade</dt><dd>Cartão demonstrativo</dd></div></dl><small>A imagem é ilustrativa. Os dados da sua conta estão acima.</small></div></div>
+              <div className="card-presentation"><div className={`suite-card ecocard-suite ${overview.card.blocked ? "blocked" : ""}`}>{ownCard === "ecocard" ? <img className="ecocard-suite-face" src="/images/ranbank-ecocard-nativa-frente.webp" alt="Frente ilustrativa do cartão Ecocard RanBank"/> : <CardArt id="basic" />}{overview.card.blocked && <em>CARTÃO BLOQUEADO</em>}</div><div className="card-account-data"><span className={overview.card.blocked ? "card-status blocked" : "card-status"}>{overview.card.blocked ? "Bloqueado temporariamente" : "Cartão ativo"}</span><h3>{ownCard === "ecocard" ? "Ecocard RanBank" : "Cartão RanBank"}</h3><dl><div><dt>Titular</dt><dd>{overview.customerName}</dd></div><div><dt>Número do cartão</dt><dd>•••• •••• •••• {overview.cardLastFour}</dd></div><div><dt>Modalidade</dt><dd>Cartão demonstrativo</dd></div></dl><small>A imagem é ilustrativa. Os dados da sua conta estão acima.</small></div></div>
               <div className="card-control-panel">
                 <div className="card-numbers"><article><span>Fatura atual</span><strong>{money.format(overview.card.spent)}</strong></article><article><span>Limite disponível</span><strong>{money.format(overview.card.available)}</strong></article></div>
                 <div className="limit-meter"><span><i style={{ width: `${Math.min(100, overview.card.spent / Math.max(overview.card.limit, 1) * 100)}%` }}/></span><small>{money.format(overview.card.spent)} usados de {money.format(overview.card.limit)}</small></div>
                 <button className={overview.card.blocked ? "card-unblock" : "card-block"} disabled={working} onClick={() => perform("/banking/card/toggle", "PATCH", undefined, overview.card.blocked ? "Cartão desbloqueado." : "Cartão bloqueado temporariamente.")}>{overview.card.blocked ? "Desbloquear cartão" : "Bloquear temporariamente"}</button>
-                <form onSubmit={async (event) => { event.preventDefault(); const ok = await perform("/banking/card/limit", "PUT", { limit: parseMoneyInput(limit.value), transactionPin: limit.pin }, "Novo limite definido."); if (ok) setLimit({ value: "", pin: "" }); }}>
-                  <h4>Ajustar limite</h4>
-                  <div className="split-fields"><label>Novo limite<input value={limit.value} onChange={(event) => setLimit({ ...limit, value: event.target.value })} inputMode="decimal" placeholder="6.000,00" required /></label><label>PIN<input type="password" value={limit.pin} onChange={(event) => setLimit({ ...limit, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label></div>
-                  <button disabled={working || limit.pin.length !== 4}>Atualizar limite</button>
-                </form>
+                {(() => {
+                  // O limite novo não pode ficar abaixo da fatura atual.
+                  const minLimit = Math.max(LIMIT_STEP, Math.ceil(overview.card.spent / LIMIT_STEP) * LIMIT_STEP);
+                  const chosen = limit.value ?? overview.card.limit;
+                  const changed = Math.round(chosen) !== Math.round(overview.card.limit);
+                  return (
+                    <form className="limit-form" onSubmit={async (event) => { event.preventDefault(); const ok = await perform("/banking/card/limit", "PUT", { limit: chosen, transactionPin: limit.pin }, "Novo limite definido."); if (ok) setLimit({ value: null, pin: "" }); }}>
+                      <h4>Ajustar limite</h4>
+                      <div className="limit-slider">
+                        <div className="limit-slider-value"><strong>{money.format(chosen)}</strong><small>{changed ? `Antes: ${money.format(overview.card.limit)}` : "Limite atual"}</small></div>
+                        <input type="range" min={minLimit} max={LIMIT_MAX[ownCard]} step={LIMIT_STEP} value={Math.min(LIMIT_MAX[ownCard], Math.max(minLimit, chosen))} onChange={(event) => setLimit({ ...limit, value: Number(event.target.value) })} aria-label="Novo limite do cartão" />
+                        <div className="limit-slider-scale"><small>{money.format(minLimit)}</small><small>{money.format(LIMIT_MAX[ownCard])}</small></div>
+                      </div>
+                      <div className="split-fields"><label>Senha de 4 dígitos<input type="password" value={limit.pin} onChange={(event) => setLimit({ ...limit, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" required /></label></div>
+                      <button disabled={working || !changed || limit.pin.length !== 4}>{changed ? `Mudar para ${money.format(chosen)}` : "Arraste para mudar o limite"}</button>
+                    </form>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -264,7 +288,7 @@ export default function BankingSuite({
             <div className="savings-center">
               <div className="savings-hero"><div><span>COFRINHO</span><strong>{money.format(overview.savingsBalance)}</strong><small>Meta: {money.format(overview.savingsGoal)}</small></div><div className="savings-ring" style={{ "--progress": `${Math.min(100, overview.savingsBalance / overview.savingsGoal * 100)}%` } as React.CSSProperties}><b>{Math.round(Math.min(100, overview.savingsBalance / overview.savingsGoal * 100))}%</b></div></div>
               <div className="savings-grid"><article><span>Rendimento projetado</span><strong>{money.format(overview.savingsBalance * 0.0105)}</strong><small>Estimativa para um mês (1,05%)</small></article><article><span>Disponível na conta</span><strong>{money.format(overview.balance)}</strong><small>Para transferir ao cofrinho</small></article></div>
-              <div className="savings-form"><div><span>COFRINHO</span><h3>Guardar ou resgatar</h3><p>Separe dinheiro para um objetivo e resgate quando precisar.</p></div><form onSubmit={(event) => event.preventDefault()}><div className="split-fields"><label>Valor<input value={savings.amount} onChange={(event) => setSavings({ ...savings, amount: event.target.value })} inputMode="decimal" placeholder="0,00" /></label><label>PIN<input type="password" value={savings.pin} onChange={(event) => setSavings({ ...savings, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" /></label></div><div><button disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("deposit")}>Guardar</button><button className="secondary" disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("withdraw")}>Resgatar</button></div></form></div>
+              <div className="savings-form"><div><span>COFRINHO</span><h3>Guardar ou resgatar</h3><p>Separe dinheiro para um objetivo e resgate quando precisar.</p></div><form onSubmit={(event) => event.preventDefault()}><div className="split-fields"><label>Valor<input value={savings.amount} onChange={(event) => setSavings({ ...savings, amount: maskMoney(event.target.value) })} inputMode="numeric" placeholder="R$ 0,00" /></label><label>PIN<input type="password" value={savings.pin} onChange={(event) => setSavings({ ...savings, pin: event.target.value.replace(/\D/g, "").slice(0, 4) })} inputMode="numeric" placeholder="••••" /></label></div><div><button disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("deposit")}>Guardar</button><button className="secondary" disabled={working || savings.pin.length !== 4} onClick={() => moveSavings("withdraw")}>Resgatar</button></div></form></div>
             </div>
           )}
         </div>

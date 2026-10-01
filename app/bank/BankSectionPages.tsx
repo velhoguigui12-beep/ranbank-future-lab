@@ -68,24 +68,15 @@ const protections = [
   ["Cartão bloqueado em um toque", "Perdeu o cartão ou desconfiou de algo? Bloqueie na área Cartão."],
 ];
 
-export function SecuritySectionPage({ transactions, onAuthentication, onThreat, onDevices, onAttack }: {
+export function SecuritySectionPage({ transactions, onAuthentication, onThreat, onDevices }: {
   transactions: TransactionView[];
   onAuthentication: () => void;
   onThreat: () => void;
   onDevices: () => void;
-  onAttack: () => void;
 }) {
   return (
     <div className="bk-page security-section-page">
       <header className="bk-page-head"><h1>Segurança</h1><p>O que protege a sua conta e como o banco decide o que é suspeito.</p></header>
-      <section className="bk-panel atk-cta">
-        <div>
-          <span className="bk-tag">Simulação de ataque</span>
-          <h2>Veja um golpe pelos olhos do golpista</h2>
-          <p>Uma mensagem falsa, um site copiado e a tela do hacker capturando tudo. Depois, ligue as defesas do banco e veja se o ataque passa.</p>
-        </div>
-        <button type="button" className="bk-btn bk-btn-primary" onClick={onAttack}>Começar a simulação</button>
-      </section>
       <RanFlow transactions={transactions} />
       <section className="bk-panel">
         <h2 className="bk-panel-title">O que protege a sua conta</h2>
@@ -100,7 +91,6 @@ export function SecuritySectionPage({ transactions, onAuthentication, onThreat, 
       <h2 className="bk-section-title">Aprenda na prática</h2>
       <div className="bk-topics">
         <button onClick={onAuthentication}><span aria-hidden="true">ID</span><strong>Entrada suspeita?</strong><small>Monte uma tentativa de acesso e veja o banco decidir.</small></button>
-        <button onClick={onAttack}><span aria-hidden="true">&gt;_</span><strong>Simular um ataque</strong><small>Siga um golpe do SMS até a conta e teste as defesas.</small></button>
         <button onClick={onThreat}><span aria-hidden="true">!</span><strong>Isso é golpe?</strong><small>Escreva uma mensagem e veja os sinais de golpe.</small></button>
         <button onClick={onDevices}><span aria-hidden="true">▯</span><strong>Aparelhos conectados</strong><small>Veja quem acessa a conta e bloqueie o que não reconhecer.</small></button>
       </div>

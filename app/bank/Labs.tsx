@@ -4,14 +4,13 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { BkSheet } from "./BkSheet";
 import { sha256 } from "./sha256";
-import { AttackLab } from "./AttackLab";
 
 /*
  * Laboratórios interativos do RanBank.
  * Nenhum resultado é fixo: tudo é calculado a partir do que a pessoa muda na tela.
  */
 
-export type LabId = "cloud" | "energy" | "compare" | "scam" | "login" | "chain" | "attack";
+export type LabId = "cloud" | "energy" | "compare" | "scam" | "login" | "chain";
 
 const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const number = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
@@ -371,7 +370,6 @@ const LABS: Record<LabId, { label: string; title: string; view: () => ReactNode 
   scam: { label: "Segurança", title: "Isso é golpe?", view: () => <ScamLab /> },
   login: { label: "Segurança", title: "Entrada normal ou suspeita?", view: () => <LoginLab /> },
   chain: { label: "Registros", title: "Registro que não pode ser alterado", view: () => <ChainLab /> },
-  attack: { label: "Simulação de ataque", title: "Como um golpista invade uma conta", view: () => <AttackLab /> },
 };
 
 export function LabSheet({ id, onClose }: { id: LabId; onClose: () => void }) {

@@ -121,6 +121,15 @@ public class BankAccount {
     public void updatePhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public void grantAdminRole() { this.role = "ADMIN"; }
 
+    /** Conta criada na hora: cartão básico com limite pequeno, sem fatura e meta pequena no cofrinho. */
+    public void startAsNewCustomer() {
+        this.savingsBalance = BigDecimal.ZERO;
+        this.savingsGoal = new BigDecimal("500.00");
+        this.cardLimit = new BigDecimal("500.00");
+        this.cardSpent = BigDecimal.ZERO;
+        this.cardBlocked = false;
+    }
+
     public void restoreDemoState() {
         this.balance = new BigDecimal("8540.75");
         this.savingsBalance = BigDecimal.ZERO;

@@ -90,7 +90,7 @@ class AuthenticationFlowTests {
         MvcResult result = mockMvc.perform(post("/api/demo-accounts").contentType(MediaType.APPLICATION_JSON).content(body))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.customerName").value("Joana Teste"))
-            .andExpect(jsonPath("$.balance").value(2500.00))
+            .andExpect(jsonPath("$.balance").value(200.00))
             .andReturn();
 
         Cookie session = result.getResponse().getCookie(AuthenticationService.SESSION_COOKIE);

@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, @next/next/no-img-element, @next/next/no-html-link-for-pages -- Modal backdrops intentionally handle clicks; Vinext serves local decorative images directly; the link back to the public site should reload the page. */
 
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { BankingTab } from "./BankingSuite";
 import type { InnovationTab } from "./InnovationHub";
@@ -12,6 +12,7 @@ import { BkLoading, BkSheet, BkUnavailable } from "./bank/BkSheet";
 import { LabSheet, type LabId } from "./bank/Labs";
 import RaniAssistant, { openRani } from "./RaniAssistant";
 import CardCatalog from "./bank/CardCatalog";
+import { ownCardFor, OWN_CARD_NAME } from "./bank/cards";
 import { transactionDescription, type TransactionView } from "./bank/transactionFormatting";
 
 const BankingSuite = lazy(() => import("./BankingSuite"));
@@ -64,6 +65,9 @@ type AutomationRun = {
 type AuthUser = { customerName: string; accountNumber: string };
 type PixRecipient = { accountId: number; name: string; accountNumber: string; keyType: string; maskedKey: string };
 type BankNotification = { id: number; type: string; title: string; message: string; referenceId?: string; createdAt: string; read: boolean };
+// Os servidores mandam "R$ 50.00"; na tela mostramos "R$ 50,00".
+const formatNoticeMoney = (text: string) => text.replace(/R\$ ?(\d+(?:\.\d{1,2})?)(?!\d)/g, (_, value: string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(value)));
+const NOTICE_CHECK_MS = 5000;
 type PixReceipt = { transferId: string; transactionId: number; status: string; amount: number; timestamp: string; recipientName: string; recipientAccount: string; maskedPixKey: string; idempotencyKey: string };
 type FlowExecution = { id: string; flowType: string; triggerType: string; referenceId?: string; status: string; startedAt: string; completedAt?: string; steps: AutomationRun["steps"] };
 type AdminInsights = { generatedAt: string; totalAccounts: number; activeAccounts: number; totalDeposits: number; totalTransactions: number; transactionVolume: number; pixTransfers: number; unreadNotifications: number; flowExecutions: number };
@@ -100,13 +104,12 @@ const formatMoneyFromDigits = (value: string) => {
   return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     .format(cents / 100);
 };
-type BankIconName = "home" | "pix" | "statement" | "card" | "shield" | "spark" | "bell" | "sun" | "moon" | "eye" | "eyeOff" | "pay" | "transfer" | "schedule" | "chevron" | "help" | "logout" | "chart" | "device" | "cloud" | "leaf" | "brain" | "automation" | "lock" | "user" | "key" | "terminal";
+type BankIconName = "home" | "pix" | "statement" | "card" | "shield" | "spark" | "bell" | "sun" | "moon" | "eye" | "eyeOff" | "pay" | "transfer" | "schedule" | "chevron" | "help" | "logout" | "chart" | "device" | "cloud" | "leaf" | "brain" | "automation" | "lock" | "user" | "key";
 
 function BankIcon({ name, size = 20 }: { name: BankIconName; size?: number }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true };
   const paths: Record<BankIconName, React.ReactNode> = {
     home: <><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></>,
-    terminal: <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></>,
     pix: <><path d="m12 3 3.2 3.2a3.5 3.5 0 0 0 5 0"/><path d="m12 21-3.2-3.2a3.5 3.5 0 0 0-5 0"/><path d="m3 12 3.2-3.2a3.5 3.5 0 0 1 5 0l1.6 1.6a3.5 3.5 0 0 0 5 0L21 7.2"/><path d="m21 12-3.2 3.2a3.5 3.5 0 0 1-5 0l-1.6-1.6a3.5 3.5 0 0 0-5 0L3 16.8"/></>,
     statement: <><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z"/><path d="M9 8h6M9 12h6"/></>,
     card: <><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></>,
@@ -175,7 +178,11 @@ export default function Home() {
   const [innovationOpen, setInnovationOpen] = useState(false);
   const [innovationTab, setInnovationTab] = useState<InnovationTab>("open-finance");
   const [notifications, setNotifications] = useState<BankNotification[]>([]);
+  const [incomingPix, setIncomingPix] = useState<BankNotification | null>(null);
+  const seenNotices = useRef<Set<number> | null>(null);
+  const reloadDashboard = useRef<() => Promise<void>>(async () => undefined);
   const [lab, setLab] = useState<LabId | null>(null);
+  const [raniTick, setRaniTick] = useState(0);
 
   const [pixKey, setPixKey] = useState("");
   const [amount, setAmount] = useState("");
@@ -248,6 +255,7 @@ export default function Home() {
       // A interface mantém os dados locais enquanto a API não responde.
     }
   };
+  useEffect(() => { reloadDashboard.current = loadDashboard; });
 
   useEffect(() => {
     if (pathname === "/" || authStatus !== "checking") return;
@@ -289,14 +297,42 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [pathname]);
 
+  // Confere avisos a cada 5 segundos: um Pix recebido aparece na tela sem precisar recarregar.
   useEffect(() => {
     if (authStatus !== "authenticated") return;
     let active = true;
-    apiFetch("/notifications").then(async (response) => {
-      if (active && response.ok) setNotifications(await response.json());
-    }).catch(() => undefined);
-    return () => { active = false; };
+    seenNotices.current = null;
+    const check = async () => {
+      if (document.hidden) return;
+      try {
+        const response = await apiFetch("/notifications");
+        if (!active || !response.ok) return;
+        const list = await response.json() as BankNotification[];
+        const seen = seenNotices.current;
+        const received = seen ? list.filter((notice) => !seen.has(notice.id) && notice.type === "PIX_RECEIVED") : [];
+        seenNotices.current = new Set(list.map((notice) => notice.id));
+        setNotifications(list);
+        if (received.length) {
+          setIncomingPix(received[0]);
+          void reloadDashboard.current();
+        }
+      } catch {
+        // Sem conexão agora: tenta de novo na próxima volta.
+      }
+    };
+    void check();
+    const timer = window.setInterval(() => { void check(); }, NOTICE_CHECK_MS);
+    // Ao voltar para a aba, confere na hora.
+    const onVisible = () => { if (!document.hidden) void check(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { active = false; window.clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
   }, [authStatus]);
+
+  useEffect(() => {
+    if (!incomingPix) return;
+    const timer = window.setTimeout(() => setIncomingPix(null), 8000);
+    return () => window.clearTimeout(timer);
+  }, [incomingPix]);
 
   useEffect(() => {
     if (authStatus !== "authenticated") return;
@@ -590,6 +626,7 @@ export default function Home() {
   }
 
   const firstName = data.customerName.split(" ")[0];
+  const ownCard = ownCardFor(data.account);
   const initials = (authUser?.customerName ?? data.customerName).split(/\s+/).map((part) => part[0]).slice(0,2).join("").toUpperCase() || "RB";
   const shown = (value: number) => balanceVisible ? money.format(value) : "R$ ••••";
   const openPix = () => { setPixStep("details"); setScreen("pix"); };
@@ -606,7 +643,7 @@ export default function Home() {
           <button className={screen === "dashboard" ? "active" : ""} onClick={() => setScreen("dashboard")}><BankIcon name="home" /> Início</button>
           <button className={screen === "pix" ? "active" : ""} onClick={openPix}><BankIcon name="pix" /> Pix</button>
           <button className={screen === "statement" ? "active" : ""} onClick={() => openBanking("statement")}><BankIcon name="statement" /> Extrato</button>
-          <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><BankIcon name="card" /> Cartão</button>
+          <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><BankIcon name="card" /> Carteira</button>
           <button className={screen === "services" ? "active" : ""} onClick={() => openBanking("bill")}><BankIcon name="pay" /> Pagar e guardar</button>
           <small>Proteção</small>
           <button className={screen === "security" ? "active" : ""} onClick={() => setScreen("security")}><BankIcon name="shield" /> Segurança</button>
@@ -669,8 +706,8 @@ export default function Home() {
             </section>
 
             <div className="bk-home-side">
-              <section className="bk-block bk-area-card" aria-label="Cartão Ecocard">
-                <button className="bk-row" onClick={() => setScreen("cards")}><span>Cartão Ecocard {data.card.blocked && <em className="bk-tag is-warn">Bloqueado</em>}</span><BankIcon name="chevron" size={18} /></button>
+              <section className="bk-block bk-area-card" aria-label={ownCard === "ecocard" ? "Cartão Ecocard" : "Cartão RanBank"}>
+                <button className="bk-row" onClick={() => setScreen("cards")}><span>{ownCard === "ecocard" ? "Cartão Ecocard" : "Cartão RanBank"} {data.card.blocked && <em className="bk-tag is-warn">Bloqueado</em>}</span><BankIcon name="chevron" size={18} /></button>
                 <small className="bk-muted">Fatura atual</small>
                 <strong className="bk-amount">{shown(data.card.spent)}</strong>
                 <div className="bk-meter" aria-hidden="true"><i style={{ width: `${cardUsage}%` }} /></div>
@@ -759,7 +796,7 @@ export default function Home() {
             </div>
           </div>
         ) : screen === "cards" || screen === "statement" ? (
-          <div className="bk-page"><header className="bk-page-head"><h1>{screen === "cards" ? "Cartão" : "Extrato"}</h1><p>{screen === "cards" ? "Escolha um cartão para ver os detalhes. Só o Ecocard está liberado na sua conta." : "Todas as entradas e saídas da sua conta."}</p></header><CardCatalog enabled={screen === "cards"}><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={screen} open embedded initialTab={screen === "cards" ? "card" : "statement"} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></CardCatalog></div>
+          <div className="bk-page"><header className="bk-page-head"><h1>{screen === "cards" ? "Carteira" : "Extrato"}</h1><p>{screen === "cards" ? `Escolha um cartão para ver os detalhes. Na sua conta, o liberado é o ${OWN_CARD_NAME[ownCard]}.` : "Todas as entradas e saídas da sua conta."}</p></header><CardCatalog key={ownCard} own={ownCard} enabled={screen === "cards"}><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={`${screen}-${raniTick}`} ownCard={ownCard} open embedded initialTab={screen === "cards" ? "card" : "statement"} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></CardCatalog></div>
         ) : screen === "services" ? (
           <div className="bk-page"><header className="bk-page-head"><h1>Pagar e guardar</h1><p>Boletos, agendamentos e o seu cofrinho.</p></header><Suspense fallback={<p className="bk-muted">Carregando…</p>}><BankingSuite key={bankingTab} open embedded initialTab={bankingTab === "statement" || bankingTab === "card" ? "bill" : bankingTab} onClose={() => setScreen("account")} onChanged={loadDashboard}/></Suspense></div>
         ) : screen === "security" ? (
@@ -768,7 +805,6 @@ export default function Home() {
             onAuthentication={() => setLab("login")}
             onThreat={() => setLab("scam")}
             onDevices={() => { void loadDevices(); }}
-            onAttack={() => setLab("attack")}
           />
         ) : (
           <div className="bk-page bk-tech">
@@ -791,7 +827,6 @@ export default function Home() {
 
             <h2 className="bk-section-title">Escolha um assunto</h2>
             <div className="bk-topics">
-              <button onClick={() => setLab("attack")}><span><BankIcon name="terminal" /></span><strong>Simular um ataque hacker</strong><small>Siga um golpe do SMS até a conta e teste as defesas.</small></button>
               <button onClick={() => setLab("scam")}><span><BankIcon name="shield" /></span><strong>Isso é golpe?</strong><small>Escreva uma mensagem e veja os sinais de golpe.</small></button>
               <button onClick={() => setLab("login")}><span><BankIcon name="lock" /></span><strong>Entrada suspeita?</strong><small>Monte um acesso e veja o banco decidir.</small></button>
               <button onClick={() => setLab("chain")}><span><BankIcon name="key" /></span><strong>Registro que não se altera</strong><small>Mude um registro e veja a corrente quebrar.</small></button>
@@ -820,11 +855,11 @@ export default function Home() {
         <button className={screen === "dashboard" ? "active" : ""} onClick={() => setScreen("dashboard")}><BankIcon name="home" /><span>Início</span></button>
         <button className={screen === "pix" ? "active" : ""} onClick={openPix}><BankIcon name="pix" /><span>Pix</span></button>
         <button className={screen === "statement" ? "active" : ""} onClick={() => openBanking("statement")}><BankIcon name="statement" /><span>Extrato</span></button>
-        <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><BankIcon name="card" /><span>Cartão</span></button>
+        <button className={screen === "cards" ? "active" : ""} onClick={() => setScreen("cards")}><BankIcon name="card" /><span>Carteira</span></button>
         <button className={screen === "security" || screen === "lab" ? "active" : ""} onClick={() => setScreen("security")}><BankIcon name="shield" /><span>Segurança</span></button>
       </nav>
 
-      <RaniAssistant context="bank" onNavigate={(target) => { if (target === "pix") openPix(); else if (target === "statement") openBanking("statement"); else if (target === "services") openBanking("savings"); else setScreen(target); }} />
+      <RaniAssistant context="bank" userName={firstName} cardName={OWN_CARD_NAME[ownCard]} onChanged={() => { setRaniTick((tick) => tick + 1); void loadDashboard(); }} onNavigate={(target) => { if (target === "pix") openPix(); else if (target === "statement") openBanking("statement"); else if (target === "services") openBanking("savings"); else setScreen(target); }} />
       {analyticsOpen && (
         <BkSheet label="Dados" title="Análise das movimentações" onClose={() => setAnalyticsOpen(false)}>
           {analyticsLoading ? <BkLoading text="Organizando as movimentações…" /> : analytics ? <>
@@ -884,6 +919,14 @@ export default function Home() {
       )}
       {pixReceipt && <div className="bk-modal-backdrop" role="presentation" onMouseDown={() => setPixReceipt(null)}><section className="bk-modal bk-receipt" role="dialog" aria-modal="true" aria-labelledby="pix-receipt-title" onMouseDown={(event) => event.stopPropagation()}><button className="bk-modal-close" onClick={() => setPixReceipt(null)} aria-label="Fechar comprovante">×</button><span className="bk-receipt-check" aria-hidden="true">✓</span><h2 id="pix-receipt-title">Pix enviado</h2><strong className="bk-balance">{money.format(pixReceipt.amount)}</strong><p>para <b>{pixReceipt.recipientName}</b></p><dl className="bk-details"><div><dt>Conta de destino</dt><dd>{pixReceipt.recipientAccount}</dd></div><div><dt>Chave Pix</dt><dd>{pixReceipt.maskedPixKey}</dd></div><div><dt>Data e hora</dt><dd>{new Date(pixReceipt.timestamp).toLocaleString("pt-BR")}</dd></div><div><dt>Situação</dt><dd>{pixReceipt.status === "COMPLETED" ? "Concluído" : pixReceipt.status}</dd></div><div><dt>Código da transação</dt><dd className="bk-code">{pixReceipt.transferId}</dd></div></dl><button className="bk-btn bk-btn-primary" onClick={() => setPixReceipt(null)}>Concluir</button></section></div>}
       {lab && <LabSheet id={lab} onClose={() => setLab(null)} />}
+      {incomingPix && (
+        <div className="bk-incoming" role="status" aria-live="polite">
+          <span className="bk-incoming-icon" aria-hidden="true">↓</span>
+          <div><strong>{incomingPix.title}</strong><p>{formatNoticeMoney(incomingPix.message)}</p></div>
+          <button type="button" className="bk-incoming-see" onClick={() => { setIncomingPix(null); openBanking("statement"); }}>Ver</button>
+          <button type="button" className="bk-incoming-close" onClick={() => setIncomingPix(null)} aria-label="Fechar aviso">×</button>
+        </div>
+      )}
       {flowHistoryOpen && (
         <BkSheet label="Servidor" title="Histórico de automações" onClose={() => setFlowHistoryOpen(false)}>
           {flowHistoryLoading ? <BkLoading text="Carregando…" /> : flowHistory.length ? <ul className="bk-rows">{flowHistory.map((flow) => <li key={flow.id}><div><strong>{flow.flowType === "PIX_SETTLEMENT" ? "Pix processado" : "Resposta a incidente"}</strong><small>{new Date(flow.startedAt).toLocaleString("pt-BR")} · {flow.steps.length} etapas</small></div><b className={`bk-pill ${flow.status === "COMPLETED" ? "is-ok" : "is-warn"}`}>{flow.status === "COMPLETED" ? "Concluído" : flow.status}</b></li>)}</ul> : <div className="bk-loading"><strong>Nada registrado ainda</strong><p>Faça um Pix para aparecer aqui.</p></div>}

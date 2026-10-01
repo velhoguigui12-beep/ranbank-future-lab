@@ -1,6 +1,8 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Vinext serves the local logo directly. */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { PublicFooter, PublicHeader } from "./PublicSiteGate";
 import RaniAssistant from "./RaniAssistant";
 
@@ -90,74 +92,93 @@ const departments: Array<{ id: string; title: string; accent: string; roles: Org
 
 const allRoles = [...leadership, ...departments.flatMap((department) => department.roles)];
 
-export default function OrganizationPublicPage() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = allRoles.find((role) => role.id === selectedId) ?? null;
+// Cor do crachá por área.
+const AREA_COLOR: Record<string, string> = {
+  "Presidência": "#f5b301",
+  "Ouvidoria-Geral": "#22c3ee",
+  "Tecnologia": "#3b82f6",
+  "Comunicação, Marketing e Relacionamento": "#ec4899",
+  "Negócios e Operações": "#22c55e",
+  "RH / Gestão de Pessoas": "#f97316",
+};
 
-  const selectRole = (id: string) => {
-    setSelectedId(id);
-    window.scrollTo({ top: 0, behavior: "auto" });
+/** Crachá que aparece ao passar o mouse (ou tocar) em um cargo. */
+function RoleBadge({ role, serial }: { role: OrganizationRole; serial: number }) {
+  return (
+    <div className="org-badge" id={`cracha-${role.id}`} role="tooltip">
+      <span className="org-badge-strap" aria-hidden="true" />
+      <div className="org-badge-top">
+        <img src="/ranbank-logo-transparent.png" alt="" />
+        <span>{role.area}</span>
+      </div>
+      <small>Quem ocupa o cargo</small>
+      <strong className="org-badge-name">{role.person}</strong>
+      <svg className="org-badge-sign" viewBox="0 0 160 14" aria-hidden="true"><path d="M2 9c18-8 26 6 44 0s22-8 38-1 30 6 46-2 20-3 28 0" /></svg>
+      <span className="org-badge-role">{role.title}</span>
+      <p>{role.description}</p>
+      <ul>{role.responsibilities.map((item) => <li key={item}>{item}</li>)}</ul>
+      <div className="org-badge-foot" aria-hidden="true"><i /><b>RB-{String(serial).padStart(3, "0")}</b></div>
+    </div>
+  );
+}
+
+export default function OrganizationPublicPage() {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  // Fecha o crachá ao tocar fora dele ou apertar Esc.
+  useEffect(() => {
+    if (!openId) return;
+    const close = (event: Event) => {
+      if (event instanceof KeyboardEvent ? event.key === "Escape" : !(event.target as Element).closest?.(".org-slot")) setOpenId(null);
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", close); };
+  }, [openId]);
+
+  const slot = (role: OrganizationRole, button: { className?: string; label?: string; title: string }, slotClass = "") => {
+    const serial = allRoles.findIndex((item) => item.id === role.id) + 1;
+    const open = openId === role.id;
+    return (
+      <div className={`org-slot ${slotClass} ${open ? "is-open" : ""}`} key={role.id} style={{ "--badge": AREA_COLOR[role.area] ?? "#3b82f6" } as CSSProperties}>
+        <button className={`org-node ${button.className ?? ""}`} type="button" aria-expanded={open} aria-describedby={`cracha-${role.id}`} onClick={() => setOpenId(open ? null : role.id)}>
+          {button.label && <small>{button.label}</small>}
+          <strong>{button.title}</strong>
+          <span>Ver quem é →</span>
+        </button>
+        <RoleBadge role={role} serial={serial} />
+      </div>
+    );
   };
+  const [president, ombudsman, vice] = leadership;
 
   return (
     <div className="rs rb-public-shell rb-org-page">
       <PublicHeader />
       <main>
-        {selected ? (
-          <section className="org-profile-screen" aria-labelledby="org-profile-title">
-            <button className="org-back" type="button" onClick={() => setSelectedId(null)}>← Voltar ao organograma</button>
-            <div className="org-profile-layout">
-              <aside className="org-person-card">
-                <span>{selected.area}</span>
-                <div aria-hidden="true">{selected.person.charAt(0).toUpperCase()}</div>
-                <small>PROFISSIONAL RESPONSÁVEL</small>
-                <strong>{selected.person}</strong>
-              </aside>
-              <article className="org-role-copy">
-                <span>CONHEÇA ESTE CARGO</span>
-                <h1 id="org-profile-title">{selected.title}</h1>
-                <p>{selected.description}</p>
-                <div>
-                  <small>PRINCIPAIS RESPONSABILIDADES</small>
-                  <ul>{selected.responsibilities.map((item) => <li key={item}>{item}</li>)}</ul>
-                </div>
-                <button type="button" onClick={() => setSelectedId(null)}>Explorar outros cargos</button>
+        <section className="org-hero" aria-labelledby="org-title">
+          <span>ESTRUTURA ORGANIZACIONAL</span>
+          <h1 id="org-title">Quem faz o RanBank.</h1>
+          <p>Presidência, ouvidoria e quatro áreas de trabalho. Passe o mouse (ou toque) em um cargo para ver o crachá de quem está à frente.</p>
+          <div><b>16</b><span>pessoas</span><i/><b>4</b><span>áreas</span></div>
+        </section>
+        <section className="org-chart-section" aria-label="Organograma do RanBank">
+          <div className="org-chart-instruction"><span>ORGANOGRAMA INTERATIVO</span><p>Passe o mouse ou toque em um cargo para ver o crachá.</p></div>
+          <div className="org-leadership">
+            {slot(president, { className: "org-president", label: "PRESIDÊNCIA", title: "Presidente / CEO" }, "is-president")}
+            {slot(ombudsman, { className: "org-ombudsman", label: "OUVIDORIA-GERAL", title: "Ouvidora-Geral" }, "is-ombudsman")}
+            {slot(vice, { className: "org-vice", label: "LIDERANÇA EXECUTIVA", title: "Vice-Presidente" }, "is-vice")}
+          </div>
+          <div className="org-branches" aria-hidden="true" />
+          <div className="org-departments">
+            {departments.map((department) => (
+              <article className="org-department" key={department.id}>
+                <header><span>{department.accent}</span><h2>{department.title}</h2></header>
+                <div>{department.roles.map((role) => slot(role, { title: role.chartTitle }))}</div>
               </article>
-            </div>
-          </section>
-        ) : (
-          <>
-            <section className="org-hero" aria-labelledby="org-title">
-              <span>ESTRUTURA ORGANIZACIONAL</span>
-              <h1 id="org-title">Quem faz o RanBank.</h1>
-              <p>Presidência, ouvidoria e quatro áreas de trabalho. Toque em um cargo para ver quem está à frente e o que essa pessoa faz.</p>
-              <div><b>16</b><span>pessoas</span><i/><b>4</b><span>áreas</span></div>
-            </section>
-            <section className="org-chart-section" aria-label="Organograma do RanBank">
-              <div className="org-chart-instruction"><span>ORGANOGRAMA INTERATIVO</span><p>Selecione qualquer cargo para abrir os detalhes.</p></div>
-              <div className="org-leadership">
-                <button className="org-node org-president" type="button" onClick={() => selectRole("presidencia")}><small>PRESIDÊNCIA</small><strong>Presidente / CEO</strong><span>Ver detalhes →</span></button>
-                <button className="org-node org-ombudsman" type="button" onClick={() => selectRole("ouvidoria")}><small>OUVIDORIA-GERAL</small><strong>Ouvidora-Geral</strong><span>Ver detalhes →</span></button>
-                <button className="org-node org-vice" type="button" onClick={() => selectRole("vice-presidencia")}><small>LIDERANÇA EXECUTIVA</small><strong>Vice-Presidente</strong><span>Ver detalhes →</span></button>
-              </div>
-              <div className="org-branches" aria-hidden="true" />
-              <div className="org-departments">
-                {departments.map((department) => (
-                  <article className="org-department" key={department.id}>
-                    <header><span>{department.accent}</span><h2>{department.title}</h2></header>
-                    <div>
-                      {department.roles.map((role) => (
-                        <button className="org-node" type="button" key={role.id} onClick={() => selectRole(role.id)}>
-                          <strong>{role.chartTitle}</strong><span>Conhecer o cargo →</span>
-                        </button>
-                      ))}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          </>
-        )}
+            ))}
+          </div>
+        </section>
       </main>
       <PublicFooter />
       <RaniAssistant context="site" />

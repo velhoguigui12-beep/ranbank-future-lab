@@ -43,8 +43,8 @@ const DECISIONS: Record<Decision, { label: string; action: string; detail: strin
 };
 const SCENARIOS: Array<{ label: string; event: FlowEvent }> = [
   { label: "Compra normal", event: { channel: "card", amount: 85, hour: 14, city: HOME_CITY, newDevice: false, newRecipient: false } },
-  { label: "Pix alto de madrugada", event: { channel: "pix", amount: 2400, hour: 3, city: HOME_CITY, newDevice: false, newRecipient: true } },
-  { label: "Celular novo em Manaus", event: { channel: "pix", amount: 2950, hour: 23, city: "Manaus - AM", newDevice: true, newRecipient: true } },
+  { label: "Pix alto de madrugada", event: { channel: "pix", amount: 2400, hour: 3, city: HOME_CITY, newDevice: false, newRecipient: false } },
+  { label: "Celular novo", event: { channel: "pix", amount: 2950, hour: 23, city: "Manaus - AM", newDevice: true, newRecipient: true } },
 ];
 const STEP_MS = 260;
 const TOTAL_STEPS = 9; // gatilho + 5 verificações + código + decisão + ação
@@ -205,7 +205,7 @@ export default function RanFlow({ transactions }: { transactions: TransactionVie
             <button type="button" className={event.channel === "pix" ? "active" : ""} onClick={() => updateEvent("channel", "pix")}>Pix</button>
             <button type="button" className={event.channel === "card" ? "active" : ""} onClick={() => updateEvent("channel", "card")}>Cartão</button>
           </div>
-          <label>Valor (R$)<input type="number" min={1} max={100000} value={event.amount} onChange={(input) => updateEvent("amount", Math.max(0, Number(input.target.value)))} /></label>
+          <label>Valor<input value={money.format(event.amount)} inputMode="numeric" onChange={(input) => updateEvent("amount", Math.min(100000, Number(input.target.value.replace(/D/g, "").slice(0, 9) || "0") / 100))} /></label>
           <label>Horário: <b>{hourLabel(event.hour)}</b><input type="range" min={0} max={23} value={event.hour} onChange={(input) => updateEvent("hour", Number(input.target.value))} /></label>
           <label>Cidade<select value={event.city} onChange={(input) => updateEvent("city", input.target.value)}>{CITIES.map((city) => <option key={city}>{city}</option>)}</select></label>
           <label className="rf-check"><input type="checkbox" checked={event.newDevice} onChange={(input) => updateEvent("newDevice", input.target.checked)} />Aparelho novo</label>

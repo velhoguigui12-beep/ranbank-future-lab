@@ -101,7 +101,7 @@ test("uses full pages for account, cards and security", async () => {
   assert.match(page, /setScreen\("cards"\)/);
   assert.match(page, /setScreen\("security"\)/);
   assert.match(sections, /AccountSectionPage/);
-  assert.match(page, /<BankingSuite key={screen} open embedded/);
+  assert.ok(page.includes('<BankingSuite key={`${screen}-${raniTick}`} ownCard={ownCard} open embedded'), "o cartão recarrega quando a Rani muda algo");
   assert.match(sections, /SecuritySectionPage/);
 });
 
@@ -135,7 +135,8 @@ test("provides a Brasília-first public bank and privacy center", async () => {
   assert.match(publicSite, /rs-menu-toggle/);
   assert.match(publicSite, /<img src="\/ranbank-logo-transparent\.png" alt="RanBank" \/>/);
   assert.match(publicSite, /aria-expanded/);
-  assert.match(publicSite, /Projeto educacional\./);
+  assert.match(publicSite, /Projeto educacional e demonstrativo/);
+  assert.doesNotMatch(publicSite, /rs-notice/);
   assert.match(theme, /rb-impact-shell/);
   assert.match(theme, /rb-info-page/);
   assert.match(theme, /rb-institute-page/);
@@ -147,7 +148,7 @@ test("presents a clearly identified educational impact portfolio", async () => {
   const projects = await readFile(projectsUrl, "utf8");
   assert.match(publicSite, /Projetos e impacto/);
   assert.match(projects, /Projetos com propósito/);
-  assert.match(projects, /<b>04<\/b> frentes de atuação/);
+  assert.doesNotMatch(projects, /rs-hero-index|frentes de atuação/);
   assert.match(projects, /<strong>propostas demonstrativas<\/strong>/i);
   assert.match(projects, /não apresentamos\s+resultados inventados/i);
   assert.match(projects, /Estratégia Nacional de Educação Financeira/);
@@ -189,9 +190,10 @@ test("provides an interactive organization chart with role profiles", async () =
   assert.match(organization, /Vice-Presidente/);
   assert.match(organization, /Desenvolvedor \/ Analista de TI/);
   assert.match(organization, /Assistente \/ Analista de RH/);
-  assert.match(organization, /selectedId/);
-  assert.match(organization, /PROFISSIONAL RESPONSÁVEL/);
-  assert.match(organization, /PRINCIPAIS RESPONSABILIDADES/);
+  // Crachá ao passar o mouse ou tocar, em vez de uma página com letra genérica.
+  assert.match(organization, /function RoleBadge\(/);
+  assert.match(organization, /Quem ocupa o cargo/);
+  assert.doesNotMatch(organization, /PROFISSIONAL RESPONSÁVEL|charAt\(0\)/);
 });
 
 test("keeps local previews free from stale PWA styles", async () => {
@@ -258,6 +260,13 @@ test("introduces Rani as the assistant on the bank and on the public site", asyn
   assert.match(assistant, /ran-assistente-humana\.png/);
   assert.match(knowledge, /Eu sou a Rani/);
   assert.match(knowledge, /não tem parcerias oficiais/);
+  // Chat com cara de banco: ações na conta, tolerância a erros, memória e atendimento simulado.
+  assert.match(knowledge, /export type RaniAction = "balance" \| "recent" \| "blockCard" \| "unblockCard" \| "human"/);
+  assert.match(knowledge, /function distance\(a: string, b: string\)/);
+  assert.match(knowledge, /lastTopic\?: string/);
+  assert.match(assistant, /\/banking\/card\/toggle/);
+  assert.match(assistant, /esta parte é uma simulação/);
+  assert.match(assistant, /Como foi a conversa com a Rani\?/);
   assert.doesNotMatch(page, /\bRan\b/);
   assert.match(page, /bank-project-menu-v2/);
   assert.match(page, /Explore o RanBank/);
@@ -279,7 +288,9 @@ test("uses Rani as a guide in public help and security", async () => {
   assert.match(publicSite, /rs-ran-tip/);
   assert.match(publicSite, /Dica da Rani/);
   assert.match(publicSite, /ranbank-demonstracao-04\.mp4/);
-  assert.doesNotMatch(publicSite, /ranbank-historia-2026\.mp4/);
+  // Só os primeiros segundos do vídeo da menina: a parte com a outra bandeira nunca aparece.
+  assert.match(publicSite, /ranbank-historia-2026\.mp4#t=0,4/);
+  assert.match(publicSite, /const HERO_CLIP_END = 3\.5;/);
   assert.doesNotMatch(publicSite, /\bRan\b/);
 });
 
@@ -292,10 +303,34 @@ test("keeps every technology demo interactive instead of scripted", async () => 
   assert.match(flow, /Reprocessar com regras novas/);
 });
 
-test("attack simulation stays fictional and computes the outcome from the defenses", async () => {
-  const attack = await readFile(new URL("../app/bank/AttackLab.tsx", import.meta.url), "utf8");
-  assert.ok(attack.includes("function runAttack(captured: Record<Field, boolean>, on: Record<DefenseId, boolean>, target: number)"));
-  assert.ok(attack.includes("Simulação educativa."));
-  assert.match(attack, /<input readOnly/);
-  assert.ok(!attack.includes("fetch("), "a simulação não pode enviar nada");
+test("gives new accounts the basic card and keeps the Ecocard for house clients", async () => {
+  const cards = await readFile(new URL("../app/bank/cards.ts", import.meta.url), "utf8");
+  const catalog = await readFile(new URL("../app/bank/CardCatalog.tsx", import.meta.url), "utf8");
+  const suite = await readFile(new URL("../app/BankingSuite.tsx", import.meta.url), "utf8");
+  assert.match(cards, /HOUSE_CLIENT_ACCOUNTS = \["1234-5"\]/);
+  assert.match(catalog, /id: "basic", name: "RanBank"/);
+  assert.match(catalog, /O Ecocard é para clientes da casa/);
+  assert.doesNotMatch(catalog, /id: "originario"/);
+  // Valores com máscara e limite na barra de arrastar.
+  assert.match(suite, /const maskMoney = /);
+  assert.match(suite, /type="range" min=\{minLimit\} max=\{LIMIT_MAX\[ownCard\]\}/);
+});
+
+test("announces the RanBank Foundation as coming soon between Quem somos and Ajuda", async () => {
+  const publicSite = await readFile(new URL("../app/PublicSiteGate.tsx", import.meta.url), "utf8");
+  const route = await readFile(new URL("../app/fundacao/page.tsx", import.meta.url), "utf8");
+  assert.match(publicSite, /\{ href: "\/organograma", label: "Quem somos" \},\s*\{ href: "\/fundacao", label: "Fundação" \},\s*\{ href: "\/#duvidas", label: "Ajuda" \}/);
+  assert.match(publicSite, /export function FoundationPublicPage\(\)/);
+  assert.match(publicSite, /<span className="fd-soon">Em breve<\/span>/);
+  assert.match(route, /FoundationPublicPage/);
+});
+
+test("shows the app from the inside with four calm, interactive screens", async () => {
+  const publicSite = await readFile(new URL("../app/PublicSiteGate.tsx", import.meta.url), "utf8");
+  const calm = await readFile(new URL("../app/CalmBank.tsx", import.meta.url), "utf8");
+  for (const title of ["Caí num golpe. E agora?", "O mês sem sustos.", "Quem manda é você.", "Avisos que acalmam."]) assert.ok(publicSite.includes(title), title);
+  for (const demo of ["ScamHelpDemo", "MonthDemo", "ControlDemo", "NoticesDemo"]) assert.match(calm, new RegExp(`export function ${demo}\\(`));
+  // O site não usa termos técnicos: quem explica é a pessoa que apresenta.
+  assert.doesNotMatch(publicSite + calm, /\bUX\b|ansiedade|carga cognitiva/i);
+  assert.ok(!calm.includes("fetch("), "as telas não enviam nada");
 });

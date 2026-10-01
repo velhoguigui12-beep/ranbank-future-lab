@@ -95,11 +95,6 @@ export default function ProjectsPublicPage() {
             <span className="rs-chip">Projetos e impacto</span>
             <h1>Projetos com propósito</h1>
             <p>Ideias para usar educação, crédito e tecnologia a favor das pessoas, das comunidades e do meio ambiente.</p>
-            <div className="rs-hero-index" aria-label="Resumo da página">
-              <span><b>04</b> frentes de atuação</span>
-              <span><b>01</b> já em parte no protótipo</span>
-              <span><b>0</b> resultados inventados</span>
-            </div>
           </div>
         </section>
 

@@ -131,10 +131,10 @@ async function createDemoAccount(sql: Sql, request: Request) {
   const id = crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000;
   const accountNumber = `${String(id).padStart(6, "0")}-${id % 10}`;
   const [accessHash, transactionHash] = await Promise.all([hash(accessPin, 10), hash(transactionPin, 10)]);
-  await sql.query(`INSERT INTO bank_accounts(id,customer_name,account_number,account_number_normalized,email,phone_number,balance,document_id,access_pin_hash,transaction_pin_hash,savings_balance,savings_goal,card_limit,card_spent,card_blocked,role,created_at,active,version) VALUES($1,$2,$3,$4,$5,$6,2500,$7,$8,$9,0,5000,6000,0,FALSE,'CUSTOMER',CURRENT_TIMESTAMP,TRUE,0)`, [id, customerName, accountNumber, digits(accountNumber), email, phone, documentId, accessHash, transactionHash]);
+  await sql.query(`INSERT INTO bank_accounts(id,customer_name,account_number,account_number_normalized,email,phone_number,balance,document_id,access_pin_hash,transaction_pin_hash,savings_balance,savings_goal,card_limit,card_spent,card_blocked,role,created_at,active,version) VALUES($1,$2,$3,$4,$5,$6,200,$7,$8,$9,0,500,500,0,FALSE,'CUSTOMER',CURRENT_TIMESTAMP,TRUE,0)`, [id, customerName, accountNumber, digits(accountNumber), email, phone, documentId, accessHash, transactionHash]);
   await sql.query(`INSERT INTO pix_keys(account_id,key_type,normalized_key,display_key,created_at) VALUES($1,'EMAIL',$2,$2,CURRENT_TIMESTAMP),($1,'CPF',$3,$4,CURRENT_TIMESTAMP),($1,'PHONE',$5,$6,CURRENT_TIMESTAMP)`, [id, email, documentId, `${documentId.slice(0,3)}.${documentId.slice(3,6)}.${documentId.slice(6,9)}-${documentId.slice(9)}`, phone, formatPhone(phone)]);
   const raw = token(); await sql.query(`INSERT INTO bank_sessions(token_hash,account_id,expires_at,created_at) VALUES($1,$2,CURRENT_TIMESTAMP + INTERVAL '30 minutes',CURRENT_TIMESTAMP)`, [await sha256(raw), id]);
-  return json({ accountId: id, customerName, accountNumber, pixKey: email, balance: 2500, expiresAt: new Date(Date.now() + SESSION_SECONDS * 1000).toISOString() }, 201, { "set-cookie": sessionCookie(raw) });
+  return json({ accountId: id, customerName, accountNumber, pixKey: email, balance: 200, expiresAt: new Date(Date.now() + SESSION_SECONDS * 1000).toISOString() }, 201, { "set-cookie": sessionCookie(raw) });
 }
 
 async function recoverPin(sql: Sql, request: Request) {

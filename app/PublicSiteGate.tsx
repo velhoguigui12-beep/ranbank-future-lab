@@ -1,11 +1,37 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- Vinext serves the local RanBank brand image directly. */
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 import { Icon } from "./SiteIcons";
 import RaniAssistant, { openRani } from "./RaniAssistant";
+import { ControlDemo, MonthDemo, NoticesDemo, ScamHelpDemo } from "./CalmBank";
 import type { IconName } from "./SiteIcons";
+
+// Vídeo de fundo da abertura. Usa só os primeiros segundos: depois entra a arte antiga do cartão, com outra bandeira.
+const HERO_CLIP_END = 3.5;
+
+function HeroVideo() {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const resume = () => { if (!document.hidden) void ref.current?.play().catch(() => undefined); };
+    document.addEventListener("visibilitychange", resume);
+    return () => document.removeEventListener("visibilitychange", resume);
+  }, []);
+  return (
+    <video
+      ref={ref}
+      className="rs-hero-video"
+      autoPlay muted playsInline preload="auto" aria-hidden="true"
+      onTimeUpdate={(event) => {
+        const video = event.currentTarget;
+        if (video.currentTime > HERO_CLIP_END) { video.currentTime = 0; void video.play().catch(() => undefined); }
+      }}
+    >
+      <source src="/videos/ranbank-historia-2026.mp4#t=0,4" type="video/mp4" />
+    </video>
+  );
+}
 
 function Link({ href, children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
   return <a href={href} {...props}>{children}</a>;
@@ -50,42 +76,6 @@ const productFeatures: Array<{ icon: IconName; title: string; text: string }> = 
   { icon: "key", title: "Chaves Pix", text: "Cadastre ou apague CPF, e-mail, celular ou chave aleatória." },
 ];
 
-const pixSteps = [
-  { title: "Entrar", text: "Com CPF, conta ou e-mail e a sua senha de acesso." },
-  { title: "Conferir", text: "Antes de enviar, o app mostra o nome de quem vai receber." },
-  { title: "Confirmar", text: "Uma segunda senha, de 4 dígitos, usada só para movimentar dinheiro." },
-  { title: "Comprovar", text: "Comprovante na hora e a movimentação aparece no extrato." },
-];
-
-const impactDestinations: Array<{ icon: IconName; title: string; text: string; status: string }> = [
-  { icon: "book", title: "Educação financeira", text: "Oficinas sobre orçamento, Pix e golpes para jovens aprendizes e escolas, usando o próprio RanBank para praticar.", status: "Próximo passo" },
-  { icon: "sprout", title: "Crédito com propósito", text: "Condições melhores para pequenos negócios e projetos que geram renda ou reduzem impacto ambiental.", status: "Ideia" },
-  { icon: "users", title: "Comunidades e territórios", text: "Educação financeira e acesso digital em comunidades, inclusive indígenas, construídos junto com elas.", status: "Em estudo" },
-];
-
-const roadmap = [
-  { status: "Pronto", tone: "done", title: "Protótipo funcionando", text: "Site, conta de teste, Pix com senha, cartão, extrato, cofrinho e a assistente Rani, rodando na internet." },
-  { status: "Próximo passo", tone: "next", title: "Piloto educativo", text: "Usar o RanBank em oficinas com jovens para praticar Pix, orçamento e prevenção a golpes, sem dinheiro real." },
-  { status: "Em estudo", tone: "study", title: "Comunidades", text: "Levar educação financeira a comunidades, ouvindo cada uma antes de propor qualquer coisa." },
-  { status: "Futuro", tone: "future", title: "Crescer com apoio", text: "Encontrar mentores e apoiadores para transformar o piloto em um programa contínuo." },
-];
-
-const reasonsToBack: Array<{ icon: IconName; title: string; text: string }> = [
-  { icon: "check", title: "Já funciona", text: "Não é só apresentação: dá para entrar, fazer um Pix de teste e ver o comprovante agora." },
-  { icon: "alert", title: "Ataca um problema real", text: "Golpes e falta de informação atingem milhões de brasileiros todos os anos." },
-  { icon: "cloud", title: "Custa pouco para testar", text: "Hoje roda em serviços de nuvem gratuitos. Um piloto educativo não movimenta dinheiro real." },
-];
-
-const teamHighlights = [
-  { name: "Guilherme", role: "Presidente e CEO" },
-  { name: "Giulianno", role: "Vice-Presidente" },
-  { name: "Lívia", role: "Ouvidora-Geral" },
-  { name: "Lúcio", role: "Diretor de Tecnologia" },
-  { name: "Sarah", role: "Diretora de Comunicação" },
-  { name: "Rangel", role: "Diretor de Negócios" },
-  { name: "Pedro", role: "Diretor de RH" },
-];
-
 const frequentlyAskedQuestions = [
   { question: "O que é o RanBank?", answer: "É um projeto educacional que simula um banco digital. As contas, os cartões e os valores são fictícios e nenhuma operação movimenta dinheiro real." },
   { question: "O que dá para testar?", answer: "Entrar na conta de teste, fazer Pix entre contas de demonstração, ver o extrato, bloquear o cartão, guardar dinheiro no cofrinho e conversar com a Rani." },
@@ -122,6 +112,10 @@ function BrandLogo() {
   );
 }
 
+function CalmPoints({ items }: { items: string[] }) {
+  return <ul className="rs-calm-points">{items.map((item) => <li key={item}><Icon name="check" size={18} />{item}</li>)}</ul>;
+}
+
 function SectionHead({ label, title, text, center = false }: { label: string; title: ReactNode; text?: ReactNode; center?: boolean }) {
   return (
     <header className={`rs-head ${center ? "is-center" : ""}`}>
@@ -137,6 +131,7 @@ const navigation = [
   { href: "/seguranca", label: "Segurança" },
   { href: "/projetos", label: "Projetos e impacto" },
   { href: "/organograma", label: "Quem somos" },
+  { href: "/fundacao", label: "Fundação" },
   { href: "/#duvidas", label: "Ajuda" },
 ];
 
@@ -146,9 +141,6 @@ export function PublicHeader(props: { dark?: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <div className="rs-notice" role="note">
-        <strong>Projeto educacional.</strong> O RanBank é um banco fictício criado por jovens aprendizes. Nenhum valor é real.
-      </div>
       <header className={`rs-header ${open ? "is-open" : ""}`}>
         <div className="rs-header-inner">
           <Link className="rs-brand" href="/" aria-label="Página inicial do RanBank">
@@ -185,6 +177,7 @@ export function PublicFooter() {
           <Link href="/projetos">Projetos e impacto</Link>
           <Link href="/instituto">Instituto RanBank</Link>
           <Link href="/organograma">Nossa equipe</Link>
+          <Link href="/fundacao">Fundação RanBank (em breve)</Link>
         </div>
         <div className="rs-footer-col">
           <strong>Proteção</strong>
@@ -370,6 +363,8 @@ export function PublicHome() {
     <PublicShell className="rs-home">
       {/* 1. Abertura */}
       <section className="rs-hero">
+        <HeroVideo />
+        <div className="rs-hero-shade" aria-hidden="true" />
         <div className="rs-wrap rs-hero-grid">
           <div className="rs-hero-copy">
             <span className="rs-chip">Banco digital educacional</span>
@@ -380,7 +375,7 @@ export function PublicHome() {
             </p>
             <div className="rs-actions">
               <Link className="rs-btn rs-btn-primary rs-btn-lg" href="/banco">Ver o banco funcionando <Icon name="arrow" size={20} /></Link>
-              <Link className="rs-btn rs-btn-outline rs-btn-lg" href="#proposta">Conhecer a proposta</Link>
+              <Link className="rs-btn rs-btn-outline rs-btn-lg" href="#jeito-ranbank">Ver o app por dentro</Link>
             </div>
             <p className="rs-hero-proof"><Icon name="check" size={18} /> Protótipo no ar: dá para entrar e fazer um Pix de teste agora.</p>
           </div>
@@ -499,101 +494,40 @@ export function PublicHome() {
         </div>
       </section>
 
-      {/* 6. Segurança */}
-      <section className="rs-section rs-light" id="seguranca">
-        <div className="rs-wrap">
-          <SectionHead
-            label="Segurança"
-            title="Um Pix no RanBank passa por quatro etapas."
-            text="Cada etapa existe para impedir que o dinheiro vá para o lugar errado."
-          />
-          <ol className="rs-steps">
-            {pixSteps.map((step, index) => (
-              <li key={step.title}>
-                <b>{index + 1}</b>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </li>
-            ))}
-          </ol>
-          <Link className="rs-link" href="/seguranca">Ver a Central de Segurança <Icon name="arrow" size={18} /></Link>
-        </div>
-      </section>
-
-      {/* 7. Impacto */}
-      <section className="rs-section rs-impact" id="proposta">
-        <div className="rs-wrap">
-          <SectionHead
-            label="Proposta de impacto"
-            title="Um banco que cresce junto com a comunidade."
-            text="Bancos ganham dinheiro com tarifas que as lojas pagam no cartão, com crédito e com investimentos. A proposta do RanBank é separar uma parte fixa desse resultado para o Instituto RanBank."
-          />
-          <div className="rs-destinations">
-            {impactDestinations.map((item) => (
-              <article key={item.title}>
-                <div className="rs-destination-top">
-                  <i className="rs-tile-icon"><Icon name={item.icon} /></i>
-                  <span className="rs-status">{item.status}</span>
-                </div>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </article>
-            ))}
+      {/* 7-10. O app por dentro: quatro telas para mexer */}
+      <section className="rs-section rs-calm" id="jeito-ranbank">
+        <div className="rs-wrap rs-split">
+          <div>
+            <SectionHead label="Se der problema" title="Caí num golpe. E agora?" text="Na hora do susto, ninguém quer ler um texto enorme. O app faz três perguntas, uma por vez, e monta um plano para o caso da pessoa: o que o banco já resolveu e o que ainda falta fazer." />
+            <CalmPoints items={["Uma pergunta por vez, mesmo na pressa.", "O banco resolve sozinho o que pode.", "Nenhuma culpa, só os próximos passos."]} />
           </div>
-          <p className="rs-honest"><Icon name="alert" size={20} /> Tudo nesta parte é proposta. Nenhum projeto foi realizado e não existem parcerias oficiais.</p>
-          <Link className="rs-link" href="/projetos">Ver os projetos em detalhe <Icon name="arrow" size={18} /></Link>
+          <ScamHelpDemo />
         </div>
       </section>
 
-      {/* 8. Onde estamos */}
-      <section className="rs-section rs-light" id="caminho">
-        <div className="rs-wrap">
-          <SectionHead label="Onde estamos" title="Do protótipo ao piloto." />
-          <ol className="rs-roadmap">
-            {roadmap.map((item) => (
-              <li key={item.title} className={`is-${item.tone}`}>
-                <span className="rs-status">{item.status}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* 9. Por que apostar */}
-      <section className="rs-section rs-back">
-        <div className="rs-wrap">
-          <SectionHead label="Por que apostar no RanBank" title="Uma ideia pequena para testar. Um problema grande para resolver." center />
-          <div className="rs-reasons">
-            {reasonsToBack.map((reason) => (
-              <article key={reason.title}>
-                <i className="rs-tile-icon"><Icon name={reason.icon} /></i>
-                <h3>{reason.title}</h3>
-                <p>{reason.text}</p>
-              </article>
-            ))}
+      <section className="rs-section rs-light rs-calm">
+        <div className="rs-wrap rs-split is-flip">
+          <div>
+            <SectionHead label="Planejar o mês" title="O mês sem sustos." text="Antes de as contas chegarem, o app já mostra quanto deve sobrar. Tire ou ponha um gasto e veja a previsão mudar." />
+            <CalmPoints items={["O mês inteiro numa tela só.", "Aviso com antecedência, nunca no dia da conta.", "Mensagens sem bronca e sem culpa."]} />
           </div>
+          <MonthDemo />
         </div>
       </section>
 
-      {/* 10. Equipe */}
-      <section className="rs-section rs-light" id="equipe">
+      <section className="rs-section rs-calm">
         <div className="rs-wrap">
-          <SectionHead label="Quem faz" title="Feito por jovens aprendizes de Brasília." text="São 16 pessoas organizadas em presidência, ouvidoria e quatro áreas: tecnologia, comunicação, negócios e gestão de pessoas." />
-          <div className="rs-team">
-            {teamHighlights.map((person) => (
-              <article key={person.name}>
-                <span className="rs-avatar">{person.name[0]}</span>
-                <strong>{person.name}</strong>
-                <small>{person.role}</small>
-              </article>
-            ))}
-            <Link className="rs-team-more" href="/organograma">
-              <strong>+9</strong>
-              <small>Ver o organograma completo</small>
-            </Link>
+          <ControlDemo intro={<SectionHead label="Do seu jeito" title="Quem manda é você." text="Cada pessoa ajusta o app do seu jeito, e a tela muda na hora. Tudo pode ser mudado de novo, a qualquer momento." />} />
+        </div>
+      </section>
+
+      <section className="rs-section rs-light rs-calm">
+        <div className="rs-wrap rs-split is-flip">
+          <div>
+            <SectionHead label="Avisos" title="Avisos que acalmam." text="Cada aviso diz o que aconteceu e o que fazer, em poucas palavras. Toque nos avisos para ver como o RanBank fala com você." />
+            <CalmPoints items={["Primeiro o que aconteceu, depois o que fazer.", "Uma ação clara em cada aviso.", "Conquistas também viram aviso."]} />
           </div>
+          <NoticesDemo />
         </div>
       </section>
 
@@ -661,8 +595,8 @@ export function SecurityPublicPage() {
       <PageHero
         label="Central de Segurança RanBank"
         video="/videos/ranbank-demonstracao-01.mp4"
-        title="Segurança que dá para entender."
-        text="O que o RanBank faz para proteger a conta e o que você pode fazer para não cair em golpe."
+        title="O RanBank nunca pede sua senha por mensagem."
+        text="Nem por SMS, WhatsApp, e-mail ou ligação. Se alguém pedir, é golpe. Veja abaixo o que o banco faz para proteger a conta e o que você pode fazer."
       />
       <section className="rs-section rs-light">
         <div className="rs-wrap">
@@ -697,7 +631,7 @@ export function SecurityPublicPage() {
       <section className="rs-section rs-light">
         <div className="rs-wrap rs-split">
           <div>
-            <SectionHead label="Regra de ouro" title="O RanBank nunca pede sua senha por mensagem." text="Nem por SMS, WhatsApp, e-mail ou ligação. Se alguém pedir, é golpe." />
+            <SectionHead label="Na dúvida" title="Desligue e ligue você para o banco." text="Golpista conta com a sua pressa. Quem liga é você, pelo número que está no cartão ou no app." />
           </div>
           <div className="rs-ran-tip">
             <img src="/images/ran-assistente-humana.png" alt="" />
@@ -776,6 +710,70 @@ export function PrivacyPublicPage() {
             title="Ver, corrigir e apagar."
             text={<>Na conta de demonstração você pode trocar chaves Pix, recuperar a senha e pedir a desativação da conta. Dúvidas: <a href="mailto:privacidade@ranbank.demo">privacidade@ranbank.demo</a> (endereço fictício).</>}
           />
+        </div>
+      </section>
+    </PublicShell>
+  );
+}
+
+/* Fundação RanBank: ainda em construção. O fundo mostra uma prévia de como a página vai ficar. */
+const FOUNDATION_AREAS = ["Todos", "Tecnologia", "Comunicação", "Negócios", "Pessoas", "Ouvidoria"];
+const FOUNDATION_PREVIEW: Array<{ area: string; title: string; lessons: number; icon: IconName }> = [
+  { area: "Negócios", title: "Organizar o dinheiro do mês", lessons: 6, icon: "vault" },
+  { area: "Tecnologia", title: "Primeiros passos em programação", lessons: 8, icon: "key" },
+  { area: "Comunicação", title: "Como apresentar uma ideia", lessons: 5, icon: "chat" },
+  { area: "Pessoas", title: "Seu primeiro currículo", lessons: 4, icon: "users" },
+  { area: "Tecnologia", title: "Segurança digital no dia a dia", lessons: 6, icon: "shield" },
+  { area: "Ouvidoria", title: "Atendimento que acolhe", lessons: 4, icon: "phone" },
+  { area: "Negócios", title: "Como funciona um banco por dentro", lessons: 7, icon: "card" },
+  { area: "Comunicação", title: "Redes sociais com propósito", lessons: 5, icon: "eye" },
+];
+const FOUNDATION_PLAN: Array<{ icon: IconName; title: string; text: string }> = [
+  { icon: "book", title: "Cursos curtos", text: "Aulas simples, feitas por quem viveu o projeto, para quem está começando." },
+  { icon: "users", title: "Cada área ensina", text: "Tecnologia, comunicação, negócios, pessoas e ouvidoria: cada um compartilha o que aprendeu." },
+  { icon: "sprout", title: "Orientação", text: "Conversas sobre primeiro emprego, estudos e como transformar uma ideia em projeto." },
+];
+
+export function FoundationPublicPage() {
+  return (
+    <PublicShell className="rs-page">
+      <section className="fd">
+        {/* Prévia desfocada da página que está por vir */}
+        <div className="fd-ghost" aria-hidden="true">
+          <div className="rs-wrap">
+            <span className="rs-chip">Fundação RanBank</span>
+            <h2>Aprenda com quem fez.</h2>
+            <div className="fd-filters">{FOUNDATION_AREAS.map((area, index) => <span key={area} className={index === 0 ? "is-on" : ""}>{area}</span>)}</div>
+            <div className="fd-grid">
+              {FOUNDATION_PREVIEW.map((course, index) => (
+                <article key={course.title}>
+                  <i className="rs-tile-icon"><Icon name={course.icon} /></i>
+                  <small>{course.area}</small>
+                  <strong>{course.title}</strong>
+                  <span className="fd-meta">{course.lessons} aulas</span>
+                  <span className="fd-bar"><i style={{ width: `${(index * 23) % 90 + 10}%` }} /></span>
+                </article>
+              ))}
+            </div>
+            <nav className="fd-pages"><span>‹</span><span className="is-on">1</span><span>2</span><span>3</span><span>…</span><span>8</span><span>›</span></nav>
+          </div>
+        </div>
+
+        {/* O que existe hoje: o anúncio */}
+        <div className="rs-wrap fd-front">
+          <div className="fd-card">
+            <span className="fd-soon">Em breve</span>
+            <h1>Fundação RanBank</h1>
+            <p>Um espaço de cursos e orientações feito pela própria turma. Cada pessoa vai ensinar o que sabe da sua área, para que o que aprendemos construindo o RanBank chegue a mais gente.</p>
+            <ul>
+              {FOUNDATION_PLAN.map((item) => <li key={item.title}><i className="rs-tile-icon"><Icon name={item.icon} /></i><div><strong>{item.title}</strong><span>{item.text}</span></div></li>)}
+            </ul>
+            <p className="fd-note">Estamos construindo. O RanBank continua, e esta é a próxima parte da história.</p>
+            <div className="fd-actions">
+              <Link className="rs-btn rs-btn-primary" href="/organograma">Conhecer quem faz <Icon name="arrow" size={18} /></Link>
+              <Link className="rs-btn rs-btn-outline" href="/">Voltar ao início</Link>
+            </div>
+          </div>
         </div>
       </section>
     </PublicShell>

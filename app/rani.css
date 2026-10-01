@@ -9,6 +9,8 @@
   --rani-blue: #2563eb;
   --rani-blue-ink: #1d4fd8;
   --rani-blue-soft: #eaf0ff;
+  --rani-chat: #eef1f6;
+  --rani-green: #16a34a;
   font-family: var(--font-geist), "Segoe UI", Arial, sans-serif;
   color: var(--rani-text);
 }
@@ -20,6 +22,7 @@ html[data-bank-theme="dark"] .rani-bank {
   --rani-muted: #a9aeb9;
   --rani-blue-ink: #8fb1ff;
   --rani-blue-soft: rgba(37, 99, 235, 0.22);
+  --rani-chat: #0b0c0f;
 }
 .rani *, .rani *::before, .rani *::after { box-sizing: border-box; }
 .rani p { margin: 0; }
@@ -44,14 +47,52 @@ html[data-bank-theme="dark"] .rani-bank .rani-launcher { background: var(--rani-
   border: 1px solid var(--rani-line); background: var(--rani-bg); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35); overflow: hidden;
 }
 .rani-panel header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--rani-line); }
-.rani-panel header img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: top; background: #2a4fa8; }
+.rani-avatar { position: relative; flex: none; }
+.rani-panel header img { display: block; width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: top; background: #2a4fa8; }
+.rani-avatar i { position: absolute; right: 0; bottom: 1px; width: 13px; height: 13px; border-radius: 50%; background: var(--rani-green); border: 2.5px solid var(--rani-bg); }
 .rani-panel header div { display: grid; flex: 1; }
 .rani-panel header strong { font-size: 17px; }
 .rani-panel header small { font-size: 14px; color: var(--rani-muted); }
 .rani-panel header button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--rani-soft); color: var(--rani-text); font-size: 22px; line-height: 1; }
 
-.rani-messages { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px; overflow-y: auto; }
-.rani-bubble { align-self: flex-start; display: grid; gap: 6px; max-width: 88%; padding: 12px 16px; border-radius: 18px 18px 18px 6px; background: var(--rani-soft); }
+.rani-messages { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 16px; overflow-y: auto; background: var(--rani-chat); }
+.rani-day { align-self: center; padding: 3px 12px; border-radius: 999px; background: var(--rani-bg); color: var(--rani-muted); font-size: 12.5px; font-weight: 600; }
+.rani-system { align-self: center; max-width: 90%; padding: 6px 12px; border-radius: 10px; background: var(--rani-blue-soft); color: var(--rani-blue-ink); font-size: 13px; font-weight: 600; text-align: center; }
+.rani-row { display: grid; gap: 4px; justify-items: start; max-width: 88%; }
+.rani-row.is-user { align-self: flex-end; justify-items: end; }
+.rani-bubble { display: grid; gap: 6px; padding: 12px 16px; border-radius: 18px 18px 18px 6px; background: var(--rani-bg); box-shadow: 0 1px 2px rgba(12, 14, 18, 0.06); }
+.rani-meta { display: flex; align-items: center; gap: 8px; padding: 0 4px; font-size: 12px; color: var(--rani-muted); }
+.rani-meta > i { font-style: normal; letter-spacing: -0.15em; color: var(--rani-muted); }
+.rani-meta > i.is-read { color: var(--rani-blue); }
+.rani-meta em { font-style: normal; color: var(--rani-green); font-weight: 600; }
+.rani-thumbs { display: inline-flex; align-items: center; gap: 2px; }
+.rani-thumbs button { padding: 0 3px; border: 0; background: none; font-size: 14px; line-height: 1; opacity: .7; }
+.rani-thumbs button:hover { opacity: 1; }
+
+/* Cartões com dados da conta dentro da conversa */
+.rani-card { display: grid; gap: 8px; margin: 2px 0 0; padding: 12px; border-radius: 14px; background: var(--rani-soft); list-style: none; }
+.rani-card > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.rani-card small { font-size: 13px !important; font-weight: 500 !important; color: var(--rani-muted) !important; }
+.rani-card strong { font-size: 20px; }
+.rani-list li { display: flex; justify-content: space-between; gap: 12px; }
+.rani-list li + li { padding-top: 8px; border-top: 1px solid var(--rani-line); }
+.rani-list span { display: grid; min-width: 0; }
+.rani-list span strong { font-size: 14.5px; }
+.rani-list b { flex: none; font-size: 14.5px; }
+.rani-list b.is-in { color: var(--rani-green); }
+.rani-confirm { display: flex; flex-wrap: wrap; gap: 8px; }
+.rani-confirm button { min-height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--rani-line); background: var(--rani-bg); color: var(--rani-text); font-size: 14px; font-weight: 700; }
+.rani-confirm button:first-child { border-color: var(--rani-blue); background: var(--rani-blue); color: #fff; }
+.rani-confirm button.is-danger { border-color: #dc2626; background: #dc2626; }
+
+/* Avaliação ao fechar */
+.rani-rating { display: grid; justify-items: center; gap: 10px; margin-top: 4px; padding: 16px; border-radius: 16px; background: var(--rani-bg); text-align: center; font-size: 15px; }
+.rani-stars { display: flex; gap: 4px; }
+.rani-stars button { border: 0; background: none; color: #f5b301; font-size: 30px; line-height: 1; transition: transform .1s ease; }
+.rani-stars button:hover { transform: scale(1.15); }
+.rani-stars:hover button { color: #f5b301; }
+.rani-stars button:hover ~ button { color: var(--rani-line); }
+.rani-skip { border: 0; background: none; color: var(--rani-muted); font-size: 14px; text-decoration: underline; }
 .rani-bubble p { font-size: 16px; line-height: 1.45; }
 .rani-bubble small { font-size: 12.5px; font-weight: 700; color: var(--rani-blue-ink); }
 .rani-bubble.is-user { align-self: flex-end; border-radius: 18px 18px 6px 18px; background: var(--rani-blue); color: #fff; }
@@ -66,7 +107,7 @@ html[data-bank-theme="dark"] .rani-bank .rani-launcher { background: var(--rani-
 .rani-typing i:nth-child(3) { animation-delay: .4s; }
 @keyframes rani-blink { to { opacity: 1; } }
 
-.rani-suggestions { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; }
+.rani-suggestions { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; background: var(--rani-chat); }
 .rani-suggestions button { flex: none; padding: 8px 14px; border: 1px solid var(--rani-line); border-radius: 999px; background: var(--rani-bg); color: var(--rani-text); font-size: 14px; font-weight: 600; }
 .rani-suggestions button:hover { border-color: var(--rani-blue); color: var(--rani-blue-ink); }
 .rani-form { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--rani-line); }
@@ -74,7 +115,9 @@ html[data-bank-theme="dark"] .rani-bank .rani-launcher { background: var(--rani-
 .rani-form input:focus { outline: none; border-color: var(--rani-blue); }
 .rani-form button { width: 48px; height: 48px; border: 0; border-radius: 50%; background: var(--rani-blue); color: #fff; font-size: 20px; }
 .rani-form button:disabled { opacity: .4; }
-.rani-panel footer { padding: 0 16px 12px; font-size: 12.5px; color: var(--rani-muted); text-align: center; }
+/* Lista de sugestões rola para o lado sem mostrar a barra de rolagem. */
+.rani-suggestions { scrollbar-width: none; }
+.rani-suggestions::-webkit-scrollbar { display: none; }
 
 @media (max-width: 1024px) {
   .rani-bank .rani-launcher { bottom: 88px; right: 16px; }
